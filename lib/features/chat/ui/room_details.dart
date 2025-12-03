@@ -131,10 +131,7 @@ class ChatDetailsScreen extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey.shade200,
-                        width: 1,
-                      ),
+                      bottom: BorderSide(color: Colors.grey.shade200, width: 1),
                     ),
                   ),
                   child: ListTile(
@@ -153,7 +150,7 @@ class ChatDetailsScreen extends StatelessWidget {
                   ),
                 ),
                 ...List.generate(
-                  5,
+                  4,
                   (index) => Container(
                     decoration: BoxDecoration(
                       border: Border(
@@ -175,6 +172,34 @@ class ChatDetailsScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+                    ),
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      /*Move to another screen with full list*/
+                      ;
+                    },
+                    child: ListTile(
+                      title: Text(
+                        'See all',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        size: 25,
+                        color: Colors.black,
                       ),
                     ),
                   ),
