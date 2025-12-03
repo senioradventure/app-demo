@@ -128,23 +128,42 @@ class ChatDetailsScreen extends StatelessWidget {
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               children: [
-                ListTile(
-                  leading: CircleAvatar(
-                    radius: 22.0,
-                    backgroundImage: AssetImage('assets/images/avatar.png'),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey.shade200,
+                        width: 1,
+                      ),
+                    ),
                   ),
-                  title: Text(
-                    'Chai Talks',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 22.0,
+                      backgroundImage: AssetImage('assets/images/avatar.png'),
+                    ),
+                    title: Text(
+                      'Chai Talks',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ),
                 ...List.generate(
-                    5,
-                    (index) => ListTile(
+                  5,
+                  (index) => Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey.shade200,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: ListTile(
                       leading: CircleAvatar(
                         radius: 22.0,
                         backgroundImage: AssetImage('assets/images/avatar.png'),
@@ -158,9 +177,10 @@ class ChatDetailsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                )
+                  ),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),
