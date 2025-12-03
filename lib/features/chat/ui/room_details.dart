@@ -40,7 +40,14 @@ class ChatDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(),
-    );
+      body: Column(
+          children: [
+            const SizedBox(
+              height: 20.0,
+              child: Divider(thickness: 1.0, color: Colors.black),
+            ),
+          ],
+        ),
+      );
   }
 }
