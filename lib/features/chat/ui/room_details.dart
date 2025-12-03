@@ -41,11 +41,16 @@ class ChatDetailsScreen extends StatelessWidget {
         ],
       ),
       body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(
               height: 20.0,
               child: Divider(thickness: 1.0, color: Colors.black),
             ),
+            const CircleAvatar(
+              radius: 50.0,
+              backgroundImage: AssetImage('assets/images/avatar.png'),
+            )
           ],
         ),
       );
