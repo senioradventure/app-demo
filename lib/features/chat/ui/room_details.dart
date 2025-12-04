@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'members_list_fullscreen.dart';
 
 void main() {
   runApp(
@@ -237,8 +238,12 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   ),
                   child: InkWell(
                     onTap: () {
-                      /*Move to another screen with full list*/
-                      ;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MembersListFullscreen(),
+                        ),
+                      );
                     },
                     child: ListTile(
                       title: Text(
