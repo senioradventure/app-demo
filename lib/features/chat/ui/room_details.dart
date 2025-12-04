@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-/*void main() {
-  runApp(const MaterialApp(
+void main() {
+  runApp(
+    const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ChatDetailsScreen()
-  )
+      home: ChatDetailsScreen(),
+    ),
   );
-}*/
+}
 
 const name = "Chai Talks";
 
@@ -79,7 +80,50 @@ class ChatDetailsScreen extends StatelessWidget {
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: const Text('Tea'),
+                          decoration: BoxDecoration(
+                            color: const Color(0xd7d7e6fa),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: const Text('Tea'),
+                          decoration: BoxDecoration(
+                            color: const Color(0xd7d7e6fa),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: const Text('Friends'),
+                          decoration: BoxDecoration(
+                            color: const Color(0xd7d7e6fa),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Container(
