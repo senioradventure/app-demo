@@ -11,9 +11,14 @@ void main() {
 
 const name = "Chai Talks";
 
-class ChatDetailsScreen extends StatelessWidget {
+class ChatDetailsScreen extends StatefulWidget {
   const ChatDetailsScreen({super.key});
 
+  @override
+  State<ChatDetailsScreen> createState() => _ChatDetailsScreenState();
+}
+
+class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +55,7 @@ class ChatDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
