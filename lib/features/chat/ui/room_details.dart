@@ -201,6 +201,18 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         color: Colors.black,
                       ),
                     ),
+                    trailing: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      child: const Text('Admin'),
+                      decoration: BoxDecoration(
+                        color: Colors.amberAccent.shade100,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                   ),
                 ),
                 ...List.generate(
