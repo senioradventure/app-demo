@@ -53,6 +53,7 @@ class PreviewScreen extends StatelessWidget {
   }
 }
 
+//dummy members data
 final List<Map<String, dynamic>> members = [
   {
     "url": "https://randomuser.me/api/portraits/men/32.jpg",
