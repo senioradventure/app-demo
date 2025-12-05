@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/common/widgets/common_app_bar.dart';
-import 'package:senior_circle/common/widgets/image_picker_widget/image_picker_widget.dart';
+import 'package:senior_circle/common/widgets/image_picker_widget.dart';
 import 'package:senior_circle/common/widgets/text_field_with_counter.dart';
-import 'package:senior_circle/features/createroom/presentation/widgets/create_room_confirmbutton_widget.dart';
+import 'package:senior_circle/common/widgets/bottom_button.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_interest_widget.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_location_textfield_widget.dart';
 import 'package:senior_circle/theme/strings/lists.dart';
@@ -82,7 +82,8 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: ConfirmButton(
+      bottomNavigationBar: BottomButton(
+        buttonText: 'CONFIRM',
         onTap: () {
           print("Create Room Tapped");
         },

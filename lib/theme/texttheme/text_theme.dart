@@ -22,6 +22,24 @@ class AppTextTheme {
       color: AppColors.textBlack,
       fontStyle: FontStyle.normal,
     ),
+    displayLarge: GoogleFonts.inter(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      color: AppColors.textBlack,
+      fontStyle: FontStyle.normal,
+    ),
+    displayMedium: GoogleFonts.inter(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: AppColors.textBlack,
+      fontStyle: FontStyle.normal,
+    ),
+    displaySmall: GoogleFonts.inter(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: AppColors.textGray,
+      fontStyle: FontStyle.normal,
+    ),
   );
 
   static TextTheme darkTextTheme = TextTheme();

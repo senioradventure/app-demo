@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
+import 'package:senior_circle/features/details/presentation/details_screen.dart';
+import 'package:senior_circle/features/preview/presentation/preview_screen.dart';
 import 'package:senior_circle/theme/apptheme/app_theme.dart';
 
 void main() {
@@ -16,7 +18,7 @@ class SeniorCircleApp extends StatelessWidget {
       theme: AppTheme.lightMode,
       darkTheme: AppTheme.darkMode,
       debugShowCheckedModeBanner: false,
-      home: const CreateRoomScreen(),
+      home: const DetailsScreen(),
     );
   }
 }
