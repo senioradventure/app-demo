@@ -5,8 +5,13 @@ import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class MessageActions extends StatelessWidget {
   final VoidCallback onReplyTap;
+  final bool isReply;
 
-  const MessageActions({super.key, required this.onReplyTap});
+  const MessageActions({
+    super.key,
+    required this.onReplyTap,
+    this.isReply = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +39,18 @@ class MessageActions extends StatelessWidget {
         ),
 
         const Spacer(),
-        TextButton.icon(
-          onPressed: onReplyTap,
-          icon: SvgPicture.asset('assets/icons/reply_icon.svg'),
-          label: Text(
-            "Reply",
-            style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
-              color: AppColors.textDarkGray,
+
+        if (!isReply)
+          TextButton.icon(
+            onPressed: onReplyTap,
+            icon: SvgPicture.asset('assets/icons/reply_icon.svg'),
+            label: Text(
+              "Reply",
+              style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
+                color: AppColors.textDarkGray,
+              ),
             ),
           ),
-        ),
       ],
     );
   }

@@ -1,10 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_actions.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_replies.dart';import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_replies.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
-
 
 final List<Message> messages = [
   Message(
@@ -16,14 +15,14 @@ final List<Message> messages = [
     replies: [
       Message(
         id: '1-1',
-        sender: 'Bob',
+        sender: 'You',
         avatar: 'https://i.pravatar.cc/150?img=2',
         text: 'Hi Alice!',
         time: '10:03 AM',
       ),
       Message(
-        id: '1-1',
-        sender: 'clara',
+        id: '1-2',
+        sender: 'Clara',
         avatar: 'https://i.pravatar.cc/150?img=2',
         text: 'Hi Alice!',
         time: '10:03 AM',
@@ -33,7 +32,7 @@ final List<Message> messages = [
   ),
   Message(
     id: '2',
-    sender: 'Bob',
+    sender: 'You',
     avatar: 'https://i.pravatar.cc/150?img=2',
     text: 'Hi Alice!',
     time: '10:02 AM',
@@ -48,11 +47,11 @@ final List<Message> messages = [
   ),
 ];
 
-
 class MessageCard extends StatefulWidget {
   final Message message;
+  final bool isReply;
 
-  const MessageCard({super.key, required this.message});
+  const MessageCard({super.key, required this.message, this.isReply = false});
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -63,68 +62,85 @@ class _MessageCardState extends State<MessageCard> {
   Widget build(BuildContext context) {
     final message = widget.message;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage(message.avatar),
-          ),
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(message),
-                const SizedBox(height: 4),
-                Text(message.text,
-                    style: AppTextTheme.lightTextTheme.bodyMedium),
-                const SizedBox(height: 6),
-
-                MessageActions(
-                  onReplyTap: () {},
-                ),
-
-                if (message.replies.isNotEmpty)
-                  _buildReplyButton(message),
-
-                if (message.isThreadOpen)
-                  MessageReplies(replies: message.replies),
-              ],
+    return Container(
+      color: message.sender.toLowerCase() == 'you'
+          ? const Color(0xFFF9EFDB)
+          : AppColors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundImage: NetworkImage(message.avatar),
             ),
-          )
-        ],
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(message),
+                  const SizedBox(height: 4),
+                  Text(
+                    message.text,
+                    style: AppTextTheme.lightTextTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 6),
+
+                  MessageActions(onReplyTap: () {}, isReply: widget.isReply),
+
+                  if (message.replies.isNotEmpty) _buildReplyButton(message),
+
+                  if (message.isThreadOpen)
+                    MessageReplies(replies: message.replies),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHeader(Message message) => Row(
     children: [
-      Text(message.sender, style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-      )),
+      Text(
+        message.sender,
+        style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       const SizedBox(width: 14),
-      Text(message.time, style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
-       fontWeight: FontWeight.w700),
+      Text(
+        message.time,
+        style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
       ),
     ],
   );
 
   Widget _buildReplyButton(Message message) => Center(
     child: TextButton.icon(
-      onPressed: () => setState(() => message.isThreadOpen = !message.isThreadOpen),
+      onPressed: () =>
+          setState(() => message.isThreadOpen = !message.isThreadOpen),
       label: Text(
         "${message.replies.length} Replies",
         style: TextStyle(
-          color: message.isThreadOpen ? AppColors.textDarkGray : AppColors.buttonBlue,
+          color: message.isThreadOpen
+              ? AppColors.textDarkGray
+              : AppColors.buttonBlue,
         ),
       ),
       icon: Icon(
-        message.isThreadOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-        color: message.isThreadOpen ? AppColors.textDarkGray : AppColors.buttonBlue,
+        message.isThreadOpen
+            ? Icons.keyboard_arrow_up
+            : Icons.keyboard_arrow_down,
+        color: message.isThreadOpen
+            ? AppColors.textDarkGray
+            : AppColors.buttonBlue,
         size: 24,
       ),
       iconAlignment: IconAlignment.end,

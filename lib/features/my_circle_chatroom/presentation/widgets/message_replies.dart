@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_messages.dart';
 
-
 class MessageReplies extends StatelessWidget {
   final List<Message> replies;
 
@@ -10,14 +9,10 @@ class MessageReplies extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: replies
-            .map((reply) => MessageCard(message: reply))
-            .toList(),
-      ),
+    return Column(
+      children: replies
+          .map((reply) => MessageCard(message: reply, isReply: true))
+          .toList(),
     );
   }
 }
