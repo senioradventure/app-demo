@@ -1,29 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:senior_circle/features/livechat/models/contact.dart';
 
 
 final ValueNotifier<bool> isListening = ValueNotifier<bool>(false);
 final ValueNotifier<List<Contact>> filteredContactList =
     ValueNotifier<List<Contact>>([]);
 
-final List<Contact> masterContactList = <Contact>[
-  Contact(contactFirstName: 'Chai Talks', contactEmail: 'alice@example.com'),
-  Contact(contactFirstName: 'Chai Talks', contactEmail: 'bob@example.com'),
-  Contact(contactFirstName: 'Knitting Away my lifeaasasasaasa', contactEmail: 'charlie@example.com'),
-];
-
-class Contact {
-  String contactFirstName;
-  String contactEmail;
-  bool favourite;
-  final List<String> tags;
-  Contact({
-    required this.contactFirstName,
-    required this.contactEmail,
-    this.favourite = false,
-    List<String>? tags,     
-  }) : tags = tags ?? const ['Tea', 'Tea', 'Friends']; 
-}
 
 class LiveChatPage extends StatelessWidget {
   const LiveChatPage({super.key});
@@ -35,8 +18,7 @@ class LiveChatPage extends StatelessWidget {
       return;
     }
     filteredContactList.value = masterContactList.where((c) {
-      return c.contactFirstName.toLowerCase().contains(q) ||
-          c.contactEmail.toLowerCase().contains(q);
+      return c.contactFirstName.toLowerCase().contains(q); 
     }).toList();
   }
 
@@ -58,7 +40,7 @@ class LiveChatPage extends StatelessWidget {
         child: Container(
     color: const Color(0xFFF9F9F7),
         child: Column(
-          children: [Padding(
+          children: [Padding( 
     padding: EdgeInsets.only(top: 15,left: 27),
     child: Row(
          mainAxisAlignment: MainAxisAlignment.start,
@@ -483,7 +465,7 @@ Wrap(
     onPressed: () {
       final newContact = Contact(
         contactFirstName: 'New${masterContactList.length + 1}',
-        contactEmail: 'new${masterContactList.length + 1}@example.com',
+       
       );
       masterContactList.add(newContact);
       filteredContactList.value = List.from(masterContactList);
