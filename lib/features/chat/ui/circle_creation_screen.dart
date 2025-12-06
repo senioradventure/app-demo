@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(
@@ -45,23 +45,49 @@ class CircleCreationScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(
-        color: Colors.grey.shade100,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              height: 20,
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.grey.shade300, width: 1),
+      body: Column(
+        children: [
+          Container(height: 1, color: Colors.grey.shade300),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 20),
+                    // Camera Placeholder
+                    Center(
+                      child: DottedBorder(
+                        borderType: BorderType.Circle,
+                        dashPattern: const [6, 3],
+                        color: Colors.grey,
+                        strokeWidth: 2,
+                        child: Container(
+                          height: 80,
+                          width: 80,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFF5F5F5),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.camera_alt_outlined,
+                              color: Colors.grey,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                  ],
                 ),
               ),
             ),
-
-          ],
-        ),
-      )
+          ),
+        ],
+      ),
     );
   }
 }
