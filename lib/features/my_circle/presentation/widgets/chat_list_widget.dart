@@ -22,16 +22,21 @@ class Chat {
 
 class ChatListWidget extends StatelessWidget {
   final List<Chat> chats;
+  final List<Chat> foundResults;
 
-  const ChatListWidget({super.key, required this.chats});
+  const ChatListWidget({
+    super.key,
+    required this.chats,
+    required this.foundResults,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      itemCount: chats.length,
+      itemCount: foundResults.length,
       separatorBuilder: (context, index) => SizedBox(),
       itemBuilder: (context, index) {
-        final chat = chats[index];
+        final chat = foundResults[index];
         return ListTile(
           tileColor: AppColors.white,
           leading: chat.isGroup
@@ -62,7 +67,7 @@ class ChatListWidget extends StatelessWidget {
                 chat.time,
                 style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
                   color: AppColors.textGray,
-                )
+                ),
               ),
             ],
           ),
@@ -83,18 +88,22 @@ class ChatListWidget extends StatelessWidget {
                           if (sender.isNotEmpty)
                             TextSpan(
                               text: '$sender: ',
-                              style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: isMe ? AppColors.textGray : AppColors.buttonBlue,
-                              ),
+                              style: AppTextTheme.lightTextTheme.labelMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: isMe
+                                        ? AppColors.textGray
+                                        : AppColors.buttonBlue,
+                                  ),
                             ),
                           TextSpan(
                             text: message,
-                            style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
-                              color: chat.unreadCount > 0
-                                  ? AppColors.buttonBlue
-                                  : AppColors.textGray,
-                            ),
+                            style: AppTextTheme.lightTextTheme.labelMedium
+                                ?.copyWith(
+                                  color: chat.unreadCount > 0
+                                      ? AppColors.buttonBlue
+                                      : AppColors.textGray,
+                                ),
                           ),
                         ],
                       ),
