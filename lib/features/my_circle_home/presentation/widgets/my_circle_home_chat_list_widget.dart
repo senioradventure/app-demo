@@ -21,14 +21,9 @@ class Chat {
 }
 
 class ChatListWidget extends StatelessWidget {
-  final List<Chat> chats;
   final List<Chat> foundResults;
 
-  const ChatListWidget({
-    super.key,
-    required this.chats,
-    required this.foundResults,
-  });
+  const ChatListWidget({super.key, required this.foundResults});
 
   @override
   Widget build(BuildContext context) {
@@ -132,9 +127,7 @@ class ChatListWidget extends StatelessWidget {
               ],
             ],
           ),
-          onTap: () {
-            // Handle chat tap
-          },
+          onTap: () {},
         );
       },
     );

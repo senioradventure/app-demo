@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/my_circle/presentation/widgets/add_chat_widget.dart';
-import 'package:senior_circle/features/my_circle/presentation/widgets/chat_list_widget.dart';
-import 'package:senior_circle/features/my_circle/presentation/widgets/search_bar_widget.dart';
-import 'package:senior_circle/features/my_circle/presentation/widgets/starred_message_widget.dart';
+import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
+import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
+import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_search_bar_widget.dart';
+import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_starred_message_widget.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
@@ -100,9 +100,7 @@ class _MyCirclePageState extends State<MyCirclePage> {
           SearchBarWidget(onChanged: (value) => runfilter(value)),
           SizedBox(height: 8),
           StarredMessageWidget(),
-          Expanded(
-            child: ChatListWidget(chats: chats, foundResults: foundResults),
-          ),
+          Expanded(child: ChatListWidget(foundResults: foundResults)),
           AddChatWidget(),
         ],
       ),
