@@ -161,6 +161,33 @@ class CircleCreationScreen extends StatelessWidget {
               ),
             ),
           ),
+          Container(height: 1, color: Colors.grey.shade300),
+          InkWell(
+            onTap: () {
+              // Handle Creation
+            },
+            child: Container(
+              width: double.infinity,
+              height: 55,
+              color: const Color(0xFF4A90E2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.add, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text(
+                    "CREATE",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
