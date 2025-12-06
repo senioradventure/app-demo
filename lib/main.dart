@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/home/home_page.dart';
-import 'package:senior_circle/features/my_circle/page/my_circle_page.dart';
+import 'package:senior_circle/features/my_circle/presentation/page/my_circle_page.dart';
+import 'package:senior_circle/theme/apptheme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,9 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey.shade800),
-      ),
+       theme: AppTheme.lightMode,
       home: const MyCirclePage(),
     );
   }

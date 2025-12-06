@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class StarredMessageWidget extends StatelessWidget {
   const StarredMessageWidget({super.key});
@@ -24,16 +26,12 @@ class StarredMessageWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8.0, top: 16, bottom: 16),
               child: Text(
-                'Starred Message',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Inter',
-                ),
+                'Starred Messages',
+                style: AppTextTheme.lightTextTheme.titleMedium,
               ),
             ),
             Spacer(),
-            Icon(Icons.arrow_forward_ios, size: 16),
+            Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.iconColor),
           ],
         ),
       ),

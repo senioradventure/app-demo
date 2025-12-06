@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class Chat {
   final String name;
@@ -31,7 +33,7 @@ class ChatListWidget extends StatelessWidget {
       itemBuilder: (context, index) {
         final chat = chats[index];
         return ListTile(
-          tileColor: Colors.white,
+          tileColor: AppColors.white,
           leading: chat.isGroup
               ? CircleAvatar(
                   backgroundImage: AssetImage(chat.imageUrl),
@@ -52,17 +54,15 @@ class ChatListWidget extends StatelessWidget {
               Expanded(
                 child: Text(
                   chat.name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: AppTextTheme.lightTextTheme.titleMedium,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
                 chat.time,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
+                  color: AppColors.textGray,
+                )
               ),
             ],
           ),
@@ -73,23 +73,27 @@ class ChatListWidget extends StatelessWidget {
                   builder: (context) {
                     final parts = chat.lastMessage.split(': ');
                     final sender = parts.length > 1 ? parts[0] : '';
-                    final message = parts.length > 1 ? parts[1] : chat.lastMessage;
-                    final isMe = sender.toLowerCase() == 'you' || sender.toLowerCase() == 'me';
+                    final message = parts.length > 1
+                        ? parts[1]
+                        : chat.lastMessage;
+                    final isMe = sender.toLowerCase() == 'you';
                     return RichText(
                       text: TextSpan(
                         children: [
                           if (sender.isNotEmpty)
                             TextSpan(
                               text: '$sender: ',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: isMe ?  Colors.black : Color(0xFF4A90E2),
+                              style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: isMe ? AppColors.textGray : AppColors.buttonBlue,
                               ),
                             ),
                           TextSpan(
                             text: message,
-                            style: TextStyle(
-                              color: chat.unreadCount > 0 ? Color(0xFF4A90E2) : Colors.black,
+                            style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
+                              color: chat.unreadCount > 0
+                                  ? AppColors.buttonBlue
+                                  : AppColors.textGray,
                             ),
                           ),
                         ],
@@ -105,14 +109,13 @@ class ChatListWidget extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Color(0xFF4A90E2),
+                    color: AppColors.buttonBlue,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     chat.unreadCount.toString(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
+                    style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
+                      color: AppColors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
