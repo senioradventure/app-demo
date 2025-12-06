@@ -16,6 +16,7 @@ class CircleCreationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
@@ -53,7 +54,7 @@ class CircleCreationScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
                     // Camera Placeholder
@@ -74,7 +75,7 @@ class CircleCreationScreen extends StatelessWidget {
                             child: Icon(
                               Icons.camera_alt_outlined,
                               color: Colors.grey,
-                              size: 30,
+                              size: 35,
                             ),
                           ),
                         ),
@@ -103,6 +104,8 @@ class CircleCreationScreen extends StatelessWidget {
                     // Name field
                     TextField(
                       decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
                         hintText: "Give you circle a name",
                         hintStyle: TextStyle(color: Colors.grey.shade400),
                         contentPadding: const EdgeInsets.symmetric(
@@ -131,6 +134,8 @@ class CircleCreationScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     TextField(
                       decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
                         hintText: "Search for friends",
                         prefixIcon: const Icon(
                           Icons.search,
