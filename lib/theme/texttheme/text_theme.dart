@@ -23,6 +23,13 @@ class AppTextTheme {
       color: AppColors.textLightGray,
       fontStyle: FontStyle.normal,
     ),
+    bodyMedium: GoogleFonts.inter(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: AppColors.textBlack,
+      fontStyle: FontStyle.normal,
+    ),
+
     headlineMedium: GoogleFonts.inter(
       fontSize: 16,
       fontWeight: FontWeight.w700,

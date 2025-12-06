@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/home/home_page.dart';
-import 'package:senior_circle/features/my_circle/presentation/page/my_circle_page.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_chatroom_page.dart';
+import 'package:senior_circle/features/my_circle_home/presentation/page/my_circle_home_page.dart';
 import 'package:senior_circle/theme/apptheme/app_theme.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Senior Circle',
        theme: AppTheme.lightMode,
-      home: const MyCirclePage(),
+      home: const MyCircleChatroomPage(),
     );
   }
 }

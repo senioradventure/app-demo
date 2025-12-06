@@ -1,24 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
-class Chat {
-  final String name;
-  final String lastMessage;
-  final String imageUrl;
-  final bool isGroup;
-  final String time;
-  final int unreadCount;
 
-  Chat({
-    required this.name,
-    required this.lastMessage,
-    required this.imageUrl,
-    required this.isGroup,
-    required this.time,
-    this.unreadCount = 0,
-  });
-}
 
 class ChatListWidget extends StatelessWidget {
   final List<Chat> foundResults;
