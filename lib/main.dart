@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/home/home_page.dart';
+import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
+import 'package:senior_circle/theme/apptheme/app_theme.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const SeniorCircleApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SeniorCircleApp extends StatelessWidget {
+  const SeniorCircleApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const HomePage(),
+      title: 'Senior Circle',
+      theme: AppTheme.lightMode,
+      darkTheme: AppTheme.darkMode,
+      debugShowCheckedModeBanner: false,
+      home: const CreateRoomScreen(),
     );
   }
 }
