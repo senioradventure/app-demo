@@ -10,9 +10,14 @@ void main() {
   );
 }
 
-class CircleCreationScreen extends StatelessWidget {
+class CircleCreationScreen extends StatefulWidget {
   const CircleCreationScreen({super.key});
 
+  @override
+  State<CircleCreationScreen> createState() => _CircleCreationScreenState();
+}
+
+class _CircleCreationScreenState extends State<CircleCreationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +81,7 @@ class CircleCreationScreen extends StatelessWidget {
                               ),
                               child: const Center(
                                 child: Icon(
-                                  Icons.camera_alt_outlined,
+                                  Icons.camera_alt_rounded,
                                   color: Colors.grey,
                                   size: 35,
                                 ),
@@ -181,7 +186,7 @@ class CircleCreationScreen extends StatelessWidget {
                         ),
                       ),
                       ...List.generate(
-                        5,
+                        10,
                         (index) => Container(
                           decoration: BoxDecoration(
                             border: Border(
@@ -193,19 +198,38 @@ class CircleCreationScreen extends StatelessWidget {
                           ),
                           child: ListTile(
                             tileColor: Colors.white,
-                            leading: CircleAvatar(
-                              radius: 22.0,
-                              backgroundImage: AssetImage(
-                                'assets/images/member_avatar.jpg',
-                              ),
+                            leading: Checkbox(
+                              value: false,
+                              onChanged: (value) {},
                             ),
-                            title: Text(
-                              'Chai Talks',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
+                            title: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 44.0,
+                                  height: 44.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    image: DecorationImage(
+                                      image: const AssetImage(
+                                        'assets/images/member_avatar.jpg',
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Chai Talks',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
