@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 final ValueNotifier<List<ChatMessage>> chatMessages =
     ValueNotifier<List<ChatMessage>>([
+      
 
   
   ChatMessage(

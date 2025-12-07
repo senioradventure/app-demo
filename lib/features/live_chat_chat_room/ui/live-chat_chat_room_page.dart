@@ -10,8 +10,8 @@ final TextEditingController messageController = TextEditingController();
 
 
 
-class chatroom extends StatelessWidget {
-  const chatroom({super.key});
+class Chatroom extends StatelessWidget {
+  const Chatroom({super.key});
   
   @override
   Widget build(BuildContext context) {
@@ -98,6 +98,73 @@ class chatroom extends StatelessWidget {
     child: ValueListenableBuilder<List<ChatMessage>>(
   valueListenable: chatMessages,
   builder: (context, list, _) {
+    if (list.isEmpty) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            SizedBox(height: 80),
+            const Text(
+              'No messages in chat',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 235),
+
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: SizedBox(
+                  width: 325,
+                  height:88,
+                  child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Row(
+      children:  [
+        Image.asset(
+  'assets/icons/bell.png',  
+  height: 22,
+)
+
+      ],
+    ),
+
+SizedBox(height:2),
+    const Text(
+      'Chat Room has been created. Type a message to start the discussion.',
+      style: TextStyle(
+        fontSize: 13,
+        color: Colors.black,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  ],
+)
+
+                ),
+              ),
+              ),
+            ),
+            const SizedBox(height: 15),
+          ],
+        );
+      }
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 14, 12, 0),
       itemCount: list.length,
@@ -442,7 +509,11 @@ else
                             ),
                           ),
                         ),
-                        const Divider(height: 1),
+                        Divider(
+  height: 1,
+  thickness: 0.6,
+  color: Color(0xFFE3E3E3),
+),
 
                        
                         InkWell(
@@ -473,7 +544,11 @@ else
                             ),
                           ),
                         ),
-                        const Divider(height: 1),
+                        Divider(
+  height: 1,
+  thickness: 0.6,
+  color: Color(0xFFE3E3E3),
+),
 
                        
                         InkWell(
@@ -500,7 +575,11 @@ else
                             ),
                           ),
                         ),
-                        const Divider(height: 1),
+                        Divider(
+  height: 1,
+  thickness: 0.6,
+  color: Color(0xFFE3E3E3),
+),
 
                        
                         InkWell(
@@ -527,7 +606,12 @@ else
                             ),
                           ),
                         ),
-                        const Divider(height: 1),
+                        Divider(
+  height: 1,
+  thickness: 0.6,
+  color: Color(0xFFE3E3E3),
+),
+
 
                        
                         InkWell(
@@ -698,6 +782,11 @@ else
   cursorColor: Colors.black,
   cursorWidth: 2,
   cursorHeight: 18, 
+  style: const TextStyle(
+    color: Colors.black,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+  ),
   decoration: const InputDecoration(
     hintText: 'Type a message',
     hintStyle: TextStyle(

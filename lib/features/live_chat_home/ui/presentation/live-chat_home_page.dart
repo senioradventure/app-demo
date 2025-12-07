@@ -1,11 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/constants/contact.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/livetv_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/my_circle_page.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/sessions_page.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/trips_page.dart';
 
 
 final ValueNotifier<bool> isListening = ValueNotifier<bool>(false);
