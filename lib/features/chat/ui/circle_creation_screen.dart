@@ -55,125 +55,119 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
         children: [
           Container(height: 1, color: Colors.grey.shade300),
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        // Camera Placeholder
-                        Center(
-                          child: DottedBorder(
-                            borderType: BorderType.Circle,
-                            dashPattern: const [6, 3],
-                            color: Colors.grey,
-                            strokeWidth: 2,
-                            child: Container(
-                              height: 80,
-                              width: 80,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFFF5F5F5),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.camera_alt_rounded,
-                                  color: Colors.grey,
-                                  size: 35,
-                                ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      // Camera Placeholder
+                      Center(
+                        child: DottedBorder(
+                          borderType: BorderType.Circle,
+                          dashPattern: const [6, 3],
+                          color: Colors.grey,
+                          strokeWidth: 2,
+                          child: Container(
+                            height: 80,
+                            width: 80,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFFF5F5F5),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.camera_alt_rounded,
+                                color: Colors.grey,
+                                size: 35,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 25),
-                        // Name Header
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Name",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
+                      ),
+                      const SizedBox(height: 25),
+                      // Name Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Name",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
-                            Text(
-                              "0/40",
-                              style: TextStyle(color: Colors.grey.shade500),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
+                          ),
+                          Text(
+                            "0/40",
+                            style: TextStyle(color: Colors.grey.shade500),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
 
-                        // Name field
-                        TextField(
-                          decoration: InputDecoration(
-                            fillColor: Colors.white,
-                            filled: true,
-                            hintText: "Give you circle a name",
-                            hintStyle: TextStyle(color: Colors.grey.shade400),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.blue),
-                            ),
+                      // Name field
+                      TextField(
+                        decoration: InputDecoration(
+                          fillColor: Colors.white,
+                          filled: true,
+                          hintText: "Give you circle a name",
+                          hintStyle: TextStyle(color: Colors.grey.shade400),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.blue),
                           ),
                         ),
-                        const SizedBox(height: 25),
-                        // Add Friends Header
-                        const Text(
-                          "Add Friends (1)",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      ),
+                      const SizedBox(height: 25),
+                      // Add Friends Header
+                      const Text(
+                        "Add Friends (1)",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        decoration: InputDecoration(
+                          fillColor: Colors.white,
+                          filled: true,
+                          hintText: "Search for friends",
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.grey,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.blue),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        TextField(
-                          decoration: InputDecoration(
-                            fillColor: Colors.white,
-                            filled: true,
-                            hintText: "Search for friends",
-                            prefixIcon: const Icon(
-                              Icons.search,
-                              color: Colors.grey,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.blue),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ),
-                  ListView(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
+                ),
+                Expanded(
+                  child: ListView(
                     children: [
                       Container(
                         decoration: BoxDecoration(
@@ -236,8 +230,8 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Container(height: 1, color: Colors.grey.shade300),
