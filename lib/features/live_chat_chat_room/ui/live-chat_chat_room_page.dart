@@ -98,73 +98,75 @@ class Chatroom extends StatelessWidget {
     child: ValueListenableBuilder<List<ChatMessage>>(
   valueListenable: chatMessages,
   builder: (context, list, _) {
-    if (list.isEmpty) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            SizedBox(height: 80),
-            const Text(
-              'No messages in chat',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 235),
-
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: SizedBox(
-                  width: 325,
-                  height:88,
-                  child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 6,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Row(
-      children:  [
-        Image.asset(
-  'assets/icons/bell.png',  
-  height: 22,
-)
-
-      ],
-    ),
-
-SizedBox(height:2),
-    const Text(
-      'Chat Room has been created. Type a message to start the discussion.',
-      style: TextStyle(
-        fontSize: 13,
-        color: Colors.black,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-  ],
-)
-
+   if (list.isEmpty) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      return Stack(
+        children: [
+          // Center info
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 250),
+              child: const Text(
+                'No messages in chat',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
+            ),
+          ),
+
+          // Bottom Banner (ALWAYS ABOVE KEYBOARD)
+          Positioned(
+            bottom: 10, // stays above bottom bar + keyboard
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // prevents overflow
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/icons/bell.png',
+                      height: 22,
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Chat Room has been created. Type a message to start the discussion.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 15),
-          ],
-        );
-      }
+          ),
+        ],
+      );
+    },
+  );
+}
+
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 14, 12, 0),
       itemCount: list.length,
