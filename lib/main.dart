@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
-import 'package:senior_circle/features/live_chat_home/ui/live-chat_home_page.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/live-chat_home_page.dart';
 import 'package:senior_circle/theme/apptheme/app_theme.dart';
 
 

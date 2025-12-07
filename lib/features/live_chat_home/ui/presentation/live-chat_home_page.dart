@@ -1,11 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/constants/contact.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/livetv_page.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/my_circle_page.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/sessions_page.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/trips_page.dart';
 
 
 final ValueNotifier<bool> isListening = ValueNotifier<bool>(false);
 final ValueNotifier<List<Contact>> filteredContactList =
-    ValueNotifier<List<Contact>>([]);
+    ValueNotifier<List<Contact>>(List.from(masterContactList));
+
 
 
 
@@ -476,161 +482,18 @@ bottomNavigationBar: Theme(
   data: Theme.of(context).copyWith(
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       selectedLabelStyle: TextStyle(
-        fontWeight: FontWeight.bold,  
+        fontWeight: FontWeight.bold,
         fontSize: 12,
       ),
       unselectedLabelStyle: TextStyle(
-        fontWeight: FontWeight.w500,   
+        fontWeight: FontWeight.w500,
         fontSize: 12,
       ),
     ),
   ),
-  child: SizedBox(height:75,child:BottomNavigationBar( 
-   
-  backgroundColor: Colors.white,  
-    type: BottomNavigationBarType.fixed,
-    currentIndex: 0,
-    onTap: (index) {},
-    selectedItemColor: Colors.blueAccent,
-    unselectedItemColor: Colors.grey,
-    showUnselectedLabels: true,
-    items:  [
-      BottomNavigationBarItem(
-      icon: Image.asset(
-        'assets/icons/message-circle.png',
-        width: 24,
-        height: 24, 
-      ),activeIcon: ShaderMask(
-  shaderCallback: (bounds) => const LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFF4A90E2),  
-      Color.fromARGB(80, 24, 145, 244),   
-    ],
-  ).createShader(bounds),
-  blendMode: BlendMode.srcATop,  
-  child: Image.asset(
-    'assets/icons/message-circle.png',
-    width: 24,
-    height: 24,
-    filterQuality: FilterQuality.high,
-  ),
+  child: const MainBottomNavBar(currentIndex: 0), // 👈 Live Chat tab
 ),
 
-
-      label: 'Live Chat',
-    ),
-      BottomNavigationBarItem(
-      icon: Image.asset(
-        'assets/icons/users.png',
-        width: 24,
-        height: 24,
-        filterQuality: FilterQuality.high,
-      ),
-      activeIcon: ShaderMask(
-  shaderCallback: (bounds) => const LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-       Color(0xFF4A90E2),   
-      Color.fromARGB(80, 24, 145, 244), 
-    ],
-  ).createShader(bounds),
-  blendMode: BlendMode.srcATop,  
-  child: Image.asset(
-    'assets/icons/users.png',
-    width: 24,
-    height: 24,
-    filterQuality: FilterQuality.high,
-  ),
-),
-
-      label: 'My Circle',
-    ),
-      BottomNavigationBarItem(
-      icon: Image.asset(
-        'assets/icons/calendar.png',
-        width: 24,
-        height: 24,
-        filterQuality: FilterQuality.high,
-      ),
-      activeIcon: ShaderMask(
-  shaderCallback: (bounds) => const LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-       Color(0xFF4A90E2),  
-      Color.fromARGB(80, 24, 145, 244), 
-    ],
-  ).createShader(bounds),
-  blendMode: BlendMode.srcATop, 
-  child: Image.asset(
-    'assets/icons/calender.png',
-    width: 24,
-    height: 24,
-    filterQuality: FilterQuality.high,
-  ),
-),
-
-      label: 'Sessions',
-    ),
-      BottomNavigationBarItem(
-      icon: Image.asset(
-        'assets/icons/compass.png',
-        width: 24,
-        height: 24,
-        filterQuality: FilterQuality.high,
-      ),
-      activeIcon: ShaderMask(
-  shaderCallback: (bounds) => const LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-       Color(0xFF4A90E2),  
-      Color.fromARGB(80, 24, 145, 244), 
-    ],
-  ).createShader(bounds),
-  blendMode: BlendMode.srcATop,  
-  child: Image.asset(
-    'assets/icons/compass.png',
-    width: 24,
-    height: 24,
-    filterQuality: FilterQuality.high,
-  ),
-),
-
-      label: 'Trips',
-    ),
-     BottomNavigationBarItem(
-      icon: Image.asset(
-        'assets/icons/tv.png',
-        width: 24,
-        height: 24,
-        filterQuality: FilterQuality.high,
-      ),
-      activeIcon: ShaderMask(
-  shaderCallback: (bounds) => const LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-       Color(0xFF4A90E2),  
-      Color.fromARGB(80, 24, 145, 244), 
-    ],
-  ).createShader(bounds),
-  blendMode: BlendMode.srcATop,  
-  child: Image.asset(
-    'assets/icons/tv.png',
-    width: 24,
-    height: 24,
-    filterQuality: FilterQuality.high,
-  ),
-),
-
-      label: 'Live TV',
-    ),
-    ],
-  ),),),
     );
   }
 }
