@@ -18,6 +18,9 @@ class CircleCreationScreen extends StatefulWidget {
 }
 
 class _CircleCreationScreenState extends State<CircleCreationScreen> {
+  var nameLength = 0;
+  final TextEditingController txtController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,15 +106,21 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                               ),
                             ),
                             Text(
-                              "0/40",
+                              "$nameLength/40",
                               style: TextStyle(color: Colors.grey.shade500),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-
                         // Name field
                         TextField(
+                          controller: txtController,
+                          onChanged: (value) {
+                            setState(() {
+                              nameLength = value.length;
+                            });
+                          },
+                          maxLength: 40,
                           decoration: InputDecoration(
                             fillColor: Colors.white,
                             filled: true,
