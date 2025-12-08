@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
+import 'members_list_fullscreen.dart';
 
-/*void main() {
-  runApp(const MaterialApp(
+void main() {
+  runApp(
+    const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ChatDetailsScreen()
-  )
+      home: ChatDetailsScreen(),
+    ),
   );
-}*/
+}
 
 const name = "Chai Talks";
 
-class ChatDetailsScreen extends StatelessWidget {
+class ChatDetailsScreen extends StatefulWidget {
   const ChatDetailsScreen({super.key});
 
+  @override
+  State<ChatDetailsScreen> createState() => _ChatDetailsScreenState();
+}
+
+class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +56,7 @@ class ChatDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
@@ -79,7 +86,50 @@ class ChatDetailsScreen extends StatelessWidget {
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: const Text('Tea'),
+                          decoration: BoxDecoration(
+                            color: const Color(0xd7d7e6fa),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: const Text('Tea'),
+                          decoration: BoxDecoration(
+                            color: const Color(0xd7d7e6fa),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: const Text('Friends'),
+                          decoration: BoxDecoration(
+                            color: const Color(0xd7d7e6fa),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Container(
@@ -151,6 +201,18 @@ class ChatDetailsScreen extends StatelessWidget {
                         color: Colors.black,
                       ),
                     ),
+                    trailing: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      child: const Text('Admin'),
+                      decoration: BoxDecoration(
+                        color: Colors.amberAccent.shade100,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                   ),
                 ),
                 ...List.generate(
@@ -188,8 +250,12 @@ class ChatDetailsScreen extends StatelessWidget {
                   ),
                   child: InkWell(
                     onTap: () {
-                      /*Move to another screen with full list*/
-                      ;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MembersListFullscreen(),
+                        ),
+                      );
                     },
                     child: ListTile(
                       title: Text(
