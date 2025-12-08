@@ -3,6 +3,8 @@ import 'package:senior_circle/features/createroom/presentation/create_room_scree
 import 'package:senior_circle/features/details/presentation/details_screen.dart';
 import 'package:senior_circle/features/preview/presentation/preview_screen.dart';
 import 'package:senior_circle/theme/apptheme/app_theme.dart';
+import 'package:senior_circle/features/live-chat/chatroom_page.dart';
+
 
 void main() {
   runApp(const SeniorCircleApp());
