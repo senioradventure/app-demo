@@ -11,8 +11,6 @@ import 'members_list_fullscreen.dart';
   );
 }*/
 
-const name = "Chai Talks";
-
 class ChatDetailsScreen extends StatefulWidget {
   const ChatDetailsScreen({super.key});
 
@@ -80,7 +78,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   const SizedBox(height: 16),
                   // Group Name
                   const Text(
-                    '$name',
+                    'Chai Talks',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
