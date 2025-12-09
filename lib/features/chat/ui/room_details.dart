@@ -32,7 +32,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         leading: IconButton(
           onPressed: () {
             /*Go back to the previous screen*/
-            ;
           },
           icon: Icon(Icons.arrow_back, color: Colors.black),
         ),
@@ -49,7 +48,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           IconButton(
             onPressed: () {
               /*More details*/
-              ;
             },
             icon: Icon(Icons.more_vert, color: Colors.black),
           ),
