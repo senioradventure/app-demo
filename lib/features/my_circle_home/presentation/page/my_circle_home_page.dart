@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_chatroom_page.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
@@ -85,6 +86,14 @@ class _MyCirclePageState extends State<MyCirclePage> {
     });
   }
 
+  void navigateToChatRoom(Chat chat) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MyCircleChatroomPage(chat: chat), 
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +110,7 @@ class _MyCirclePageState extends State<MyCirclePage> {
           SearchBarWidget(onChanged: (value) => runfilter(value)),
           SizedBox(height: 8),
           StarredMessageWidget(),
-          Expanded(child: ChatListWidget(foundResults: foundResults)),
+          Expanded(child: ChatListWidget(foundResults: foundResults,onChatTap: navigateToChatRoom,)),
           AddChatWidget(),
         ],
       ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_messages.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_grp_message_card.dart';
 
 class MessageReplies extends StatelessWidget {
-  final List<Message> replies;
+  final List<GroupMessage> replies;
 
   const MessageReplies({super.key, required this.replies});
 
@@ -11,7 +11,7 @@ class MessageReplies extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: replies
-          .map((reply) => MessageCard(message: reply, isReply: true))
+          .map((reply) => GroupMessageCard(grpmessage: reply, isReply: true))
           .toList(),
     );
   }

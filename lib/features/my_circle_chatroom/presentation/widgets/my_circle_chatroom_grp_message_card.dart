@@ -1,28 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_replies.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
-final List<Message> messages = [
-  Message(
+final List<GroupMessage> messages = [
+  GroupMessage(
     id: '1',
-    sender: 'Alice',
+    senderId: 'Alice-id',
+    senderName: 'Alice',
     avatar: 'https://i.pravatar.cc/150?img=1',
     text: 'Hello everyone!',
     time: '10:00 AM',
     replies: [
-      Message(
+      GroupMessage(
         id: '1-1',
-        sender: 'You',
+        senderId: 'me-id',
+        senderName: 'You',
         avatar: 'https://i.pravatar.cc/150?img=2',
         text: 'Hi Alice!',
         time: '10:03 AM',
       ),
-      Message(
+      GroupMessage(
         id: '1-2',
-        sender: 'Clara',
+        senderId: 'clara-id',
+        senderName: 'Clara',
         avatar: 'https://i.pravatar.cc/150?img=2',
         text: 'Hi Alice!',
         time: '10:03 AM',
@@ -30,40 +33,42 @@ final List<Message> messages = [
     ],
     reactions: [Reaction('👍', 3), Reaction('❤️', 2)],
   ),
-  Message(
+  GroupMessage(
     id: '2',
-    sender: 'You',
+      senderId: 'me-id',
+      senderName: 'You',
     avatar: 'https://i.pravatar.cc/150?img=2',
     text: 'Hi Alice!',
     time: '10:02 AM',
     reactions: [Reaction('😊', 1)],
   ),
-  Message(
+  GroupMessage(
     id: '3',
-    sender: 'Charlie',
+    senderId: 'charlie-id',
+    senderName: 'Charlie',
     avatar: 'https://i.pravatar.cc/150?img=3',
     text: 'Good morning!',
     time: '10:05 AM',
   ),
 ];
 
-class MessageCard extends StatefulWidget {
-  final Message message;
+class GroupMessageCard extends StatefulWidget {
+  final GroupMessage grpmessage;
   final bool isReply;
 
-  const MessageCard({super.key, required this.message, this.isReply = false});
+  const GroupMessageCard({super.key, required this.grpmessage, this.isReply = false});
 
   @override
-  State<MessageCard> createState() => _MessageCardState();
+  State<GroupMessageCard> createState() => _GroupMessageCardState();
 }
 
-class _MessageCardState extends State<MessageCard> {
+class _GroupMessageCardState extends State<GroupMessageCard> {
   @override
   Widget build(BuildContext context) {
-    final message = widget.message;
+    final grpmessage = widget.grpmessage;
 
     return Container(
-      color: message.sender.toLowerCase() == 'you'
+      color: grpmessage.senderName.toLowerCase() == 'you'
           ? const Color(0xFFF9EFDB)
           : AppColors.white,
       child: Padding(
@@ -73,7 +78,7 @@ class _MessageCardState extends State<MessageCard> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage(message.avatar),
+              backgroundImage: NetworkImage(grpmessage.avatar ?? ''),
             ),
             const SizedBox(width: 10),
 
@@ -81,20 +86,20 @@ class _MessageCardState extends State<MessageCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(message),
+                  _buildHeader(grpmessage),
                   const SizedBox(height: 4),
                   Text(
-                    message.text,
+                    grpmessage.text,
                     style: AppTextTheme.lightTextTheme.bodyMedium,
                   ),
                   const SizedBox(height: 6),
 
                   MessageActions(onReplyTap: () {}, isReply: widget.isReply),
 
-                  if (message.replies.isNotEmpty) _buildReplyButton(message),
+                  if (grpmessage.replies.isNotEmpty) _buildReplyButton(grpmessage),
 
-                  if (message.isThreadOpen)
-                    MessageReplies(replies: message.replies),
+                  if (grpmessage.isThreadOpen)
+                    MessageReplies(replies: grpmessage.replies),
                 ],
               ),
             ),
@@ -104,17 +109,17 @@ class _MessageCardState extends State<MessageCard> {
     );
   }
 
-  Widget _buildHeader(Message message) => Row(
+  Widget _buildHeader(GroupMessage grpmessage) => Row(
     children: [
       Text(
-        message.sender,
+        grpmessage.senderName,
         style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),
       ),
       const SizedBox(width: 14),
       Text(
-        message.time,
+        grpmessage.time,
         style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.w700,
         ),
@@ -122,23 +127,23 @@ class _MessageCardState extends State<MessageCard> {
     ],
   );
 
-  Widget _buildReplyButton(Message message) => Center(
+  Widget _buildReplyButton( GroupMessage grpmessage) => Center(
     child: TextButton.icon(
       onPressed: () =>
-          setState(() => message.isThreadOpen = !message.isThreadOpen),
+          setState(() => grpmessage.isThreadOpen = !grpmessage.isThreadOpen),
       label: Text(
-        "${message.replies.length} Replies",
+        "${grpmessage.replies.length} Replies",
         style: TextStyle(
-          color: message.isThreadOpen
+          color: grpmessage.isThreadOpen
               ? AppColors.textDarkGray
               : AppColors.buttonBlue,
         ),
       ),
       icon: Icon(
-        message.isThreadOpen
+        grpmessage.isThreadOpen
             ? Icons.keyboard_arrow_up
             : Icons.keyboard_arrow_down,
-        color: message.isThreadOpen
+        color: grpmessage.isThreadOpen
             ? AppColors.textDarkGray
             : AppColors.buttonBlue,
         size: 24,

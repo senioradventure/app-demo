@@ -7,8 +7,9 @@ import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class ChatListWidget extends StatelessWidget {
   final List<Chat> foundResults;
+  final void Function(Chat) onChatTap;
 
-  const ChatListWidget({super.key, required this.foundResults});
+  const ChatListWidget({super.key, required this.foundResults,required this.onChatTap,});
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +113,7 @@ class ChatListWidget extends StatelessWidget {
               ],
             ],
           ),
-          onTap: () {},
+          onTap: () => onChatTap(chat),
         );
       },
     );
