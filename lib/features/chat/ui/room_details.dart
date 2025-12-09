@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'members_list_fullscreen.dart';
 
-void main() {
+/*void main() {
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: ChatDetailsScreen(),
     ),
   );
-}
+}*/
 
 const name = "Chai Talks";
 
