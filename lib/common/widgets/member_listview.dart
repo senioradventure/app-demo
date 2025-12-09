@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/features/details/model/chatroom_member_model.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 
 class MembersListView extends StatelessWidget {
-  final List<Map<String, dynamic>> members;
+  final List<MemberModel> members;
 
   const MembersListView({super.key, required this.members});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: members.length,
       itemBuilder: (context, index) {
@@ -23,26 +24,30 @@ class MembersListView extends StatelessWidget {
               color: AppColors.white,
               child: Row(
                 children: [
+                  /// Profile image
                   CircleAvatar(
                     radius: 18,
-                    backgroundImage: NetworkImage(member["url"]),
+                    backgroundImage: NetworkImage(member.url),
                   ),
                   const SizedBox(width: 12),
 
                   /// Name
                   Expanded(
                     child: Text(
-                      member["name"],
+                      member.name,
                       style: Theme.of(context).textTheme.displayMedium,
                     ),
                   ),
 
                   /// Admin badge
-                  if (member["admin"] == 1)
+                  if (member.isAdmin)
                     Container(
                       width: 44,
                       height: 22,
-                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 6,
+                      ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(19),
                         color: AppColors.adminColor,
@@ -61,7 +66,7 @@ class MembersListView extends StatelessWidget {
               ),
             ),
 
-            /// Divider for each row
+            /// Divider
             Divider(color: AppColors.borderColor, height: 1),
           ],
         );

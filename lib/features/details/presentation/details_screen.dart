@@ -1,63 +1,88 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/common/widgets/common_app_bar.dart';
 import 'package:senior_circle/common/widgets/details_widget.dart';
 import 'package:senior_circle/common/widgets/member_listview.dart';
+import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
+import 'package:senior_circle/features/details/model/chatroom_details_model.dart';
+import 'package:senior_circle/features/details/model/chatroom_member_model.dart';
 import 'package:senior_circle/features/details/presentation/widgets/details_screen_members_headline_widget.dart';
 import 'package:senior_circle/features/details/presentation/widgets/details_screen_show_more_button.dart';
 
-class DetailsScreen extends StatefulWidget {
+class DetailsScreen extends StatelessWidget {
   const DetailsScreen({super.key});
 
   @override
-  State<DetailsScreen> createState() => _DetailsScreenState();
-}
-
-class _DetailsScreenState extends State<DetailsScreen> {
-  bool showAll = false;
-
-  @override
   Widget build(BuildContext context) {
-    final visibleMembers = showAll ? members : members.take(8).toList();
-
-    return Scaffold(
-      appBar: CommonAppBar(title: "Details"),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DetailsWidget(
-                    imageUrl:
-                        "https://imgs.search.brave.com/ZLuinyHs1AsoMbvdhGtNru-ngFCQU_ZkPNQI5RoSA7Q/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/c2h1dHRlcnN0b2Nr/LmNvbS9pbWFnZS1w/aG90by9lYXJ0aGVu/LXRlYS1jdXAtY2hh/aS1rdWxoYWQtMjYw/bnctMjI3ODkzMDMw/MS5qcGc",
-                    name: "Chai Talks",
-                    interests: [],
-                    description: "",
-                  ),
-                  const SizedBox(height: 14),
-                  MemberHeadline(onAddMember: () {}),
-                ],
+    final details = DetailsModel.fromJson(detailsJson);
+    final List<MemberModel> memberModels = members
+        .map((e) => MemberModel.fromJson(e))
+        .toList();
+    return BlocProvider(
+      create: (_) => ChatroomdetailsBloc(),
+      child: Scaffold(
+        appBar: CommonAppBar(title: "Details"),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DetailsWidget(
+                      imageUrl: details.imageUrl,
+                      name: details.name,
+                      interests: details.interests,
+                      description: details.description,
+                    ),
+                    const SizedBox(height: 14),
+                    MemberHeadline(onAddMember: () {}),
+                  ],
+                ),
               ),
-            ),
+              BlocBuilder<ChatroomdetailsBloc, ChatroomdetailsState>(
+                builder: (context, state) {
+                  final showAll = (state as ChatroomdetailsInitial).showAll;
 
-            MembersListView(members: visibleMembers),
-            ShowMoreButton(
-              expanded: showAll,
-              onTap: () {
-                setState(() {
-                  showAll = !showAll;
-                });
-              },
-            ),
-          ],
+                  final visibleMembers = showAll
+                      ? memberModels
+                      : memberModels.take(8).toList();
+
+                  return Column(
+                    children: [
+                      MembersListView(members: visibleMembers),
+
+                      ShowMoreButton(
+                        expanded: showAll,
+                        onTap: () {
+                          context.read<ChatroomdetailsBloc>().add(
+                            ToggleShowMoreEvent(),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
+//sample chatroom details json
+final Map<String, dynamic> detailsJson = {
+  "imageUrl":
+      "https://imgs.search.brave.com/ZLuinyHs1AsoMbvdhGtNru-ngFCQU_ZkPNQI5RoSA7Q/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/c2h1dHRlcnN0b2Nr/LmNvbS9pbWFnZS1w/aG90by9lYXJ0aGVu/LXRlYS1jdXAtY2hh/aS1rdWxoYWQtMjYw/bnctMjI3ODkzMDMw/MS5qcGc",
+  "name": "Chai Talks",
+  "interests": [],
+  "description": "",
+};
+
+//sample members list
 final List<Map<String, dynamic>> members = [
   {
     "url": "https://randomuser.me/api/portraits/men/32.jpg",

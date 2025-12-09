@@ -1,51 +1,32 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ImagePickerCircle extends StatefulWidget {
-  final Function(XFile?) onImageSelected; // callback to return picked image
-  final double size;
-  final String placeholderAsset;
+class ImagePickerCircle extends StatelessWidget {
+  final VoidCallback? onImagePicked; // tap callback
+  final XFile? image;
+  final double size; // picked image
 
   const ImagePickerCircle({
     super.key,
-    required this.onImageSelected,
+    this.onImagePicked,
+    this.image,
     this.size = 74,
-    this.placeholderAsset = 'assets/icons/camera.svg',
   });
-
-  @override
-  State<ImagePickerCircle> createState() => _ImagePickerCircleState();
-}
-
-class _ImagePickerCircleState extends State<ImagePickerCircle> {
-  final ImagePicker _picker = ImagePicker();
-  File? _file;
-
-  Future<void> pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _file = File(image.path);
-      });
-
-      widget.onImageSelected(image); // return XFile to parent
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: pickImage,
+      onTap: onImagePicked,
       child: SizedBox(
-        width: widget.size,
-        height: widget.size,
-        child: _file == null
-            ? SvgPicture.asset(widget.placeholderAsset, fit: BoxFit.contain)
+        width: size,
+        height: size,
+        child: image == null
+            ? SvgPicture.asset('assets/icons/camera.svg', fit: BoxFit.contain)
             : CircleAvatar(
-                radius: widget.size / 2,
-                backgroundImage: FileImage(_file!),
+                radius: size / 2,
+                backgroundImage: FileImage(File(image!.path)),
               ),
       ),
     );

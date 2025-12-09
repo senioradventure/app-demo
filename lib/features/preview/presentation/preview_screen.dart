@@ -3,6 +3,8 @@ import 'package:senior_circle/common/widgets/bottom_button.dart';
 import 'package:senior_circle/common/widgets/common_app_bar.dart';
 import 'package:senior_circle/common/widgets/details_widget.dart';
 import 'package:senior_circle/common/widgets/member_listview.dart';
+import 'package:senior_circle/features/details/model/chatroom_member_model.dart';
+import 'package:senior_circle/features/preview/models/createroom_preview_details_model.dart';
 import 'package:senior_circle/features/preview/presentation/widgets/preview_screen_caution_container.dart';
 
 class PreviewScreen extends StatelessWidget {
@@ -10,8 +12,12 @@ class PreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<MemberModel> members = membersdata
+        .map((e) => MemberModel.fromJson(e))
+        .toList();
+    final details = CreateroomPreviewDetailsModel.fromJson(detailsJson);
     return Scaffold(
-      appBar: CommonAppBar(title: "Preview", activeCount: null),
+      appBar: CommonAppBar(title: "Preview"),
       body: Column(
         children: [
           // Header / details area (fixed height based on content)
@@ -26,12 +32,10 @@ class PreviewScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DetailsWidget(
-                  imageUrl:
-                      "https://imgs.search.brave.com/ZLuinyHs1AsoMbvdhGtNru-ngFCQU_ZkPNQI5RoSA7Q/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/c2h1dHRlcnN0b2Nr/LmNvbS9pbWFnZS1w/aG90by9lYXJ0aGVu/LXRlYS1jdXAtY2hh/aS1rdWxoYWQtMjYw/bnctMjI3ODkzMDMw/MS5qcGc",
-                  name: "Chai Talks",
-                  interests: ["Tea Lovers", "Cultural Exchange", "Book Club"],
-                  description:
-                      "Masala chai, the spiced milk tea widely loved in India today, was actually popularized in the 20th century. Indians then added spices and milk to make it their own version.",
+                  imageUrl: details.imageUrl,
+                  name: details.name,
+                  interests: details.interests,
+                  description: details.description,
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -53,7 +57,18 @@ class PreviewScreen extends StatelessWidget {
   }
 }
 
-final List<Map<String, dynamic>> members = [
+//sample chatroom details json
+final Map<String, dynamic> detailsJson = {
+  "imageUrl":
+      "https://imgs.search.brave.com/ZLuinyHs1AsoMbvdhGtNru-ngFCQU_ZkPNQI5RoSA7Q/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/c2h1dHRlcnN0b2Nr/LmNvbS9pbWFnZS1w/aG90by9lYXJ0aGVu/LXRlYS1jdXAtY2hh/aS1rdWxoYWQtMjYw/bnctMjI3ODkzMDMw/MS5qcGc",
+  "name": "Chai Talks",
+  "interests": ["Cooking", "Travel", "Music"],
+  "description":
+      "This is a chatroom for people who love to talk about chai and share their experiences.",
+};
+
+//sample members list
+final List<Map<String, dynamic>> membersdata = [
   {
     "url": "https://randomuser.me/api/portraits/men/32.jpg",
     "name": "Alex Johnson",
