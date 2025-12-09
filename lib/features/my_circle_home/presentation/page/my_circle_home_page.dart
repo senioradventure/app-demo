@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_chatroom_page.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
@@ -86,13 +87,16 @@ class _MyCirclePageState extends State<MyCirclePage> {
     });
   }
 
-  void navigateToChatRoom(Chat chat) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => MyCircleChatroomPage(chat: chat), 
-      ),
-    );
-  }
+ void navigateToChatRoom(Chat chat) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => chat.isGroup
+          ? MyCircleGroupChatPage(chat: chat)   
+          : MyCircleIndividualChatPage(chat: chat),  
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,7 @@ class GroupMessage {
   final String time;
   final List<Reaction> reactions;
   final List<GroupMessage> replies;
-   bool isThreadOpen;
+  bool isThreadOpen;
   
  
 

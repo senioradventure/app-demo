@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_actions.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_replies.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/grp_message_actions.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
@@ -35,8 +35,8 @@ final List<GroupMessage> messages = [
   ),
   GroupMessage(
     id: '2',
-      senderId: 'me-id',
-      senderName: 'You',
+    senderId: 'me-id',
+    senderName: 'You',
     avatar: 'https://i.pravatar.cc/150?img=2',
     text: 'Hi Alice!',
     time: '10:02 AM',
@@ -56,7 +56,11 @@ class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
   final bool isReply;
 
-  const GroupMessageCard({super.key, required this.grpmessage, this.isReply = false});
+  const GroupMessageCard({
+    super.key,
+    required this.grpmessage,
+    this.isReply = false,
+  });
 
   @override
   State<GroupMessageCard> createState() => _GroupMessageCardState();
@@ -96,7 +100,8 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
                   MessageActions(onReplyTap: () {}, isReply: widget.isReply),
 
-                  if (grpmessage.replies.isNotEmpty) _buildReplyButton(grpmessage),
+                  if (grpmessage.replies.isNotEmpty)
+                    _buildReplyButton(grpmessage),
 
                   if (grpmessage.isThreadOpen)
                     MessageReplies(replies: grpmessage.replies),
@@ -127,7 +132,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
     ],
   );
 
-  Widget _buildReplyButton( GroupMessage grpmessage) => Center(
+  Widget _buildReplyButton(GroupMessage grpmessage) => Center(
     child: TextButton.icon(
       onPressed: () =>
           setState(() => grpmessage.isThreadOpen = !grpmessage.isThreadOpen),
