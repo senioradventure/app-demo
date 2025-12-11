@@ -1,56 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/grp_message_actions.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/grp_message_replies.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
-
-final List<GroupMessage> messages = [
-  GroupMessage(
-    id: '1',
-    senderId: 'Alice-id',
-    senderName: 'Alice',
-    avatar: 'https://i.pravatar.cc/150?img=1',
-    text: 'Hello everyone!',
-    time: '10:00 AM',
-    replies: [
-      GroupMessage(
-        id: '1-1',
-        senderId: 'me-id',
-        senderName: 'You',
-        avatar: 'https://i.pravatar.cc/150?img=2',
-        text: 'Hi Alice!',
-        time: '10:03 AM',
-      ),
-      GroupMessage(
-        id: '1-2',
-        senderId: 'clara-id',
-        senderName: 'Clara',
-        avatar: 'https://i.pravatar.cc/150?img=2',
-        text: 'Hi Alice!',
-        time: '10:03 AM',
-      ),
-    ],
-    reactions: [Reaction('👍', 3), Reaction('❤️', 2)],
-  ),
-  GroupMessage(
-    id: '2',
-    senderId: 'me-id',
-    senderName: 'You',
-    avatar: 'https://i.pravatar.cc/150?img=2',
-    text: 'Hi Alice!',
-    time: '10:02 AM',
-    reactions: [Reaction('😊', 1)],
-  ),
-  GroupMessage(
-    id: '3',
-    senderId: 'charlie-id',
-    senderName: 'Charlie',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    text: 'Good morning!',
-    time: '10:05 AM',
-  ),
-];
 
 class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
@@ -72,11 +25,23 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
     final grpmessage = widget.grpmessage;
 
     return Container(
-      color: grpmessage.senderName.toLowerCase() == 'you'
+      margin: EdgeInsets.only(
+        top:  widget.isReply ? 0 : 4,
+        bottom:widget.isReply ? 0 : 4,
+        
+      ),
+      decoration: BoxDecoration(
+        color: grpmessage.senderName.toLowerCase() == 'you'
           ? const Color(0xFFF9EFDB)
           : AppColors.white,
+        border: widget.isReply ? null : Border.all(
+          color: AppColors.borderColor,
+          width: 2,
+        ),
+      ),
+      
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

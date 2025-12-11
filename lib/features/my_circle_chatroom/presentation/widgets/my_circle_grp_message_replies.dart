@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_grp_message_card.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_card.dart';
 
 class MessageReplies extends StatelessWidget {
   final List<GroupMessage> replies;

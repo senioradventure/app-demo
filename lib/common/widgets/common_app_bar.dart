@@ -3,6 +3,7 @@ import 'package:senior_circle/theme/colors/app_colors.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  
 
   const CommonAppBar({super.key, required this.title});
 

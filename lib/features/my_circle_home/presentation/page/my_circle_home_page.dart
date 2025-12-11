@@ -9,14 +9,14 @@ import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_ci
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
-class MyCirclePage extends StatefulWidget {
-  const MyCirclePage({super.key});
+class MyCircleHomePage extends StatefulWidget {
+  const MyCircleHomePage({super.key});
 
   @override
-  State<MyCirclePage> createState() => _MyCirclePageState();
+  State<MyCircleHomePage> createState() => _MyCircleHomePageState();
 }
 
-class _MyCirclePageState extends State<MyCirclePage> {
+class _MyCircleHomePageState extends State<MyCircleHomePage> {
   final List<Map<String, dynamic>> chatData = [
     {
       'name': 'Chai Talks',
