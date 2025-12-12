@@ -1,46 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
 class AppTextTheme {
+  static const String _fontFamily = "Inter";
+
   static TextTheme lightTextTheme = TextTheme(
-    labelMedium: GoogleFonts.inter(
+    labelMedium: TextStyle(
+      fontFamily: _fontFamily,
       fontSize: 14,
       fontWeight: FontWeight.w500,
       color: AppColors.textGray,
-      fontStyle: FontStyle.normal,
     ),
-    labelSmall: GoogleFonts.inter(
+    labelSmall: TextStyle(
+      fontFamily: _fontFamily,
       fontSize: 12,
       fontWeight: FontWeight.w400,
       color: AppColors.textLightGray,
-      fontStyle: FontStyle.normal,
     ),
-    headlineMedium: GoogleFonts.inter(
+    headlineMedium: TextStyle(
+      fontFamily: _fontFamily,
       fontSize: 16,
       fontWeight: FontWeight.w700,
       color: AppColors.textBlack,
-      fontStyle: FontStyle.normal,
     ),
-    displayLarge: GoogleFonts.inter(
+    displayLarge: TextStyle(
+      fontFamily: _fontFamily,
       fontSize: 20,
       fontWeight: FontWeight.w600,
       color: AppColors.textBlack,
-      fontStyle: FontStyle.normal,
     ),
-    displayMedium: GoogleFonts.inter(
+    displayMedium: TextStyle(
+      fontFamily: _fontFamily,
       fontSize: 14,
       fontWeight: FontWeight.w500,
       color: AppColors.textBlack,
-      fontStyle: FontStyle.normal,
     ),
-    displaySmall: GoogleFonts.inter(
+    displaySmall: TextStyle(
+      fontFamily: _fontFamily,
       fontSize: 12,
       fontWeight: FontWeight.w500,
       color: AppColors.textGray,
-      fontStyle: FontStyle.normal,
     ),
   );
 
-  static TextTheme darkTextTheme = TextTheme();
+  static TextTheme darkTextTheme = TextTheme(
+    // ADD if needed
+  );
 }

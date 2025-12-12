@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
 class InterestChip extends StatelessWidget {
   final String label;
