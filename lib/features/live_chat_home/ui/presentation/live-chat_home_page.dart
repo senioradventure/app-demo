@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/constants/contact.dart';
+import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/live-chat_chat_room_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 
 
@@ -313,10 +315,15 @@ SizedBox(height: 200)],
     final c = list[index];
             return InkWell(
   onTap: () {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Tapped ${c.contactFirstName}')),
-    );
-  },
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => Chatroom(title: c.contactFirstName),
+    ),
+  );
+},
+
+
   child: Padding(
     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
     child: Row(
@@ -465,13 +472,22 @@ Wrap(
         height: 1,              
       ),
     ),
-    onPressed: () {
+    onPressed: () async {
+    final result = await Navigator.push<Map<String, dynamic>?>(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateRoomScreen()),
+    );
+
+    if (result != null) {
       final newContact = Contact(
-        contactFirstName: 'New${masterContactList.length + 1}'
+        contactFirstName: result['roomName'] ?? "Unnamed Room",
+        // add description / image if needed
       );
+
       masterContactList.add(newContact);
       filteredContactList.value = List.from(masterContactList);
-    },
+    }
+  },
   ),
 ),),
 bottomNavigationBar: Theme(

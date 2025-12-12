@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
@@ -101,7 +103,9 @@ class _MyCirclePageState extends State<MyCirclePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, 
       appBar: AppBar(
+        backgroundColor: Colors.white, 
         title: Text(
           'My Circle',
           textAlign: TextAlign.left,
@@ -115,9 +119,26 @@ class _MyCirclePageState extends State<MyCirclePage> {
           SizedBox(height: 8),
           StarredMessageWidget(),
           Expanded(child: ChatListWidget(foundResults: foundResults,onChatTap: navigateToChatRoom,)),
-          AddChatWidget(),
+          AddChatWidget(
+  destinationPage: const CircleCreationScreen(),
+),
         ],
       ),
+      bottomNavigationBar: Theme(
+    data: Theme.of(context).copyWith(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        selectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        ),
+      ),
+    ),
+    child: const MainBottomNavBar(currentIndex: 1),
+  ),
     );
   }
 }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/gestures.dart';
+import 'package:senior_circle/features/chat/ui/room_details.dart';
+import 'package:senior_circle/features/chat/ui/room_details_admin.dart';            
+import 'package:url_launcher/url_launcher.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messeges.dart';
 final ImagePicker picker = ImagePicker();
 
@@ -7,11 +11,340 @@ final ValueNotifier<bool> isRequestSent = ValueNotifier<bool>(false);
 
 final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
 final TextEditingController messageController = TextEditingController();
+final ValueNotifier<String?> tappedLink = ValueNotifier(null);
 
 
 
 class Chatroom extends StatelessWidget {
-  const Chatroom({super.key});
+  final String? title; // or final Contact? contact;
+  final bool isAdmin;
+  const Chatroom({super.key, this.title,this.isAdmin = true});
+       void _showProfileSheet(BuildContext context, ChatMessage msg) {
+    
+    isRequestSent.value = false;
+
+    
+    final ImageProvider avatarImage =
+        (msg.profileAsset != null && msg.profileAsset!.isNotEmpty)
+            ? AssetImage(msg.profileAsset!)
+            : const AssetImage('assets/images/chat_profile.png');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 24,
+                      top: 20,
+                      right: 24,
+                      bottom: 15,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 45,
+                          backgroundImage: avatarImage,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          msg.name ?? '',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F1F1),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Text(
+                            "From Malappuram",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF555555),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                 
+                  if (msg.isFriend)
+                   
+                    Container(
+                      width: double.infinity,
+                      height: 60,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF9F9F7),
+                        border: Border(
+                          top: BorderSide(
+                            color: Color(0xFFE3E3E3),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                              
+                                Navigator.pop(context);
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/icons/user-minus.png',
+                                    height: 18,
+                                    width: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'REMOVE FRIEND',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            margin: const EdgeInsets.symmetric(vertical: 10),
+                            color: const Color(0xFFE3E3E3),
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                               
+                                Navigator.pop(context);
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/icons/message-circle.png',
+                                    height: 18,
+                                    width: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'MESSAGE',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isRequestSent,
+                      builder: (context, sent, _) {
+                        return InkWell(
+                          onTap: () {
+                            if (!sent) {
+                              
+                              isRequestSent.value = true;
+                            }
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            height: 60,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF9F9F7),
+                              border: Border(
+                                top: BorderSide(
+                                  color: Color(0xFFE3E3E3),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                sent
+                                    ? Image.asset(
+                                        'assets/icons/clock.png',
+                                        height: 24,
+                                        width: 24,
+                                      )
+                                    : Image.asset(
+                                        'assets/icons/user.png',
+                                        height: 24,
+                                        width: 24,
+                                      ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  sent
+                                      ? "WAITING FOR APPROVAL"
+                                      : "ADD FRIEND",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: sent ? Colors.black : Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
+  Future<void> _openLink(String rawUrl) async {
+    final String url = rawUrl.startsWith('http')
+        ? rawUrl
+        : 'https://$rawUrl'; 
+
+    final uri = Uri.parse(url);
+
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+ 
+  Widget _buildMessageText(BuildContext context, ChatMessage msg) {
+    final text = msg.text;
+    if (text.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+ 
+    final regex = RegExp(
+      r'(\+?\d[\d\s\-]{6,}\d)|((https?:\/\/|www\.)[^\s]+|[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}(\/\S*)?)',
+    );
+
+
+    return ValueListenableBuilder<String?>(
+      valueListenable: tappedLink,
+      builder: (context, active, _) {
+        final spans = <TextSpan>[];
+        int currentIndex = 0;
+
+        for (final match in regex.allMatches(text)) {
+          if (match.start > currentIndex) {
+            spans.add(
+              TextSpan(text: text.substring(currentIndex, match.start)),
+            );
+          }
+
+                    final matched = text.substring(match.start, match.end);
+
+   
+          final bool isPhone =
+              RegExp(r'^[\d\s\-\+]+$').hasMatch(matched);
+          final bool isActive = active == matched;
+
+          spans.add(
+            TextSpan(
+              text: matched,
+              style: TextStyle(
+                color: isActive
+                    ? const Color.fromARGB(255, 2, 100, 181)
+                    : Colors.blue,
+                decoration: TextDecoration.none,
+                fontWeight: FontWeight.w500,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTapDown = (_) {
+                  tappedLink.value = matched;
+                }
+                ..onTapUp = (_) {
+                  Future.delayed(const Duration(milliseconds: 120), () {
+                    tappedLink.value = null;
+                  });
+
+                  if (isPhone) {
+
+  _showProfileSheet(
+    context,
+    msg.copyWith(
+      name: matched.trim(),   
+    ),
+  );
+} else {
+ 
+  _openLink(matched);
+}
+
+                }
+                ..onTapCancel = () {
+                  tappedLink.value = null;
+                },
+            ),
+          );
+
+          currentIndex = match.end;
+        }
+
+        if (currentIndex < text.length) {
+          spans.add(
+            TextSpan(text: text.substring(currentIndex)),
+          );
+        }
+
+        return RichText(
+          text: TextSpan(
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black,
+            ),
+            children: spans,
+          ),
+        );
+      },
+    );
+  }
+
   
   @override
   Widget build(BuildContext context) {
@@ -40,56 +373,74 @@ class Chatroom extends StatelessWidget {
         ),
 
         
-        Container(
-          height: 60,
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 10, left: 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                const CircleAvatar(
-                  radius: 18,
-                  backgroundImage:
-                      AssetImage('assets/images/chat_profile.png'),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Chai Talks',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                const Text(
-                  '10 Active',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                IconButton(
-                  icon: const Icon(
-                    Icons.more_vert,
-                    color: Color(0xFF5C5C5C),
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {},
-                ),
-              ],
+        InkWell(
+  onTap: () {
+    // only navigate if NOT admin
+    if (!isAdmin) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChatDetailsScreen()),
+      );
+    } else {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
+  );
+}
+
+  },
+  child: Container(
+    height: 60,
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.only(top: 10, left: 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          const CircleAvatar(
+            radius: 18,
+            backgroundImage:
+                AssetImage('assets/images/chat_profile.png'),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            title ?? 'Chai Talks',
+            style: const TextStyle(
+                color: Colors.black,
+                fontSize: 19,
+                fontWeight: FontWeight.bold),
+          ),
+          const Spacer(),
+          const Text(
+            '10 Active',
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
+          const SizedBox(width: 2),
+          IconButton(
+            icon: const Icon(
+              Icons.more_vert,
+              color: Color(0xFF5C5C5C),
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
 
        
         Expanded(
@@ -103,7 +454,7 @@ class Chatroom extends StatelessWidget {
     builder: (context, constraints) {
       return Stack(
         children: [
-          // Center info
+          
           Align(
             alignment: Alignment.topCenter,
             child: Padding(
@@ -119,9 +470,9 @@ class Chatroom extends StatelessWidget {
             ),
           ),
 
-          // Bottom Banner (ALWAYS ABOVE KEYBOARD)
+         
           Positioned(
-            bottom: 10, // stays above bottom bar + keyboard
+            bottom: 10, 
             left: 0,
             right: 0,
             child: Padding(
@@ -140,7 +491,7 @@ class Chatroom extends StatelessWidget {
                   ],
                 ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min, // prevents overflow
+                  mainAxisSize: MainAxisSize.min, 
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Image.asset(
@@ -193,13 +544,7 @@ class Chatroom extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                msg.text,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black,
-                ),
-              ),
+                        _buildMessageText(context, msg),
               const SizedBox(height: 2),
               Text(
                 msg.time,
@@ -227,214 +572,7 @@ class Chatroom extends StatelessWidget {
             if (msg.profileAsset != null) ...[
   GestureDetector(
     onTap: () {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        builder: (context) {
-  return Align(
-    alignment: Alignment.bottomCenter,
-    child: Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min, 
-          children: [
-           
-            Padding(padding: const EdgeInsets.only(
-    left: 24, 
-    top: 20,    
-    right: 24,  
-    bottom: 15,  
-  ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 45,
-                    backgroundImage: AssetImage(msg.profileAsset!),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    msg.name!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F1F1),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: const Text(
-                      "From Malappuram",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF555555),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-           
-if (msg.isFriend)
-  
-  Container(
-    width: double.infinity,
-    height: 60,
-    decoration: const BoxDecoration(
-      color: Color(0xFFF9F9F7),
-      border: Border(
-        top: BorderSide(
-          color: Color(0xFFE3E3E3),
-          width: 1,
-        ),
-      ),
-    ),
-    child: Row(
-      children: [
-      
-        Expanded(
-          child: InkWell(
-            onTap: () {
-             
-              Navigator.pop(context);
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/icons/user-minus.png',
-                  height: 18,
-                  width: 18,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'REMOVE FRIEND',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        Container(
-          width: 1,
-          margin: const EdgeInsets.symmetric(vertical: 10),
-          color: const Color(0xFFE3E3E3),
-        ),
-
-        
-        Expanded(
-          child: InkWell(
-            onTap: () {
-            
-              Navigator.pop(context);
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/icons/message-circle.png', 
-                  height: 18,
-                  width: 18,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'MESSAGE',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ),
-  )
-else
-  ValueListenableBuilder<bool>(
-    valueListenable: isRequestSent,
-    builder: (context, sent, _) {
-      return InkWell(
-        onTap: () {
-          isRequestSent.value = true;
-        },
-        child: Container(
-          width: double.infinity,
-          height: 60,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF9F9F7),
-            border: Border(
-              top: BorderSide(
-                color: Color(0xFFE3E3E3),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              sent
-                  ? Image.asset(
-                      'assets/icons/clock.png',
-                      height: 20,
-                      width: 20,
-                    )
-                  : Image.asset(
-                      'assets/icons/users.png',
-                      height: 20,
-                      width: 20,
-                    ),
-              const SizedBox(width: 10),
-              Text(
-                sent ? "WAITING FOR APPROVAL" : "ADD FRIEND",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: sent ? Colors.black : Colors.blue,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  ),
-
-          ],
-        ),
-      ),
-    ),
-  );
-},
-
-
-      );
+      _showProfileSheet(context, msg);
     },
     child: CircleAvatar(
       radius: 14,
@@ -462,8 +600,10 @@ else
       ],
 
       GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
+        onLongPress: () {
+    // Only on long press, not normal tap
+    FocusScope.of(context).unfocus();
+    isRequestSent.value = false;
     isRequestSent.value = false;
           showDialog(
             context: context,
@@ -679,13 +819,7 @@ else
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      msg.text,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black,
-                      ),
-                    ),
+                    _buildMessageText(context, msg),
                     const SizedBox(height: 2),
                     Text(
                       msg.time,
