@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/live-chat_chat_room_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/live-chat_home_page.dart';
+import 'package:senior_circle/features/login_page/login_page.dart';
 import 'package:senior_circle/theme/apptheme/app_theme.dart';
-import 'package:senior_circle/features/live-chat/chatroom_page.dart';
 
 
 void main() {
@@ -20,7 +20,7 @@ class SeniorCircleApp extends StatelessWidget {
       theme: AppTheme.lightMode,
       darkTheme: AppTheme.darkMode,
       debugShowCheckedModeBanner: false,
-      home: const Chatroom(),
+      home: LiveChatLoginPage(),
     );
   }
 }
