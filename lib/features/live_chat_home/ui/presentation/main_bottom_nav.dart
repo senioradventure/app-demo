@@ -4,6 +4,7 @@ import 'package:senior_circle/features/live_chat_home/ui/presentation/livetv_pag
 import 'package:senior_circle/features/live_chat_home/ui/presentation/my_circle_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/sessions_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/trips_page.dart';
+import 'package:senior_circle/features/my_circle_home/presentation/page/my_circle_home_page.dart';
 
 class MainBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -33,7 +34,7 @@ class MainBottomNavBar extends StatelessWidget {
               page = const LiveChatPage();
               break;
             case 1:
-              page = const MyCirclePage();
+              page = MyCirclePage();
               break;
             case 2:
               page = const SessionsPage();

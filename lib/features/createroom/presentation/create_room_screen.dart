@@ -101,12 +101,38 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
           );
         },
       ),
-      bottomNavigationBar: BottomButton(
+        
+  bottomNavigationBar: BlocBuilder<CreateroomBloc, CreateroomState>(
+    builder: (context, state) {
+      return BottomButton(
         buttonText: 'CONFIRM',
         onTap: () {
-          print("Create Room Tapped");
+          final roomName = _roomNameController.text.trim();
+          final description = _descriptionController.text.trim();
+
+          
+          if (roomName.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enter a room name')),
+            );
+            return;
+          }
+
+          final result = {
+            'roomName': roomName,
+            'description': description,
+            'imageFile': state.imageFile, 
+            'nameCount': state.nameCount,
+            'descriptionCount': state.descriptionCount,
+            
+          };
+
+          Navigator.pop(context, result);
         },
-      ),
+      );
+    },
+  ),
+
     );
   }
 }
