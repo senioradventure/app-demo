@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/gestures.dart';            
+import 'package:flutter/gestures.dart';
+import 'package:senior_circle/features/chat/ui/room_details.dart';
+import 'package:senior_circle/features/chat/ui/room_details_admin.dart';            
 import 'package:url_launcher/url_launcher.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messeges.dart';
 final ImagePicker picker = ImagePicker();
@@ -14,7 +16,9 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
 
 
 class Chatroom extends StatelessWidget {
-  const Chatroom({super.key});
+  final String? title; // or final Contact? contact;
+  final bool isAdmin;
+  const Chatroom({super.key, this.title,this.isAdmin = true});
        void _showProfileSheet(BuildContext context, ChatMessage msg) {
     
     isRequestSent.value = false;
@@ -369,56 +373,74 @@ class Chatroom extends StatelessWidget {
         ),
 
         
-        Container(
-          height: 60,
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 10, left: 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                const CircleAvatar(
-                  radius: 18,
-                  backgroundImage:
-                      AssetImage('assets/images/chat_profile.png'),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Chai Talks',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                const Text(
-                  '10 Active',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                IconButton(
-                  icon: const Icon(
-                    Icons.more_vert,
-                    color: Color(0xFF5C5C5C),
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () {},
-                ),
-              ],
+        InkWell(
+  onTap: () {
+    // only navigate if NOT admin
+    if (!isAdmin) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChatDetailsScreen()),
+      );
+    } else {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
+  );
+}
+
+  },
+  child: Container(
+    height: 60,
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.only(top: 10, left: 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          const CircleAvatar(
+            radius: 18,
+            backgroundImage:
+                AssetImage('assets/images/chat_profile.png'),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            title ?? 'Chai Talks',
+            style: const TextStyle(
+                color: Colors.black,
+                fontSize: 19,
+                fontWeight: FontWeight.bold),
+          ),
+          const Spacer(),
+          const Text(
+            '10 Active',
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
+          const SizedBox(width: 2),
+          IconButton(
+            icon: const Icon(
+              Icons.more_vert,
+              color: Color(0xFF5C5C5C),
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
 
        
         Expanded(

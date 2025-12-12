@@ -252,9 +252,10 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
           ),
           Container(height: 1, color: Colors.grey.shade300),
           InkWell(
-            onTap: () {
-              // Handle Creation
-            },
+           onTap: () {
+  Navigator.pop(context);  
+},
+
             child: Container(
               width: double.infinity,
               height: 55,
