@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'members_list_fullscreen.dart';
 
-void main() {
+/*void main() {
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: ChatDetailsScreen(),
     ),
   );
-}
-
-const name = "Chai Talks";
+}*/
 
 class ChatDetailsScreen extends StatefulWidget {
   const ChatDetailsScreen({super.key});
@@ -33,7 +32,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         leading: IconButton(
           onPressed: () {
             /*Go back to the previous screen*/
-            ;
           },
           icon: Icon(Icons.arrow_back, color: Colors.black),
         ),
@@ -50,7 +48,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           IconButton(
             onPressed: () {
               /*More details*/
-              ;
             },
             icon: Icon(Icons.more_vert, color: Colors.black),
           ),
@@ -79,7 +76,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   const SizedBox(height: 16),
                   // Group Name
                   const Text(
-                    '$name',
+                    'Chai Talks',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
