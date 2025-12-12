@@ -25,14 +25,14 @@ class MyCircleChatroomAppBar extends StatelessWidget implements PreferredSizeWid
             CircleAvatar(
               radius: 18,
               backgroundImage: chat.imageUrl.isNotEmpty
-                  ? AssetImage(chat.imageUrl)
-                  : AssetImage('assets/images/avatar.png') as ImageProvider,
+                  ? NetworkImage(chat.imageUrl)
+                  : AssetImage('assets/images/avatar.png'),
             ),
           if (!chat.isGroup)
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: chat.imageUrl.isNotEmpty
-                  ? Image.asset(
+                  ? Image.network(
                       chat.imageUrl,
                       width: 36,
                       height: 36,
