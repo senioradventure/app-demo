@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/details/model/chatroom_member_model.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
 class MembersListView extends StatelessWidget {
   final List<MemberModel> members;

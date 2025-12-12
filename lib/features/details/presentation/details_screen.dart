@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:senior_circle/common/widgets/common_app_bar.dart';
-import 'package:senior_circle/common/widgets/details_widget.dart';
-import 'package:senior_circle/common/widgets/member_listview.dart';
+import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
+import 'package:senior_circle/core/common/widgets/details_tag_widget.dart';
+import 'package:senior_circle/core/common/widgets/member_listview.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/features/details/model/chatroom_details_model.dart';
 import 'package:senior_circle/features/details/model/chatroom_member_model.dart';
@@ -30,7 +30,7 @@ class DetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DetailsWidget(
+                    DetailsTagWidget(
                       imageUrl: details.imageUrl,
                       name: details.name,
                       interests: details.interests,

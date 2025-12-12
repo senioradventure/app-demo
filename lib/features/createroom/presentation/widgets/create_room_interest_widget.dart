@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_interest_chip_widget.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
 class InterestPicker extends StatelessWidget {
   final List<String> allInterests;

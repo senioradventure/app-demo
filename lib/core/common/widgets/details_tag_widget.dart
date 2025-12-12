@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
-class DetailsWidget extends StatelessWidget {
+class DetailsTagWidget extends StatelessWidget {
   final String imageUrl;
   final String name;
   final List<String> interests;
   final String description;
 
-  const DetailsWidget({
+  const DetailsTagWidget({
     super.key,
     required this.imageUrl,
     required this.name,
