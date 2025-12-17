@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
-import 'package:senior_circle/theme/texttheme/text_theme.dart';
-
-
 
 class ChatListWidget extends StatelessWidget {
   final List<Chat> foundResults;
   final void Function(Chat) onChatTap;
 
-  const ChatListWidget({super.key, required this.foundResults,required this.onChatTap,});
+  const ChatListWidget({
+    super.key,
+    required this.foundResults,
+    required this.onChatTap,
+  });
 
   @override
   Widget build(BuildContext context) {

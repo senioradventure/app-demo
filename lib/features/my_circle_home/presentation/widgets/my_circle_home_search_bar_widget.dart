@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
-import 'package:senior_circle/theme/texttheme/text_theme.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final ValueChanged<String>? onChanged;
@@ -10,12 +10,9 @@ class SearchBarWidget extends StatefulWidget {
 
   @override
   State<SearchBarWidget> createState() => _SearchBarWidgetState();
-  
- 
 }
 
 class _SearchBarWidgetState extends State<SearchBarWidget> {
-  
   @override
   Widget build(BuildContext context) {
     return Padding(

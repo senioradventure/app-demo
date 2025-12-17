@@ -12,14 +12,14 @@ import 'members_list_fullscreen.dart';
   );
 }*/
 
-class ChatDetailsScreen extends StatefulWidget {
-  const ChatDetailsScreen({super.key});
+class ChatDetailsScreenadmin extends StatefulWidget {
+  const ChatDetailsScreenadmin({super.key});
 
   @override
-  State<ChatDetailsScreen> createState() => _ChatDetailsScreenState();
+  State<ChatDetailsScreenadmin> createState() => _ChatDetailsScreenState();
 }
 
-class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
+class _ChatDetailsScreenState extends State<ChatDetailsScreenadmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
-import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 final List<GroupMessage> messages = [
   GroupMessage(

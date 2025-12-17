@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
-import 'package:senior_circle/core/theme/strings/lists.dart';
+import 'package:senior_circle/core/constants/strings/lists.dart';
 
 part 'createroom_event.dart';
 part 'createroom_state.dart';

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_input_field.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_app_bar.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
-import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class MyCircleIndividualChatPage extends StatelessWidget {
   MyCircleIndividualChatPage({super.key, required this.chat});
