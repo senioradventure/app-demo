@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/live-chat_home_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 
-class MyCirclePage extends StatelessWidget {
-  const MyCirclePage({super.key});
+class MyCirclePagedefault extends StatelessWidget {
+  const MyCirclePagedefault({super.key});
 
   @override
   Widget build(BuildContext context) {

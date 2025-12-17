@@ -53,21 +53,43 @@ final ValueNotifier<List<ChatMessage>> chatMessages =
 ]);
 
 class ChatMessage {
-  final bool isSender;  
-  final String? profileAsset;     
-  final String? name;         
+  final bool isSender;
+  final String? profileAsset;
+  final String? name;
   final String text;
   final String time;
-  final String? imageAsset; 
-  final bool isFriend; 
+  final String? imageAsset;
+  final bool isFriend;
 
   ChatMessage({
     required this.isSender,
-    this.profileAsset,  
+    this.profileAsset,
     this.name,
     required this.text,
     required this.time,
     this.imageAsset,
     this.isFriend = false,
   });
+
+  // 👇 add this
+  ChatMessage copyWith({
+    bool? isSender,
+    String? profileAsset,
+    String? name,
+    String? text,
+    String? time,
+    String? imageAsset,
+    bool? isFriend,
+  }) {
+    return ChatMessage(
+      isSender: isSender ?? this.isSender,
+      profileAsset: profileAsset ?? this.profileAsset,
+      name: name ?? this.name,
+      text: text ?? this.text,
+      time: time ?? this.time,
+      imageAsset: imageAsset ?? this.imageAsset,
+      isFriend: isFriend ?? this.isFriend,
+    );
+  }
 }
+
