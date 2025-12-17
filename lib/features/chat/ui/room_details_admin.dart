@@ -27,10 +27,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreenadmin> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-        ),
         title: const Text(
           'Details',
           style: TextStyle(

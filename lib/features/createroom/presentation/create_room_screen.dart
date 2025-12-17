@@ -10,6 +10,7 @@ import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_interest_widget.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_location_textfield_widget.dart';
+import 'package:senior_circle/features/preview/presentation/preview_screen.dart';
 
 class CreateRoomScreen extends StatefulWidget {
   const CreateRoomScreen({super.key});
@@ -89,7 +90,6 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                 ),
 
                 const LocationTextField(controller: null),
-
                 InterestPicker(
                   allInterests: AppLists.interests,
                   onChanged: (selected) {
@@ -107,6 +107,11 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
           return BottomButton(
             buttonText: 'CONFIRM',
             onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PreviewScreen()),
+              );
+              return;
               final roomName = _roomNameController.text.trim();
               final description = _descriptionController.text.trim();
 
@@ -125,7 +130,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                 'descriptionCount': state.descriptionCount,
               };
 
-              Navigator.pop(context, result);
+              // Navigator.pop(context, result);
             },
           );
         },
