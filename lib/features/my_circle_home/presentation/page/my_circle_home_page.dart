@@ -11,19 +11,19 @@ import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_ci
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
-class MyCirclePage extends StatefulWidget {
-  const MyCirclePage({super.key});
+class MyCircleHomePage extends StatefulWidget {
+  const MyCircleHomePage({super.key});
 
   @override
-  State<MyCirclePage> createState() => _MyCirclePageState();
+  State<MyCircleHomePage> createState() => _MyCircleHomePageState();
 }
 
-class _MyCirclePageState extends State<MyCirclePage> {
+class _MyCircleHomePageState extends State<MyCircleHomePage> {
   final List<Map<String, dynamic>> chatData = [
     {
       'name': 'Chai Talks',
       'lastMessage': 'Ram: How are you?',
-      'imageUrl': 'assets/images/group_icon.png',
+      'imageUrl': 'https://picsum.photos/400/400?random=1',
       'isGroup': true,
       'time': '32m ago',
       'unreadCount': 2,
@@ -31,21 +31,21 @@ class _MyCirclePageState extends State<MyCirclePage> {
     {
       'name': 'Chai Talks',
       'lastMessage': 'You: how about we start another project?',
-      'imageUrl': 'assets/images/group_icon.png',
+      'imageUrl': 'https://picsum.photos/400/400?random=1',
       'isGroup': true,
       'time': '10:45 AM',
     },
     {
       'name': 'Ramsy',
       'lastMessage': 'You: How are you today?',
-      'imageUrl': 'assets/images/user_icon.png',
+      'imageUrl': 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
       'isGroup': false,
       'time': '9:30 AM',
     },
     {
       'name': 'Reena',
       'lastMessage': 'You: How are you?',
-      'imageUrl': 'assets/images/user_icon.png',
+      'imageUrl': 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
       'isGroup': false,
       'time': 'yesterday',
     },
@@ -103,9 +103,9 @@ class _MyCirclePageState extends State<MyCirclePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, 
+      backgroundColor: AppColors.lightGray, 
       appBar: AppBar(
-        backgroundColor: Colors.white, 
+        backgroundColor:AppColors.lightGray, 
         title: Text(
           'My Circle',
           textAlign: TextAlign.left,

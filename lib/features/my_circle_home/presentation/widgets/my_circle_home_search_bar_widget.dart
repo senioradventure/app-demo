@@ -2,31 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
-class SearchBarWidget extends StatefulWidget {
+class SearchBarWidget extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final String? hintText;
 
   const SearchBarWidget({super.key, this.onChanged, this.hintText});
 
-  @override
-  State<SearchBarWidget> createState() => _SearchBarWidgetState();
-  
- 
-}
-
-class _SearchBarWidgetState extends State<SearchBarWidget> {
   
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       child: TextField(
-        onChanged: widget.onChanged,
+        onChanged: onChanged,
         decoration: InputDecoration(
           constraints: BoxConstraints.tightFor(
             width: MediaQuery.of(context).size.width * 0.92,
           ),
-          hintText: widget.hintText ?? 'Search Conversations',
+          hintText: hintText ?? 'Search Conversations',
           hintStyle: AppTextTheme.lightTextTheme.labelMedium,
           prefixIcon: const Icon(Icons.search_rounded),
           border: OutlineInputBorder(

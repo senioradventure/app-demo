@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class MessageInputField extends StatelessWidget {
   const MessageInputField({super.key});
@@ -26,8 +26,9 @@ class MessageInputField extends StatelessWidget {
                 border: Border.all(color: AppColors.borderColor),
               ),
               child: TextField(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: "Type a message",
+                  hintStyle: AppTextTheme.lightTextTheme.labelMedium,
                   border: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   enabledBorder: InputBorder.none,
