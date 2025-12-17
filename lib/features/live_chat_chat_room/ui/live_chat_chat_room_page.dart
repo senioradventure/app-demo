@@ -710,7 +710,7 @@ class Chatroom extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF5C5C5C),
+                                    color: Color(0xFF5C5C5C),
                                   ),
                                 ),
                               ],
@@ -741,7 +741,7 @@ class Chatroom extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF5C5C5C),
+                                    color: Color(0xFF5C5C5C),
                                   ),
                                 ),
                               ],
@@ -773,7 +773,7 @@ class Chatroom extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF5C5C5C),
+                                    color: Color(0xFF5C5C5C),
                                   ),
                                 ),
                               ],
@@ -962,7 +962,6 @@ class Chatroom extends StatelessWidget {
     messageController.clear();
     isTyping.value = false;
   } else {
-    print("Mic tapped");
   }
 },
 

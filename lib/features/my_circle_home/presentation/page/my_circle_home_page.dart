@@ -110,7 +110,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
         title: Text(
           'My Circle',
           textAlign: TextAlign.left,
-          style: AppTextTheme.lightTextTheme.headlineLarge,
+          style: Theme.of(context).textTheme.headlineLarge,
         ),
         iconTheme: IconThemeData(color: AppColors.iconColor),
       ),

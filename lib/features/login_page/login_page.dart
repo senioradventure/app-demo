@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/live-chat_home_page.dart';
-
+import 'package:senior_circle/features/live_chat_home/ui/presentation/live_chat_home_page.dart';
 
 final TextEditingController phoneController = TextEditingController();
 final TextEditingController otpController = TextEditingController();
@@ -9,8 +8,9 @@ final ValueNotifier<bool> showOtpField = ValueNotifier<bool>(false);
 
 enum OtpStatus { idle, sent, success, error }
 
-final ValueNotifier<OtpStatus> otpStatus =
-    ValueNotifier<OtpStatus>(OtpStatus.idle);
+final ValueNotifier<OtpStatus> otpStatus = ValueNotifier<OtpStatus>(
+  OtpStatus.idle,
+);
 
 class LiveChatLoginPage extends StatelessWidget {
   LiveChatLoginPage({super.key});
@@ -23,31 +23,29 @@ class LiveChatLoginPage extends StatelessWidget {
     showOtpField.value = true;
     otpStatus.value = OtpStatus.sent;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("OTP sent: 1234 (demo)")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("OTP sent: 1234 (demo)")));
   }
 
   void _verifyOtp(BuildContext context) {
     if (otpController.text.trim() == "1234") {
       otpStatus.value = OtpStatus.success;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login Successful")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Login Successful")));
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LiveChatPage()),
       );
-
-    
     } else {
       otpStatus.value = OtpStatus.error;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid OTP (Use 1234)")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Invalid OTP (Use 1234)")));
     }
   }
 
@@ -60,8 +58,7 @@ class LiveChatLoginPage extends StatelessWidget {
       case OtpStatus.error:
         return Colors.red;
       case OtpStatus.idle:
-      default:
-        return const Color.fromARGB(255, 228, 230, 231);
+      return const Color.fromARGB(255, 228, 230, 231);
     }
   }
 
@@ -92,7 +89,7 @@ class LiveChatLoginPage extends StatelessWidget {
               child: ValueListenableBuilder<OtpStatus>(
                 valueListenable: otpStatus,
                 builder: (context, status, _) {
-                  final borderColor = _borderColorForStatus(status);
+                  _borderColorForStatus(status);
                   final helperText = _helperTextForStatus(status);
 
                   return Column(
@@ -132,71 +129,78 @@ class LiveChatLoginPage extends StatelessWidget {
                       const SizedBox(height: 6),
 
                       TextFormField(
-  controller: phoneController,
-  keyboardType: TextInputType.phone,
-  cursorColor: Colors.black,
-  showCursor: true,
-  enableInteractiveSelection: false,
-  validator: (value) {
-    final v = value?.trim() ?? '';
+                        controller: phoneController,
+                        keyboardType: TextInputType.phone,
+                        cursorColor: Colors.black,
+                        showCursor: true,
+                        enableInteractiveSelection: false,
+                        validator: (value) {
+                          final v = value?.trim() ?? '';
 
-    if (v.isEmpty) return "Enter phone number";
+                          if (v.isEmpty) return "Enter phone number";
 
-    if (!RegExp(r'^\+\d{1,15}$').hasMatch(v)) {
-      return "Enter valid format (e.g., +91, +1, +966)";
-    }
+                          if (!RegExp(r'^\+\d{1,15}$').hasMatch(v)) {
+                            return "Enter valid format (e.g., +91, +1, +966)";
+                          }
 
-    return null;
-  },
-  decoration: InputDecoration(
-    hintText: "+00 Enter phone number", 
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          hintText: "+00 Enter phone number",
 
                           filled: true,
                           fillColor: Colors.white,
                           helperText: helperText,
-                          errorStyle: const TextStyle(        
-    color: Colors.red,           
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-  ),
+                          errorStyle: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                           helperStyle: TextStyle(
                             color: status == OtpStatus.error
                                 ? Colors.red
                                 : (status == OtpStatus.success
-                                    ? Colors.green
-                                    : Colors.grey),
+                                      ? Colors.green
+                                      : Colors.grey),
                             fontSize: 12,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                           enabledBorder: OutlineInputBorder(
-  borderRadius: BorderRadius.circular(10),
-  borderSide: BorderSide(
-      color: status == OtpStatus.error ? Colors.red : Colors.blueAccent, 
-      width: 1.6),
-),
-focusedBorder: OutlineInputBorder(
-  borderRadius: BorderRadius.circular(10),
-  borderSide: BorderSide(
-      color: status == OtpStatus.error ? Colors.red : Colors.blueAccent,
-      width: 2),
-),
-errorBorder: OutlineInputBorder(
-  borderRadius: BorderRadius.circular(10),
-  borderSide: BorderSide(color: Colors.red, width: 2),
-),
-focusedErrorBorder: OutlineInputBorder(
-  borderRadius: BorderRadius.circular(10),
-  borderSide: BorderSide(color: Colors.red, width: 2.2),
-),
-
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: status == OtpStatus.error
+                                  ? Colors.red
+                                  : Colors.blueAccent,
+                              width: 1.6,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: status == OtpStatus.error
+                                  ? Colors.red
+                                  : Colors.blueAccent,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.red, width: 2),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: Colors.red,
+                              width: 2.2,
+                            ),
+                          ),
                         ),
                       ),
 
                       const SizedBox(height: 16),
 
-                   
                       ValueListenableBuilder<bool>(
                         valueListenable: showOtpField,
                         builder: (context, visible, _) {
@@ -217,74 +221,91 @@ focusedErrorBorder: OutlineInputBorder(
                                 children: [
                                   Expanded(
                                     child: TextField(
-  controller: otpController,
-  maxLength: 4,
-  cursorColor: Colors.black,
-  showCursor: true,
-  enableInteractiveSelection: false,
-  selectionControls: null,
-  keyboardType: TextInputType.number,
-  decoration: InputDecoration(
-    counterText: "",
-    hintText: "1234",
-    filled: true,
-    fillColor: Colors.white,
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Colors.blueAccent, width: 1.6),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Colors.red, width: 1.8),
-    ),
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Colors.red, width: 2),
-    ),
-  ),
-),
-
+                                      controller: otpController,
+                                      maxLength: 4,
+                                      cursorColor: Colors.black,
+                                      showCursor: true,
+                                      enableInteractiveSelection: false,
+                                      selectionControls: null,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        counterText: "",
+                                        hintText: "1234",
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Colors.blueAccent,
+                                            width: 1.6,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Colors.blueAccent,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        errorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Colors.red,
+                                            width: 1.8,
+                                          ),
+                                        ),
+                                        focusedErrorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Colors.red,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 10),
                                   ElevatedButton(
                                     onPressed: () => _verifyOtp(context),
-                                    child: const Text("Verify"),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.blueAccent,
-  foregroundColor: Colors.white,
-  elevation: 0,
-  disabledBackgroundColor: Colors.green, 
-  disabledForegroundColor: Colors.white,
-  splashFactory: NoSplash.splashFactory, 
-  shadowColor: Colors.transparent,      
-),
-
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      disabledBackgroundColor: Colors.green,
+                                      disabledForegroundColor: Colors.white,
+                                      splashFactory: NoSplash.splashFactory,
+                                      shadowColor: Colors.transparent,
+                                    ),
+                                    child: const Text("Verify"),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 4),
                               Align(
-  alignment: Alignment.centerRight,
-  child: Padding(
-    padding: const EdgeInsets.only(right: 12),
-    child: TextButton(
-      onPressed: () {
-        showOtpField.value = false;
-        otpController.clear();
-        otpStatus.value = OtpStatus.idle;
-      },
-      child: const Text(
-        "Cancel",
-        style: TextStyle(color: Colors.black),
-      ),
-    ),
-  ),
-)
-
+                                alignment: Alignment.centerRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: TextButton(
+                                    onPressed: () {
+                                      showOtpField.value = false;
+                                      otpController.clear();
+                                      otpStatus.value = OtpStatus.idle;
+                                    },
+                                    child: const Text(
+                                      "Cancel",
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           );
                         },
@@ -292,7 +313,6 @@ focusedErrorBorder: OutlineInputBorder(
 
                       const SizedBox(height: 20),
 
-                  
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(

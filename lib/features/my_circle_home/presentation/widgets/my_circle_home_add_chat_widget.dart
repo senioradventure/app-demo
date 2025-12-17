@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
 
 class AddChatWidget extends StatelessWidget {
   final Widget destinationPage;
@@ -17,21 +16,7 @@ class AddChatWidget extends StatelessWidget {
           right: 24.0,
         ),
         child: FloatingActionButton(
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => destinationPage, // 👈 dynamic page
-              ),
-            );
-
-            if (result != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Created circle: ${result['name']}')),
-              );
-            }
-          },
-
+          onPressed: () {},
           shape: const CircleBorder(),
           backgroundColor: AppColors.buttonBlue,
           elevation: 0,
