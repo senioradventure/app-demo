@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/features/auth/ui/login_page.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
@@ -36,7 +37,7 @@ class SeniorCircleApp extends StatelessWidget {
         theme: AppTheme.lightMode,
         darkTheme: AppTheme.darkMode,
         debugShowCheckedModeBanner: false,
-        home: PreviewScreen(),
+        home: LoginPage(),
       ),
     );
   }
