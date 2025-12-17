@@ -19,15 +19,16 @@ class ChatListWidget extends StatelessWidget {
       itemBuilder: (context, index) {
         final chat = foundResults[index];
         return ListTile(
+          shape: Border.all(color: AppColors.darkGray),
           tileColor: AppColors.white,
           leading: chat.isGroup
               ? CircleAvatar(
-                  backgroundImage: AssetImage(chat.imageUrl),
+                  backgroundImage: NetworkImage(chat.imageUrl),
                   radius: 26,
                 )
               : ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
+                  child: Image.network(
                     chat.imageUrl,
                     width: 50,
                     height: 50,

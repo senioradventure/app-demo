@@ -23,7 +23,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
     {
       'name': 'Chai Talks',
       'lastMessage': 'Ram: How are you?',
-      'imageUrl': 'assets/images/group_icon.png',
+      'imageUrl': 'https://picsum.photos/400/400?random=1',
       'isGroup': true,
       'time': '32m ago',
       'unreadCount': 2,
@@ -31,21 +31,21 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
     {
       'name': 'Chai Talks',
       'lastMessage': 'You: how about we start another project?',
-      'imageUrl': 'assets/images/group_icon.png',
+      'imageUrl': 'https://picsum.photos/400/400?random=1',
       'isGroup': true,
       'time': '10:45 AM',
     },
     {
       'name': 'Ramsy',
       'lastMessage': 'You: How are you today?',
-      'imageUrl': 'assets/images/user_icon.png',
+      'imageUrl': 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
       'isGroup': false,
       'time': '9:30 AM',
     },
     {
       'name': 'Reena',
       'lastMessage': 'You: How are you?',
-      'imageUrl': 'assets/images/user_icon.png',
+      'imageUrl': 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
       'isGroup': false,
       'time': 'yesterday',
     },
@@ -103,9 +103,9 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, 
+      backgroundColor: AppColors.lightGray, 
       appBar: AppBar(
-        backgroundColor: Colors.white, 
+        backgroundColor:AppColors.lightGray, 
         title: Text(
           'My Circle',
           textAlign: TextAlign.left,

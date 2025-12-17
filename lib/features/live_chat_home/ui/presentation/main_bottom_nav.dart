@@ -34,7 +34,7 @@ class MainBottomNavBar extends StatelessWidget {
               page = const LiveChatPage();
               break;
             case 1:
-              page = MyCirclePage();
+              page = MyCircleHomePage();
               break;
             case 2:
               page = const SessionsPage();
