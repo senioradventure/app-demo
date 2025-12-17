@@ -23,7 +23,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           constraints: BoxConstraints.tightFor(
             width: MediaQuery.of(context).size.width * 0.92,
           ),
-          hintText:widget.hintText ?? 'Search Conversations',
+          hintText: widget.hintText ?? 'Search Conversations',
           hintStyle: AppTextTheme.lightTextTheme.labelMedium,
           prefixIcon: const Icon(Icons.search_rounded),
           border: OutlineInputBorder(

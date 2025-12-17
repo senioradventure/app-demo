@@ -13,7 +13,7 @@ class SessionsPage extends StatelessWidget {
         child: Container(
           width: double.infinity,
           height: 60,
-          color: const Color(0xFFF9F9F7),  // full grey background
+          color: const Color(0xFFF9F9F7), // full grey background
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
@@ -32,22 +32,6 @@ class SessionsPage extends StatelessWidget {
           ),
         ),
       ),
-
-     bottomNavigationBar: Theme(
-  data: Theme.of(context).copyWith(
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      selectedLabelStyle: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 12,
-      ),
-      unselectedLabelStyle: TextStyle(
-        fontWeight: FontWeight.w500,
-        fontSize: 12,
-      ),
-    ),
-  ),
-  child: const MainBottomNavBar(currentIndex: 2), 
-),
     );
   }
 }

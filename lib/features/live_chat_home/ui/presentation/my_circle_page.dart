@@ -34,21 +34,6 @@ class MyCirclePagedefault extends StatelessWidget {
         ),
       ),
 
-      bottomNavigationBar: Theme(
-  data: Theme.of(context).copyWith(
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      selectedLabelStyle: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 12,
-      ),
-      unselectedLabelStyle: TextStyle(
-        fontWeight: FontWeight.w500,
-        fontSize: 12,
-      ),
-    ),
-  ),
-  child: const MainBottomNavBar(currentIndex: 1), // 👈 My Circle
-),
     );
   }
 }
