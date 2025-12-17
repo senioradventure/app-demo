@@ -27,7 +27,11 @@ class StarredMessageWidget extends StatelessWidget {
               padding: const EdgeInsets.only(left: 8.0, top: 16, bottom: 16),
               child: Text(
                 'Starred Messages',
-                style: AppTextTheme.lightTextTheme.titleMedium,
+                style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: AppColors.textDarkGray,
+                ),
               ),
             ),
             Spacer(),

@@ -30,7 +30,7 @@ class MyCircleIndividualChatPage extends StatelessWidget {
                 },
               ),
             ),
-            MessageInputField(),
+            MessageInputField(onSend: (String p1) {  },),
           ],
         ),
       ),

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/live-chat_home_page.dart';
-import 'package:senior_circle/features/my_circle_home/presentation/page/my_circle_home_page.dart';
 
 ValueNotifier<int> currentPageIndex = ValueNotifier<int>(0);
 
 class MainBottomNavBar extends StatelessWidget {
-  MainBottomNavBar({super.key});
+  const MainBottomNavBar({super.key});
 
 
   @override

@@ -21,7 +21,7 @@ class ChatListWidget extends StatelessWidget {
       itemBuilder: (context, index) {
         final chat = foundResults[index];
         return ListTile(
-          shape: Border.all(color: AppColors.darkGray),
+          shape: Border.all(color: AppColors.borderColor),
           tileColor: AppColors.white,
           leading: chat.isGroup
               ? CircleAvatar(
@@ -43,14 +43,20 @@ class ChatListWidget extends StatelessWidget {
               Expanded(
                 child: Text(
                   chat.name,
-                  style: AppTextTheme.lightTextTheme.titleMedium,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: AppColors.textDarkGray,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
                 chat.time,
-                style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
-                  color: AppColors.textGray,
+                style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 10,
+                  color: AppColors.dateColor,
                 ),
               ),
             ],
@@ -72,22 +78,23 @@ class ChatListWidget extends StatelessWidget {
                           if (sender.isNotEmpty)
                             TextSpan(
                               text: '$sender: ',
-                              style: AppTextTheme.lightTextTheme.labelMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: isMe
-                                        ? AppColors.textGray
-                                        : AppColors.buttonBlue,
-                                  ),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: isMe
+                                    ? AppColors.textGray
+                                    : AppColors.buttonBlue,
+                              ),
                             ),
                           TextSpan(
                             text: message,
-                            style: AppTextTheme.lightTextTheme.labelMedium
-                                ?.copyWith(
-                                  color: chat.unreadCount > 0
-                                      ? AppColors.buttonBlue
-                                      : AppColors.textGray,
-                                ),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                              color: chat.unreadCount > 0
+                                  ? AppColors.buttonBlue
+                                  : AppColors.textGray,
+                            ),
                           ),
                         ],
                       ),

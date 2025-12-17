@@ -6,11 +6,14 @@ import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 class MessageActions extends StatelessWidget {
   final VoidCallback onReplyTap;
   final bool isReply;
+   final bool isReplyInputVisible;
 
   const MessageActions({
     super.key,
     required this.onReplyTap,
     this.isReply = false,
+    this.isReplyInputVisible = false
+    
   });
 
   @override
@@ -43,11 +46,12 @@ class MessageActions extends StatelessWidget {
         if (!isReply)
           TextButton.icon(
             onPressed: onReplyTap,
-            icon: SvgPicture.asset('assets/icons/reply_icon.svg'),
+            icon: SvgPicture.asset('assets/icons/reply_icon.svg',color: isReplyInputVisible?AppColors.buttonBlue:AppColors.textDarkGray,),
+            
             label: Text(
               "Reply",
               style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
-                color: AppColors.textDarkGray,
+                color: isReplyInputVisible?AppColors.buttonBlue: AppColors.textDarkGray,
               ),
             ),
           ),

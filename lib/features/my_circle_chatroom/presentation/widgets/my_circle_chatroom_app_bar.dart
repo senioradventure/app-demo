@@ -13,11 +13,7 @@ class MyCircleChatroomAppBar extends StatelessWidget
     return AppBar(
       elevation: 0,
       backgroundColor: AppColors.backgroundColor,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: AppColors.iconColor),
-        onPressed: () => Navigator.pop(context),
-      ),
-      leadingWidth: 24,
+      centerTitle: false,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [

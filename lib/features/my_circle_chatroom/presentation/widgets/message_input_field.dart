@@ -1,10 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 
-class MessageInputField extends StatelessWidget {
-  const MessageInputField({super.key});
+class MessageInputField extends StatefulWidget {
+  final Function(String) onSend;
+  const MessageInputField({super.key, required this.onSend});
+
+  @override
+  State<MessageInputField> createState() => _MessageInputFieldState();
+}
+
+class _MessageInputFieldState extends State<MessageInputField> {
+  final TextEditingController _controller = TextEditingController();
+  bool _isTyping = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      final hasText = _controller.text.trim().isNotEmpty;
+      if (hasText != _isTyping) {
+        setState(() => _isTyping = hasText);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,9 +33,12 @@ class MessageInputField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       color: AppColors.lightGray,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end, // Keeps buttons at bottom
         children: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              ImagePicker().pickImage(source: ImageSource.gallery);
+            },
             icon: Icon(Icons.add, color: AppColors.buttonBlue, size: 28),
           ),
           Expanded(
@@ -26,6 +50,10 @@ class MessageInputField extends StatelessWidget {
                 border: Border.all(color: AppColors.borderColor),
               ),
               child: TextField(
+                controller: _controller,
+                minLines: 1,
+                maxLines: 5, // Dynamic expansion logic
+                keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   hintText: "Type a message",
                   hintStyle: AppTextTheme.lightTextTheme.labelMedium,
@@ -37,12 +65,26 @@ class MessageInputField extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          InkWell(
-            onTap: () {},
-            child: SvgPicture.asset('assets/icons/mic_button.svg'),
-          ),
+         InkWell(
+              onTap: () {
+                if (_isTyping) {
+                  widget.onSend(_controller.text.trim());
+                  _controller.clear();
+                }
+              },
+              child: _isTyping
+                  ? Icon(Icons.send, color: AppColors.buttonBlue, size: 28)
+                  : SvgPicture.asset('assets/icons/mic_button.svg'),
+            ),
+          
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

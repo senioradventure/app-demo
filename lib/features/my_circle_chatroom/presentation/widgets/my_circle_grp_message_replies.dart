@@ -10,9 +10,20 @@ class MessageReplies extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: replies
-          .map((reply) => GroupMessageCard(grpmessage: reply, isReply: true))
-          .toList(),
+      children: List.generate(replies.length, (index) {
+        final currentReply = replies[index];
+
+        bool isContinuation = false;
+        if (index > 0) {
+          isContinuation = replies[index - 1].senderName == currentReply.senderName;
+        }
+
+        return GroupMessageCard(
+          grpmessage: currentReply,
+          isReply: true,
+          isContinuation: isContinuation,
+        );
+      }),
     );
   }
 }
