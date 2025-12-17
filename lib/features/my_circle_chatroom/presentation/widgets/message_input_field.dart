@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class MessageInputField extends StatelessWidget {
@@ -45,4 +45,4 @@ class MessageInputField extends StatelessWidget {
       ),
     );
   }
-  }
+}

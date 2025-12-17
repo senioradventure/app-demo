@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/constants/group_messages.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_input_field.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_app_bar.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_card.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
 
 class MyCircleGroupChatPage extends StatelessWidget {
   const MyCircleGroupChatPage({super.key, required this.chat});
@@ -17,8 +17,8 @@ class MyCircleGroupChatPage extends StatelessWidget {
       backgroundColor: AppColors.backgroundColor,
       appBar: MyCircleChatroomAppBar(chat: chat),
       body: Column(
-        children: [          
-          Expanded(            
+        children: [
+          Expanded(
             child: ListView.builder(
               itemCount: groupMessages.length,
               itemBuilder: (context, index) {

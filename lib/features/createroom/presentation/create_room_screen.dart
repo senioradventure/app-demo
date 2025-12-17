@@ -2,14 +2,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:senior_circle/common/widgets/bottom_button.dart';
-import 'package:senior_circle/common/widgets/common_app_bar.dart';
-import 'package:senior_circle/common/widgets/image_picker_widget.dart';
-import 'package:senior_circle/common/widgets/text_field_with_counter.dart';
+import 'package:senior_circle/core/common/widgets/bottom_button.dart';
+import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
+import 'package:senior_circle/core/common/widgets/image_picker_widget.dart';
+import 'package:senior_circle/core/common/widgets/text_field_with_counter.dart';
+import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_interest_widget.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_location_textfield_widget.dart';
-import 'package:senior_circle/theme/strings/lists.dart';
 
 class CreateRoomScreen extends StatefulWidget {
   const CreateRoomScreen({super.key});
@@ -101,38 +101,35 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
           );
         },
       ),
-        
-  bottomNavigationBar: BlocBuilder<CreateroomBloc, CreateroomState>(
-    builder: (context, state) {
-      return BottomButton(
-        buttonText: 'CONFIRM',
-        onTap: () {
-          final roomName = _roomNameController.text.trim();
-          final description = _descriptionController.text.trim();
 
-          
-          if (roomName.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please enter a room name')),
-            );
-            return;
-          }
+      bottomNavigationBar: BlocBuilder<CreateroomBloc, CreateroomState>(
+        builder: (context, state) {
+          return BottomButton(
+            buttonText: 'CONFIRM',
+            onTap: () {
+              final roomName = _roomNameController.text.trim();
+              final description = _descriptionController.text.trim();
 
-          final result = {
-            'roomName': roomName,
-            'description': description,
-            'imageFile': state.imageFile, 
-            'nameCount': state.nameCount,
-            'descriptionCount': state.descriptionCount,
-            
-          };
+              if (roomName.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a room name')),
+                );
+                return;
+              }
 
-          Navigator.pop(context, result);
+              final result = {
+                'roomName': roomName,
+                'description': description,
+                'imageFile': state.imageFile,
+                'nameCount': state.nameCount,
+                'descriptionCount': state.descriptionCount,
+              };
+
+              Navigator.pop(context, result);
+            },
+          );
         },
-      );
-    },
-  ),
-
+      ),
     );
   }
 }

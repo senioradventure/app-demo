@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
-import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
@@ -26,20 +26,18 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
     return Container(
       margin: EdgeInsets.only(
-        top:  widget.isReply ? 0 : 4,
-        bottom:widget.isReply ? 0 : 4,
-        
+        top: widget.isReply ? 0 : 4,
+        bottom: widget.isReply ? 0 : 4,
       ),
       decoration: BoxDecoration(
         color: grpmessage.senderName.toLowerCase() == 'you'
-          ? const Color(0xFFF9EFDB)
-          : AppColors.white,
-        border: widget.isReply ? null : Border.all(
-          color: AppColors.borderColor,
-          width: 2,
-        ),
+            ? const Color(0xFFF9EFDB)
+            : AppColors.white,
+        border: widget.isReply
+            ? null
+            : Border.all(color: AppColors.borderColor, width: 2),
       ),
-      
+
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         child: Row(

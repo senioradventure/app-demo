@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
@@ -8,8 +10,6 @@ import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_ci
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_search_bar_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_starred_message_widget.dart';
-import 'package:senior_circle/theme/colors/app_colors.dart';
-import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class MyCircleHomePage extends StatefulWidget {
   const MyCircleHomePage({super.key});
@@ -38,14 +38,16 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
     {
       'name': 'Ramsy',
       'lastMessage': 'You: How are you today?',
-      'imageUrl': 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
+      'imageUrl':
+          'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
       'isGroup': false,
       'time': '9:30 AM',
     },
     {
       'name': 'Reena',
       'lastMessage': 'You: How are you?',
-      'imageUrl': 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
+      'imageUrl':
+          'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
       'isGroup': false,
       'time': 'yesterday',
     },
@@ -89,23 +91,22 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
     });
   }
 
- void navigateToChatRoom(Chat chat) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (context) => chat.isGroup
-          ? MyCircleGroupChatPage(chat: chat)   
-          : MyCircleIndividualChatPage(chat: chat),  
-    ),
-  );
-}
-
+  void navigateToChatRoom(Chat chat) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => chat.isGroup
+            ? MyCircleGroupChatPage(chat: chat)
+            : MyCircleIndividualChatPage(chat: chat),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightGray, 
+      backgroundColor: AppColors.lightGray,
       appBar: AppBar(
-        backgroundColor:AppColors.lightGray, 
+        backgroundColor: AppColors.lightGray,
         title: Text(
           'My Circle',
           textAlign: TextAlign.left,
@@ -118,27 +119,30 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
           SearchBarWidget(onChanged: (value) => runfilter(value)),
           SizedBox(height: 8),
           StarredMessageWidget(),
-          Expanded(child: ChatListWidget(foundResults: foundResults,onChatTap: navigateToChatRoom,)),
-          AddChatWidget(
-  destinationPage: const CircleCreationScreen(),
-),
+          Expanded(
+            child: ChatListWidget(
+              foundResults: foundResults,
+              onChatTap: navigateToChatRoom,
+            ),
+          ),
+          AddChatWidget(destinationPage: const CircleCreationScreen()),
         ],
       ),
       bottomNavigationBar: Theme(
-    data: Theme.of(context).copyWith(
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        selectedLabelStyle: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
+        data: Theme.of(context).copyWith(
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            selectedLabelStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
+          ),
         ),
-        unselectedLabelStyle: TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        ),
+        child: const MainBottomNavBar(currentIndex: 1),
       ),
-    ),
-    child: const MainBottomNavBar(currentIndex: 1),
-  ),
     );
   }
 }

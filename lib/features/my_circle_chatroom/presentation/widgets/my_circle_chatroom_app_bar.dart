@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
 import 'package:senior_circle/theme/colors/app_colors.dart';
 
-class MyCircleChatroomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class MyCircleChatroomAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   const MyCircleChatroomAppBar({super.key, required this.chat});
 
   final Chat chat;
@@ -17,11 +20,10 @@ class MyCircleChatroomAppBar extends StatelessWidget implements PreferredSizeWid
         icon: const Icon(Icons.arrow_back, color: AppColors.iconColor),
         onPressed: () => Navigator.pop(context),
       ),
-  leadingWidth: 24,
+      leadingWidth: 24,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-        
           if (chat.isGroup)
             CircleAvatar(
               radius: 18,
@@ -59,6 +61,7 @@ class MyCircleChatroomAppBar extends StatelessWidget implements PreferredSizeWid
       ],
     );
   }
+
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }
