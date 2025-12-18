@@ -25,7 +25,6 @@ class MessageActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Updated Like/Reaction Section
         GestureDetector(
           onTap: onLikeTap,
           child: Container(
@@ -44,7 +43,7 @@ class MessageActions extends StatelessWidget {
                       : 'assets/icons/like_button.svg',
                 ),
                 const SizedBox(width: 6),
-                // Displaying name and count
+
                 Text(
                   "${likeCount > 0 ? likeCount : ''}",
                   style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
@@ -63,7 +62,7 @@ class MessageActions extends StatelessWidget {
           icon: const Icon(Icons.add_circle_outline),
           color: const Color(0xFF5c5c5c),
           onPressed: () {
-            // Show emoji picker logic here
+
           },
           iconSize: 24,
         ),

@@ -1,4 +1,7 @@
+
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
+
 
 final List<GroupMessage> groupMessages = [
   GroupMessage(
@@ -8,25 +11,32 @@ final List<GroupMessage> groupMessages = [
     avatar: 'https://i.pravatar.cc/150?img=1',
     text: 'Hello everyone!',
     time: '10:00 AM',
-    replies: [
+    replies: [],
+
+    reactions: [
+      Reaction(name: 'like', count: 3), 
+      Reaction(name: 'heart', count: 2)
     ],
-    reactions: [Reaction('👍', 3), Reaction('❤️', 2)],
   ),
   GroupMessage(
     id: '2',
     senderId: 'me-id',
     senderName: 'You',
-    avatar: 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
+    avatar: '...',
     text: 'Hi Alice!',
     time: '10:02 AM',
-    reactions: [Reaction('😊', 1)],
+    
+    reactions: [
+      Reaction(name: 'haha', count: 1)
+    ],
   ),
   GroupMessage(
     id: '3',
     senderId: 'santra-id',
     senderName: 'santra',
-    avatar: 'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
+    avatar: '...',
     text: 'Good morning!',
     time: '10:05 AM',
+    reactions: [], 
   ),
 ];

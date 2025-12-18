@@ -1,3 +1,6 @@
+
+import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
+
 class GroupMessage {
   final String id;
   final String senderId;
@@ -21,7 +24,7 @@ class GroupMessage {
     this.isThreadOpen = false,
   });
 
-  // 1. Factory constructor for API Integration
+
   factory GroupMessage.fromMap(Map<String, dynamic> map) {
     return GroupMessage(
       id: map['id']?.toString() ?? '',
@@ -31,18 +34,15 @@ class GroupMessage {
       text: map['text'] ?? '',
       time: map['time'] ?? '',
       isThreadOpen: map['isThreadOpen'] ?? false,
-      // Mapping nested list of Reactions
       reactions: (map['reactions'] as List? ?? [])
           .map((r) => Reaction.fromMap(r))
           .toList(),
-      // Mapping nested list of Replies (Recursive)
       replies: (map['replies'] as List? ?? [])
           .map((reply) => GroupMessage.fromMap(reply))
           .toList(),
     );
   }
 
-  // 2. Convert to Map for Sending to API
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -58,23 +58,3 @@ class GroupMessage {
   }
 }
 
-class Reaction {
-  final String reaction;
-  final int count;
-
-  Reaction(this.reaction, this.count);
-
-  factory Reaction.fromMap(Map<String, dynamic> map) {
-    return Reaction(
-      map['reaction'] ?? '',
-      map['count'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'reaction': reaction,
-      'count': count,
-    };
-  }
-}
