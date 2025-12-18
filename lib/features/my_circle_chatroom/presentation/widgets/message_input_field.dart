@@ -52,7 +52,7 @@ class _MessageInputFieldState extends State<MessageInputField> {
               child: TextField(
                 controller: _controller,
                 minLines: 1,
-                maxLines: 5, // Dynamic expansion logic
+                maxLines: null, 
                 keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   hintText: "Type a message",
@@ -73,7 +73,7 @@ class _MessageInputFieldState extends State<MessageInputField> {
                 }
               },
               child: _isTyping
-                  ? Icon(Icons.send, color: AppColors.buttonBlue, size: 28)
+                  ? SvgPicture.asset('assets/icons/send_icon.svg')
                   : SvgPicture.asset('assets/icons/mic_button.svg'),
             ),
           

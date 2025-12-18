@@ -16,30 +16,52 @@ class MyCircleGroupChatPage extends StatefulWidget {
 }
 
 class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
-  // Create a local list from your constant data
-  late List<GroupMessage> _messages = List.from(groupMessages);
-@override
+  late List<GroupMessage> _messages;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
   void initState() {
     super.initState();
-    // Initialize the list and force all threads to be closed
-    _messages = groupMessages.map((msg) {
-      msg.isThreadOpen = false; 
-      // Also ensure the inline reply input is closed if you have that in the model
-      return msg;
-    }).toList();
+    _messages = groupMessages.map((msg) => msg).toList();
   }
+
   void _handleSendMessage(String text) {
+    if (text.trim().isEmpty) return;
+
     setState(() {
       _messages.add(
         GroupMessage(
+          id: DateTime.now().millisecondsSinceEpoch.toString(), 
+          senderId: 'user_123',
           senderName: "You",
           text: text,
-          time: TimeOfDay.now().toString(), // You can use a DateFormat here later
+          time: TimeOfDay.now().format(context),
           avatar: "assets/images/user_placeholder.png", 
-          replies: [], id: '1', senderId: 'me-id',
+          replies: [], 
+          isThreadOpen: false,
         ),
       );
     });
+    
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,9 +73,12 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController, 
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final currentMsg = _messages[index];
+
                 bool isContinuation = false;
                 if (index > 0) {
                   final previousMsg = _messages[index - 1];
@@ -61,13 +86,13 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                 }
 
                 return GroupMessageCard(
+                  key: ValueKey(currentMsg.id), 
                   grpmessage: currentMsg,
                   isContinuation: isContinuation,
                 );
               },
             ),
           ),
-          // Pass the function to your input field
           MessageInputField(onSend: _handleSendMessage),
         ],
       ),

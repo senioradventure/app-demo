@@ -75,7 +75,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                     grpmessage.text,
                     style: AppTextTheme.lightTextTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
 
                   MessageActions(
                     isReplyInputVisible:  _isReplyInputVisible,
@@ -91,13 +91,19 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                     _buildReplyButton(grpmessage),
 
                   if (grpmessage.isThreadOpen)
-                    MessageReplies(replies: grpmessage.replies),
+                  
+                    Column(
+                      children: [
+                        Divider(color: AppColors.lightGray,),
+                        MessageReplies(replies: grpmessage.replies),
+                      ],
+                    ),
                   if (_isReplyInputVisible)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
                       child: TextField(
                         controller: _replyController,
-                        autofocus: true, // Opens keyboard immediately
+                        autofocus: true,
                         decoration: InputDecoration(
                           hintText: "Write a reply...",
                           hintStyle: AppTextTheme.lightTextTheme.labelMedium,
@@ -109,7 +115,6 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                             onPressed: () {
                               if (_replyController.text.trim().isNotEmpty) {
                                 setState(() {
-                                  // Add reply to the local model
                                   grpmessage.replies.add(
                                     GroupMessage(
                                       senderName: "You",
