@@ -1,29 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_interest_chip_widget.dart';
-import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
-class InterestPicker extends StatelessWidget {
+class InterestPicker extends StatefulWidget {
   final List<String> allInterests;
   final Function(List<String>)? onChanged;
 
   const InterestPicker({super.key, required this.allInterests, this.onChanged});
 
   @override
+  State<InterestPicker> createState() => _InterestPickerState();
+}
+
+class _InterestPickerState extends State<InterestPicker> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CreateroomBloc(),
+    return BlocListener<CreateroomBloc, CreateroomState>(
+      listenWhen: (prev, curr) => prev.query != curr.query,
+      listener: (context, state) {
+        // Sync bloc → text field ONLY when needed
+        if (_controller.text != state.query) {
+          _controller.value = TextEditingValue(
+            text: state.query,
+            selection: TextSelection.collapsed(offset: state.query.length),
+          );
+        }
+      },
       child: BlocBuilder<CreateroomBloc, CreateroomState>(
+        buildWhen: (prev, curr) =>
+            prev.selected != curr.selected ||
+            prev.filtered != curr.filtered ||
+            prev.showDropdown != curr.showDropdown,
         builder: (context, state) {
-          final controller = TextEditingController(text: state.query);
-
-          void notifyParent() {
-            onChanged?.call(state.selected);
-          }
-
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            notifyParent();
+            widget.onChanged?.call(state.selected);
           });
 
           return Column(
@@ -38,7 +64,7 @@ class InterestPicker extends StatelessWidget {
 
               /// Search Field
               TextField(
-                controller: controller,
+                controller: _controller,
                 decoration: InputDecoration(
                   hintText: 'What are you looking for?',
                   hintStyle: Theme.of(context).textTheme.labelSmall,
@@ -58,7 +84,7 @@ class InterestPicker extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: AppColors.iconColor,
                         blurRadius: 8,
@@ -71,15 +97,16 @@ class InterestPicker extends StatelessWidget {
                     children: state.filtered
                         .map(
                           (item) => ListTile(
+                            dense: true,
                             title: Text(
                               item,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
-                            dense: true,
                             onTap: () {
                               context.read<CreateroomBloc>().add(
                                 AddInterestEvent(item),
                               );
+                              _controller.clear(); // UX improvement
                             },
                           ),
                         )

@@ -32,7 +32,6 @@ class IndividualMessageCard extends StatelessWidget {
     );
   }
 
-
   void _showContextMenu(BuildContext context, Message msg) async {
     final RenderBox messageBox = context.findRenderObject() as RenderBox;
     final Offset position = messageBox.localToGlobal(Offset.zero);
@@ -44,7 +43,7 @@ class IndividualMessageCard extends StatelessWidget {
       0,
     );
 
-   await showMenu(
+    await showMenu(
       context: context,
       position: positionRect,
       items: <PopupMenuEntry>[

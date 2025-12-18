@@ -13,6 +13,10 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
   final List<String> allInterests = AppLists.interests;
 
   CreateroomBloc() : super(const CreateroomState()) {
+    on<ResetCreateRoomEvent>((event, emit) {
+      emit(const CreateroomState());
+    });
+
     on<PickImageFromGalleryEvent>((event, emit) async {
       final XFile? pickedImage = await _picker.pickImage(
         source: ImageSource.gallery,

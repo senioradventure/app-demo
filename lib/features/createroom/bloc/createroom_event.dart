@@ -5,6 +5,8 @@ sealed class CreateroomEvent {}
 
 class PickImageFromGalleryEvent extends CreateroomEvent {}
 
+class ResetCreateRoomEvent extends CreateroomEvent {}
+
 final class NameTextFieldCounterEvent extends CreateroomEvent {
   final int count;
   NameTextFieldCounterEvent(this.count);

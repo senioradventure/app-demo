@@ -19,7 +19,6 @@ class SeniorCircleApp extends StatelessWidget {
         BlocProvider<ChatroomdetailsBloc>(
           create: (context) => ChatroomdetailsBloc(),
         ),
-        BlocProvider(create: (context) => CreateroomBloc()),
         BlocProvider<CreateroomBloc>(create: (context) => CreateroomBloc()),
         BlocProvider<ChatroomdetailsBloc>(
           create: (context) => ChatroomdetailsBloc(),
