@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
 
 class AddChatWidget extends StatelessWidget {
   final Widget destinationPage;
@@ -21,7 +20,7 @@ class AddChatWidget extends StatelessWidget {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => destinationPage, // 👈 dynamic page
+                builder: (context) => destinationPage, 
               ),
             );
 
