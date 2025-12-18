@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/features/chat/ui/room_details.dart';
+import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
 
 class MyCircleChatroomAppBar extends StatelessWidget
     implements PreferredSizeWidget {
-  const MyCircleChatroomAppBar({super.key, required this.chat});
+  const MyCircleChatroomAppBar({super.key, required this.chat,required this.isAdmin,});
 
   final Chat chat;
+  final bool isAdmin;
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +17,27 @@ class MyCircleChatroomAppBar extends StatelessWidget
       elevation: 0,
       backgroundColor: AppColors.backgroundColor,
       centerTitle: false,
-      title: Row(
+      title: InkWell(
+  onTap: () {
+    if (isAdmin) {
+  
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ChatDetailsScreenadmin(),
+        ),
+      );
+    } else {
+   
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ChatDetailsScreen(),
+        ),
+      );
+    }
+  },
+   child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           if (chat.isGroup)
@@ -42,10 +65,11 @@ class MyCircleChatroomAppBar extends StatelessWidget
                     ),
             ),
           const SizedBox(width: 12),
-          Text(chat.name, style: Theme.of(context).textTheme.headlineMedium),
+          Text(chat.name, style: Theme.of(context).textTheme.headlineMedium
+          ),
         ],
       ),
-
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.more_vert, color: AppColors.iconColor),

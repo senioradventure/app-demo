@@ -62,6 +62,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
           isGroup: data['isGroup'],
           time: data['time'],
           unreadCount: data['unreadCount'] ?? 0,
+          isAdmin: true,
         ),
       )
       .toList();
@@ -95,7 +96,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => chat.isGroup
-            ? MyCircleGroupChatPage(chat: chat)
+            ? MyCircleGroupChatPage(chat: chat,isAdmin: chat.isAdmin,)
             : MyCircleIndividualChatPage(chat: chat),
       ),
     );

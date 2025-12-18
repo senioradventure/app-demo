@@ -22,7 +22,7 @@ final ValueNotifier<bool> isRequestSent = ValueNotifier<bool>(false);
 final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
 final TextEditingController messageController = TextEditingController();
 final ValueNotifier<String?> tappedLink = ValueNotifier(null);
-  final String? title; // or final Contact? contact;
+  final String? title;  
   final bool isAdmin;
   final bool isNewRoom;
   Chatroom({super.key, this.title,this.isAdmin = true,this.isNewRoom = false,});
@@ -48,22 +48,22 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
   context: context,
   backgroundColor: Colors.transparent,
   isScrollControlled: true,
-  isDismissible: true, // ✅ REQUIRED
-  enableDrag: true,   // ✅ REQUIRED
+  isDismissible: true, 
+  enableDrag: true,  
   builder: (context) {
   return GestureDetector(
     behavior: HitTestBehavior.translucent,
     onTap: () {
-      Navigator.pop(context); // ✅ tap outside closes sheet
+      Navigator.pop(context);
     },
     child: Stack(
       children: [
-        // Full-screen invisible layer to catch outside taps
+       
 
         Align(
           alignment: Alignment.bottomCenter,
           child: GestureDetector(
-            onTap: () {}, // ✅ block tap inside container
+            onTap: () {},
             child: Container(
               width: double.infinity,
               decoration: const BoxDecoration(
@@ -405,7 +405,7 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
         
         InkWell(
   onTap: () {
-    // only navigate if NOT admin
+ 
     if (!isAdmin) {
       Navigator.push(
         context,
@@ -430,7 +430,7 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
          IconButton(
   icon: const Icon(Icons.arrow_back),
   onPressed: () {
-    currentPageIndex.value = 0; // Live Chat tab
+    currentPageIndex.value = 0;
 
     Navigator.pushAndRemoveUntil(
       context,
@@ -589,7 +589,6 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
 
-            // ✅ IMAGE FOR SENDER (THIS WAS MISSING)
            if (msg.imageAsset != null || msg.imageFile != null)
   Padding(
     padding: const EdgeInsets.fromLTRB(3, 3, 3, 0),
@@ -598,12 +597,12 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.66,
-          maxHeight: MediaQuery.of(context).size.height * 0.45, // ✅ dynamic
+          maxHeight: MediaQuery.of(context).size.height * 0.45,  
         ),
         child: msg.imageFile != null
             ? Image.file(
                 File(msg.imageFile!),
-                fit: BoxFit.contain, // ✅ keeps full vertical image
+                fit: BoxFit.contain, 
               )
             : Image.asset(
                 msg.imageAsset!,
@@ -677,7 +676,6 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
 
       GestureDetector(
         onLongPress: () {
-    // Only on long press, not normal tap
     FocusScope.of(context).unfocus();
     isRequestSent.value = false;
     isRequestSent.value = false;
@@ -943,7 +941,6 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
       mainAxisSize: MainAxisSize.min,
       children: [
 
-        // 🔥 IMAGE PREVIEW (THIS WAS MISSING)
         ValueListenableBuilder<String?>(
           valueListenable: pendingImage,
           builder: (context, path, _) {
@@ -980,7 +977,6 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
           },
         ),
 
-        // 🔹 INPUT ROW (YOUR EXISTING CODE)
         Container(
           height: 75,
           color: const Color(0xFFF9F9F7),

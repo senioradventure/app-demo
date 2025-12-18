@@ -5,7 +5,7 @@ class Chat {
   final bool isGroup;
   final String time;
   final int unreadCount;
-
+  final bool isAdmin;
   Chat({
     required this.name,
     required this.lastMessage,
@@ -13,5 +13,6 @@ class Chat {
     required this.isGroup,
     required this.time,
     this.unreadCount = 0,
+    this.isAdmin = true,
   });
 }

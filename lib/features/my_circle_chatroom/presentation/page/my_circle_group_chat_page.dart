@@ -8,8 +8,9 @@ import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/m
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
 
 class MyCircleGroupChatPage extends StatefulWidget {
-  const MyCircleGroupChatPage({super.key, required this.chat});
+  const MyCircleGroupChatPage({super.key, required this.chat,required this.isAdmin });
   final Chat chat;
+  final bool isAdmin;
 
   @override
   State<MyCircleGroupChatPage> createState() => _MyCircleGroupChatPageState();
@@ -69,7 +70,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      appBar: MyCircleChatroomAppBar(chat: widget.chat),
+      appBar: MyCircleChatroomAppBar(chat: widget.chat,isAdmin: widget.isAdmin,),
       body: Column(
         children: [
           Expanded(
