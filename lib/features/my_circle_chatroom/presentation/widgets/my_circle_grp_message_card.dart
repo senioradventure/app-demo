@@ -8,11 +8,13 @@ import 'package:senior_circle/features/my_circle_chatroom/models/group_message_m
 class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
   final bool isReply;
+  final bool isContinuation;
 
   const GroupMessageCard({
     super.key,
     required this.grpmessage,
     this.isReply = false,
+    this.isContinuation = false,
   });
 
   @override
@@ -20,14 +22,30 @@ class GroupMessageCard extends StatefulWidget {
 }
 
 class _GroupMessageCardState extends State<GroupMessageCard> {
+  bool _isReplyInputVisible = false;
+  final TextEditingController _replyController = TextEditingController();
+  bool _isLiked = false;
+
+  void _handleLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+    });
+  }
+
+  @override
+  void dispose() {
+    _replyController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final grpmessage = widget.grpmessage;
 
     return Container(
       margin: EdgeInsets.only(
-        top: widget.isReply ? 0 : 4,
-        bottom: widget.isReply ? 0 : 4,
+        top: widget.isContinuation || widget.isReply ? 0 : 4,
+        bottom: widget.isContinuation || widget.isReply ? 0 : 4,
       ),
       decoration: BoxDecoration(
         color: grpmessage.senderName.toLowerCase() == 'you'
@@ -35,11 +53,17 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
             : AppColors.white,
         border: widget.isReply
             ? null
-            : Border.all(color: AppColors.borderColor, width: 2),
+            : Border(
+                left: BorderSide(color: AppColors.borderColor),
+                right: BorderSide(color: AppColors.borderColor),
+                bottom: BorderSide(color: AppColors.borderColor),
+                top: widget.isContinuation
+                    ? BorderSide.none
+                    : BorderSide(color: AppColors.borderColor),
+              ),
       ),
-
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,7 +72,6 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
               backgroundImage: NetworkImage(grpmessage.avatar ?? ''),
             ),
             const SizedBox(width: 10),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,15 +82,82 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                     grpmessage.text,
                     style: AppTextTheme.lightTextTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
 
-                  MessageActions(onReplyTap: () {}, isReply: widget.isReply),
+                  MessageActions(
+                    isLiked: _isLiked,
+
+                    likeCount:
+                        widget.grpmessage.reactions.fold(
+                          0,
+                          (sum, r) => sum + r.count,
+                        ) +
+                        (_isLiked ? 1 : 0),
+                    onLikeTap: _handleLike,
+                    onReplyTap: () => setState(
+                      () => _isReplyInputVisible = !_isReplyInputVisible,
+                    ),
+                    isReplyInputVisible: _isReplyInputVisible,
+                    isReply: widget.isReply,
+                  ),
 
                   if (grpmessage.replies.isNotEmpty)
                     _buildReplyButton(grpmessage),
 
                   if (grpmessage.isThreadOpen)
-                    MessageReplies(replies: grpmessage.replies),
+                    Column(
+                      children: [
+                        Divider(color: AppColors.lightGray),
+                        MessageReplies(replies: grpmessage.replies),
+                      ],
+                    ),
+                  if (_isReplyInputVisible)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: TextField(
+                        controller: _replyController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: "Write a reply...",
+                          hintStyle: AppTextTheme.lightTextTheme.labelMedium,
+                          suffixIcon: IconButton(
+                            icon: const Icon(
+                              Icons.send,
+                              color: AppColors.buttonBlue,
+                            ),
+                            onPressed: () {
+                              if (_replyController.text.trim().isNotEmpty) {
+                                setState(() {
+                                  grpmessage.replies.add(
+                                    GroupMessage(
+                                      senderName: "You",
+                                      text: _replyController.text.trim(),
+                                      time: "Just now",
+                                      avatar: "",
+                                      replies: [],
+                                      id: '',
+                                      senderId: '',
+                                    ),
+                                  );
+                                  _isReplyInputVisible = false;
+                                  _replyController.clear();
+                                  grpmessage.isThreadOpen = true;
+                                });
+                              }
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(
+                              color: AppColors.borderColor,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

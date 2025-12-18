@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/live-chat_home_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';            
 import 'package:url_launcher/url_launcher.dart';
@@ -787,7 +786,7 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF5C5C5C),
+                                    color: Color(0xFF5C5C5C),
                                   ),
                                 ),
                               ],
@@ -818,7 +817,7 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF5C5C5C),
+                                    color: Color(0xFF5C5C5C),
                                   ),
                                 ),
                               ],
@@ -850,7 +849,7 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF5C5C5C),
+                                    color: Color(0xFF5C5C5C),
                                   ),
                                 ),
                               ],

@@ -94,11 +94,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                             horizontal: 10,
                             vertical: 5,
                           ),
-                          child: const Text('Tea'),
                           decoration: BoxDecoration(
                             color: const Color(0xd7d7e6fa),
                             borderRadius: BorderRadius.circular(20),
                           ),
+                          child: const Text('Tea'),
                         ),
                         Container(
                           margin: const EdgeInsets.only(right: 8),
@@ -106,23 +106,23 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                             horizontal: 10,
                             vertical: 5,
                           ),
-                          child: const Text('Tea'),
                           decoration: BoxDecoration(
                             color: const Color(0xd7d7e6fa),
                             borderRadius: BorderRadius.circular(20),
                           ),
+                          child: const Text('Tea'),
                         ),
                         Container(
                           margin: const EdgeInsets.only(right: 8),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xd7d7e6fa),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Text('Friends'),
-                          decoration: BoxDecoration(
-                            color: const Color(0xd7d7e6fa),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
                         ),
                       ],
                     ),
@@ -204,11 +204,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         horizontal: 10,
                         vertical: 5,
                       ),
-                      child: const Text('Admin'),
                       decoration: BoxDecoration(
                         color: Colors.amberAccent.shade100,
                         borderRadius: BorderRadius.circular(20),
                       ),
+                      child: const Text('Admin'),
                     ),
                   ),
                 ),

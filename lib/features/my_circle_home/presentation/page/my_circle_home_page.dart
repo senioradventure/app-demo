@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
@@ -109,14 +110,18 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
         title: Text(
           'My Circle',
           textAlign: TextAlign.left,
-          style: AppTextTheme.lightTextTheme.headlineLarge,
+          style: TextStyle(
+            fontSize: 24,
+            color: AppColors.textBlack,
+            fontWeight: FontWeight.bold,
+          )
         ),
         iconTheme: IconThemeData(color: AppColors.iconColor),
       ),
       body: Column(
         children: [
           SearchBarWidget(onChanged: (value) => runfilter(value)),
-          SizedBox(height: 8),
+          SizedBox(height: 4),
           StarredMessageWidget(),
           Expanded(
             child: ChatListWidget(
