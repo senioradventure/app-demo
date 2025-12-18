@@ -25,7 +25,6 @@ class SeniorCircleApp extends StatelessWidget {
         BlocProvider<ChatroomdetailsBloc>(
           create: (context) => ChatroomdetailsBloc(),
         ),
-        BlocProvider(create: (context) => CreateroomBloc()),
         BlocProvider<CreateroomBloc>(create: (context) => CreateroomBloc()),
         BlocProvider<ChatroomdetailsBloc>(
           create: (context) => ChatroomdetailsBloc(),
@@ -36,7 +35,7 @@ class SeniorCircleApp extends StatelessWidget {
         theme: AppTheme.lightMode,
         darkTheme: AppTheme.darkMode,
         debugShowCheckedModeBanner: false,
-        home: PreviewScreen(),
+        home: LiveChatLoginPage(),
       ),
     );
   }

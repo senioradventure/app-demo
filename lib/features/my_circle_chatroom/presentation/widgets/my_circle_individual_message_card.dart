@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/core/utils/widgets/message_bubble.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
-import 'package:senior_circle/theme/texttheme/text_theme.dart';
 
 class IndividualMessageCard extends StatelessWidget {
   final Message message;
 
-  const IndividualMessageCard( {
-    super.key,
-    required this.message,
-  });
+  const IndividualMessageCard({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,6 @@ class IndividualMessageCard extends StatelessWidget {
     );
   }
 
-
   void _showContextMenu(BuildContext context, Message msg) async {
     final RenderBox messageBox = context.findRenderObject() as RenderBox;
     final Offset position = messageBox.localToGlobal(Offset.zero);
@@ -42,7 +38,7 @@ class IndividualMessageCard extends StatelessWidget {
       0,
     );
 
-   await showMenu(
+    await showMenu(
       context: context,
       position: positionRect,
       items: <PopupMenuEntry>[

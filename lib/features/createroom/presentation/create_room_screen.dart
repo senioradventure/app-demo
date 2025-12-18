@@ -27,6 +27,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
     super.initState();
     _roomNameController = TextEditingController();
     _descriptionController = TextEditingController();
+    context.read<CreateroomBloc>().add(ResetCreateRoomEvent());
   }
 
   @override
