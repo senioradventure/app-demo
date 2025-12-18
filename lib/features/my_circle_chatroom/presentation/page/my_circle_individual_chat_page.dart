@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/constants/inividual_messages.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_individual_message_card.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_input_field.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_app_bar.dart';
