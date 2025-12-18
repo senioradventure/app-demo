@@ -16,7 +16,21 @@ class AddChatWidget extends StatelessWidget {
           right: 24.0,
         ),
         child: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => destinationPage, 
+              ),
+            );
+
+            if (result != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Created circle: ${result['name']}')),
+              );
+            }
+          },
+
           shape: const CircleBorder(),
           backgroundColor: AppColors.buttonBlue,
           elevation: 0,
