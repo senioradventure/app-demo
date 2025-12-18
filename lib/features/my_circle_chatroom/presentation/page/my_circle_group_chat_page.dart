@@ -37,6 +37,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
           text: text,
           time: TimeOfDay.now().format(context),
           avatar: "assets/images/user_placeholder.png", 
+          reactions: [],
           replies: [], 
           isThreadOpen: false,
         ),

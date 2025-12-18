@@ -24,6 +24,13 @@ class GroupMessageCard extends StatefulWidget {
 class _GroupMessageCardState extends State<GroupMessageCard> {
   bool _isReplyInputVisible = false;
   final TextEditingController _replyController = TextEditingController();
+  bool _isLiked = false;
+
+  void _handleLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+    });
+  }
 
   @override
   void dispose() {
@@ -78,12 +85,19 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                   const SizedBox(height: 4),
 
                   MessageActions(
-                    isReplyInputVisible:  _isReplyInputVisible,
-                    onReplyTap: () {
-                      setState(() {
-                        _isReplyInputVisible = !_isReplyInputVisible;
-                      });
-                    },
+                    isLiked: _isLiked,
+
+                    likeCount:
+                        widget.grpmessage.reactions.fold(
+                          0,
+                          (sum, r) => sum + r.count,
+                        ) +
+                        (_isLiked ? 1 : 0),
+                    onLikeTap: _handleLike,
+                    onReplyTap: () => setState(
+                      () => _isReplyInputVisible = !_isReplyInputVisible,
+                    ),
+                    isReplyInputVisible: _isReplyInputVisible,
                     isReply: widget.isReply,
                   ),
 
@@ -91,10 +105,9 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                     _buildReplyButton(grpmessage),
 
                   if (grpmessage.isThreadOpen)
-                  
                     Column(
                       children: [
-                        Divider(color: AppColors.lightGray,),
+                        Divider(color: AppColors.lightGray),
                         MessageReplies(replies: grpmessage.replies),
                       ],
                     ),
