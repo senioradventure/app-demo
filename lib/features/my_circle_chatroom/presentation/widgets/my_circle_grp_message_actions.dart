@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/reaction_chip.dart';
 
 class MessageActions extends StatelessWidget {
   final VoidCallback onReplyTap;
@@ -10,6 +12,9 @@ class MessageActions extends StatelessWidget {
   final bool isReplyInputVisible;
   final bool isLiked;
   final int likeCount;
+  final void Function(String emoji)? onReactionTap;
+  final VoidCallback? onAddReactionTap;
+  final List<Reaction> reactions;
 
   const MessageActions({
     super.key,
@@ -19,7 +24,22 @@ class MessageActions extends StatelessWidget {
     this.isReplyInputVisible = false,
     this.isLiked = false,
     this.likeCount = 0,
+    this.onReactionTap,
+    this.onAddReactionTap,
+    required this.reactions,
   });
+
+  List<Widget> _buildReactionChips() {
+    return reactions
+        .where((r) => r.name != 'like')
+        .map(
+          (reaction) => ReactionChip(
+            reaction: reaction,
+            onTap: () => onReactionTap?.call(reaction.name),
+          ),
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,13 +77,15 @@ class MessageActions extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(width: 8),
 
+        ..._buildReactionChips(),
+
+        const SizedBox(width: 6),
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           color: const Color(0xFF5c5c5c),
-          onPressed: () {
-
-          },
+          onPressed: () {},
           iconSize: 24,
         ),
 

@@ -14,7 +14,7 @@ final List<GroupMessage> groupMessages = [
     replies: [],
 
     reactions: [
-      Reaction(name: 'like', count: 3), 
+      Reaction(name: 'like', count: 5), 
       Reaction(name: 'heart', count: 2)
     ],
   ),

@@ -1,12 +1,12 @@
 class Reaction {
-  final String name; // e.g., 'like', 'heart', 'fire'
+  final String name; 
   final int count;
-
+  
   Reaction({required this.name, required this.count});
 
   factory Reaction.fromMap(Map<String, dynamic> map) {
     return Reaction(
-      name: map['name'] ?? 'like',
+      name: map['name'] ?? '',
       count: map['count'] ?? 0,
     );
   }
