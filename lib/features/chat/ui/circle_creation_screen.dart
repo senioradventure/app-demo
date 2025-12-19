@@ -184,68 +184,74 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                   ),
                 ),
                 Expanded(
-                  child: ListView(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Colors.grey.shade200,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      ...List.generate(
-                        10,
-                        (index) => Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: Colors.grey.shade200,
-                                width: 1,
+                  child: ScrollConfiguration(
+                    behavior: const ScrollBehavior().copyWith(overscroll: false),
+                    child: Container(
+                      color: Colors.white,
+                      child: ListView(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.shade200,
+                                  width: 1,
+                                ),
                               ),
                             ),
                           ),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            leading: Checkbox(
-                              value: false,
-                              onChanged: (value) {},
-                            ),
-                            title: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 44.0,
-                                  height: 44.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    image: DecorationImage(
-                                      image: const AssetImage(
-                                        'assets/images/member_avatar.jpg',
+                          ...List.generate(
+                            10,
+                            (index) => Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade200,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: ListTile(
+                                tileColor: Colors.white,
+                                leading: Checkbox(
+                                  value: false,
+                                  onChanged: (value) {},
+                                ),
+                                title: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 44.0,
+                                      height: 44.0,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                        image: DecorationImage(
+                                          image: const AssetImage(
+                                            'assets/images/member_avatar.jpg',
+                                          ),
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
-                                      fit: BoxFit.cover,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'Chai Talks',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black,
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'Chai Talks',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
