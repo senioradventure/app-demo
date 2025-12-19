@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/core/constants/emojis/reaction_list.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
 
@@ -15,7 +14,7 @@ class ReactionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emoji = ReactionList.getEmoji(reaction.name);
+ 
 
     return GestureDetector(
       onTap: onTap,
@@ -30,7 +29,7 @@ class ReactionChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              emoji,
+              reaction.emoji,
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(width: 6),

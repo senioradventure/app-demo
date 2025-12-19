@@ -1,19 +1,22 @@
 class Reaction {
-  final String name; 
+  final String emoji;
   final int count;
-  
-  Reaction({required this.name, required this.count});
+
+  Reaction({
+    required this.emoji,
+    required this.count,
+  });
 
   factory Reaction.fromMap(Map<String, dynamic> map) {
     return Reaction(
-      name: map['name'] ?? '',
+      emoji: map['emoji'],
       count: map['count'] ?? 0,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'name': name,
+      'emoji': emoji,
       'count': count,
     };
   }

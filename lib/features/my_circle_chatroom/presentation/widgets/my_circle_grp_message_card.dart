@@ -1,3 +1,4 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
@@ -30,28 +31,30 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   late Map<String, int> _reactionCounts;
   late Set<String> _selectedReactions;
   List<Reaction> _buildReactionList() {
-    return _reactionCounts.entries
-        .map((e) => Reaction(name: e.key, count: e.value))
-        .toList();
-  }
+  return _reactionCounts.entries
+      .map((e) => Reaction(emoji: e.key, count: e.value))
+      .toList();
+}
+
 
   @override
-  @override
-  void initState() {
-    super.initState();
 
-    final likeReaction = widget.grpmessage.reactions
-        .where((r) => r.name == 'like')
-        .toList();
-    _likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
+void initState() {
+  super.initState();
+  final likeReaction = widget.grpmessage.reactions
+      .where((r) => r.emoji == '👍')
+      .toList();
 
-    _reactionCounts = {
-      for (final r in widget.grpmessage.reactions)
-        if (r.name != 'like') r.name: r.count,
-    };
+  _likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
 
-    _selectedReactions = {};
-  }
+  _reactionCounts = {
+    for (final r in widget.grpmessage.reactions)
+      if (r.emoji != '👍') r.emoji: r.count,
+  };
+
+  _selectedReactions = {};
+}
+
 
   void _onReactionTap(String reactionName) {
     setState(() {
@@ -82,6 +85,22 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
       _isLiked = !_isLiked;
     });
   }
+
+void _showEmojiPicker() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) {
+      return EmojiPicker(
+        onEmojiSelected: (category, emoji) {
+          _onReactionTap(emoji.emoji); 
+          Navigator.pop(context);
+        },
+      );
+    },
+  );
+}
+
 
   @override
   void dispose() {
@@ -138,7 +157,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                   MessageActions(
                     isLiked: _isLiked,
                     onReactionTap: _onReactionTap,
-                    onAddReactionTap: () {},
+                    onAddReactionTap: _showEmojiPicker,
                     likeCount: _likeCount,
                     onLikeTap: _handleLike,
                     onReplyTap: () => setState(
