@@ -1,5 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:senior_circle/core/common/widgets/image_picker_widget.dart';
 
 /*void main() {
   runApp(
@@ -19,8 +21,23 @@ class CircleCreationScreen extends StatefulWidget {
 
 class _CircleCreationScreenState extends State<CircleCreationScreen> {
   var nameLength = 0;
+  XFile? _pickedImage;
   final TextEditingController txtController = TextEditingController();
 
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _pickedImage = image;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,26 +88,10 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                         const SizedBox(height: 20),
                         // Camera Placeholder
                         Center(
-                          child: DottedBorder(
-                            borderType: BorderType.Circle,
-                            dashPattern: const [6, 3],
-                            color: Colors.grey,
-                            strokeWidth: 2,
-                            child: Container(
-                              height: 80,
-                              width: 80,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFFF5F5F5),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.camera_alt_rounded,
-                                  color: Colors.grey,
-                                  size: 35,
-                                ),
-                              ),
-                            ),
+                          child: ImagePickerCircle(
+                          image: _pickedImage,
+                          onImagePicked: _pickImage,
+                          size: 80,
                           ),
                         ),
                         const SizedBox(height: 25),
@@ -183,68 +184,74 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                   ),
                 ),
                 Expanded(
-                  child: ListView(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Colors.grey.shade200,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      ...List.generate(
-                        10,
-                        (index) => Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: Colors.grey.shade200,
-                                width: 1,
+                  child: ScrollConfiguration(
+                    behavior: const ScrollBehavior().copyWith(overscroll: false),
+                    child: Container(
+                      color: Colors.white,
+                      child: ListView(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.shade200,
+                                  width: 1,
+                                ),
                               ),
                             ),
                           ),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            leading: Checkbox(
-                              value: false,
-                              onChanged: (value) {},
-                            ),
-                            title: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 44.0,
-                                  height: 44.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    image: DecorationImage(
-                                      image: const AssetImage(
-                                        'assets/images/member_avatar.jpg',
+                          ...List.generate(
+                            10,
+                            (index) => Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade200,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: ListTile(
+                                tileColor: Colors.white,
+                                leading: Checkbox(
+                                  value: false,
+                                  onChanged: (value) {},
+                                ),
+                                title: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 44.0,
+                                      height: 44.0,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                        image: DecorationImage(
+                                          image: const AssetImage(
+                                            'assets/images/member_avatar.jpg',
+                                          ),
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
-                                      fit: BoxFit.cover,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'Chai Talks',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black,
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'Chai Talks',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],

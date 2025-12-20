@@ -1,7 +1,5 @@
-
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
-
 
 final List<GroupMessage> groupMessages = [
   GroupMessage(
@@ -12,12 +10,13 @@ final List<GroupMessage> groupMessages = [
     text: 'Hello everyone!',
     time: '10:00 AM',
     replies: [],
-
     reactions: [
-      Reaction(name: 'like', count: 3), 
-      Reaction(name: 'heart', count: 2)
+      Reaction(emoji: '👍', count: 2),
+      Reaction(emoji: '❤️', count: 2),
+      Reaction(emoji: '😂', count: 1),
     ],
   ),
+
   GroupMessage(
     id: '2',
     senderId: 'me-id',
@@ -25,11 +24,12 @@ final List<GroupMessage> groupMessages = [
     avatar: '...',
     text: 'Hi Alice!',
     time: '10:02 AM',
-    
+    replies: [],
     reactions: [
-      Reaction(name: 'haha', count: 1)
+      Reaction(emoji: '😂', count: 1),
     ],
   ),
+
   GroupMessage(
     id: '3',
     senderId: 'santra-id',
@@ -37,6 +37,7 @@ final List<GroupMessage> groupMessages = [
     avatar: '...',
     text: 'Good morning!',
     time: '10:05 AM',
-    reactions: [], 
+    replies: [],
+    reactions: [],
   ),
 ];

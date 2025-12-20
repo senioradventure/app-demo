@@ -1,6 +1,5 @@
 class ReactionList {
   static const Map<String, String> _nameToEmoji = {
-    'like': 'assets/icons/liked_icon.svg',
     'heart': '❤️',
     'haha': '😂',
     'wow': '😮',
@@ -8,5 +7,9 @@ class ReactionList {
     'fire': '🔥',
   };
 
-  static String getEmoji(String name) => _nameToEmoji[name.toLowerCase()] ?? 'assets/icons/liked_icon.svg';
+  static bool isSvg(String name) => name == 'like';
+
+  static String getEmoji(String name) {
+    return _nameToEmoji[name.toLowerCase()] ?? '';
+  }
 }
