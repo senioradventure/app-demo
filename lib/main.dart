@@ -4,14 +4,16 @@ import 'package:senior_circle/features/auth/ui/login_page.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
-//import 'package:senior_circle/features/details/presentation/details_screen.dart';
-//import 'package:senior_circle/features/preview/presentation/preview_screen.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/chat_event.dart';
+import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
+import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   await Supabase.initialize(
     url: 'https://bnfozroolcequclltwjb.supabase.co',
     anonKey:
@@ -27,12 +29,13 @@ class SeniorCircleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ChatroomdetailsBloc>(
-          create: (context) => ChatroomdetailsBloc(),
-        ),
         BlocProvider<CreateroomBloc>(create: (context) => CreateroomBloc()),
         BlocProvider<ChatroomdetailsBloc>(
           create: (context) => ChatroomdetailsBloc(),
+        ),
+        BlocProvider(
+          create: (_) =>
+              ChatBloc(repository: ChatRepository())..add(LoadChats()),
         ),
       ],
       child: MaterialApp(
@@ -40,7 +43,10 @@ class SeniorCircleApp extends StatelessWidget {
         theme: AppTheme.lightMode,
         darkTheme: AppTheme.darkMode,
         debugShowCheckedModeBanner: false,
-        home: LoginPage(),
+        builder: (context, child) {
+          return SafeArea(bottom: true, child: child!);
+        },
+        home:TabSelectorWidget(),
       ),
     );
   }

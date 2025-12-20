@@ -8,6 +8,13 @@ class MyCircleChatroomAppBar extends StatelessWidget
 
   final CircleChat chat;
 
+  ImageProvider _getAvatar() {
+    if (chat.imageUrl != null && chat.imageUrl!.isNotEmpty) {
+      return NetworkImage(chat.imageUrl!);
+    }
+    return const AssetImage('assets/images/avatar.png');
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -15,37 +22,31 @@ class MyCircleChatroomAppBar extends StatelessWidget
       backgroundColor: AppColors.backgroundColor,
       centerTitle: false,
       title: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          if (chat.isGroup)
-            CircleAvatar(
-              radius: 18,
-              backgroundImage: chat.imageUrl!.isNotEmpty
-                  ? NetworkImage(chat.imageUrl!)
-                  : AssetImage('assets/images/avatar.png'),
-            ),
-          if (!chat.isGroup)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: chat.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      chat.imageUrl!,
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.asset(
-                      'assets/images/avatar.png',
-                      width: 30,
-                      height: 30,
-                      fit: BoxFit.cover,
-                    ),
-            ),
+          chat.isGroup
+              ? CircleAvatar(
+                  radius: 18,
+                  backgroundImage: _getAvatar(),
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image(
+                    image: _getAvatar(),
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  ),
+                ),
           const SizedBox(width: 12),
-          Text(chat.name, style: Theme.of(context).textTheme.headlineMedium),
+          Expanded(
+            child: Text(
+              chat.name,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ),
         ],
       ),
-
       actions: [
         IconButton(
           icon: const Icon(Icons.more_vert, color: AppColors.iconColor),
@@ -56,5 +57,5 @@ class MyCircleChatroomAppBar extends StatelessWidget
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

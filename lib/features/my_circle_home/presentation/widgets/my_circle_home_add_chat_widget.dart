@@ -12,8 +12,8 @@ class AddChatWidget extends StatelessWidget {
       alignment: Alignment.bottomRight,
       child: Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height * 0.1,
-          right: 24.0,
+          bottom: MediaQuery.of(context).size.height * 0.02,
+          right: 16.0,
         ),
         child: FloatingActionButton(
           onPressed: () async {
