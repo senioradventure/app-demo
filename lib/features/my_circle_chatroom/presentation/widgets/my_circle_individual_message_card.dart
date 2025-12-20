@@ -6,8 +6,13 @@ import 'package:senior_circle/features/my_circle_chatroom/models/message_model.d
 
 class IndividualMessageCard extends StatelessWidget {
   final Message message;
+  final Function(String action, Message message) onAction;
 
-  const IndividualMessageCard({super.key, required this.message});
+  const IndividualMessageCard( {
+    super.key,
+    required this.message,
+    required this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {

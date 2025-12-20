@@ -20,3 +20,24 @@ final List<Message> individualMessages = [
     time: '10:05 AM',
   ),
 ];
+
+final List<Map<String, dynamic>> rawMessageData = [
+  {
+    'id': '1',
+    'text': 'Good Morning everyone!',
+    'time': '9:01 AM',
+    'sender': 'Ramsy',
+  },
+  {
+    'id': '2',
+    'text': 'Good Morning! How are you?',
+    'time': '9:05 AM',
+    'sender': 'You',
+  },
+  {
+    'id': '3',
+    'text': 'I am doing great, thanks for asking!',
+    'time': '9:10 AM',
+    'sender': 'Ramsy',
+  },
+];

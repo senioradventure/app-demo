@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
@@ -110,14 +109,18 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
         title: Text(
           'My Circle',
           textAlign: TextAlign.left,
-          style: AppTextTheme.lightTextTheme.headlineLarge,
+          style: TextStyle(
+            fontSize: 24,
+            color: AppColors.textBlack,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         iconTheme: IconThemeData(color: AppColors.iconColor),
       ),
       body: Column(
         children: [
           SearchBarWidget(onChanged: (value) => runfilter(value)),
-          SizedBox(height: 8),
+          SizedBox(height: 4),
           StarredMessageWidget(),
           Expanded(
             child: ChatListWidget(
@@ -127,21 +130,6 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
           ),
           AddChatWidget(destinationPage: const CircleCreationScreen()),
         ],
-      ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            selectedLabelStyle: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-          ),
-        ),
-        child: const MainBottomNavBar(currentIndex: 1),
       ),
     );
   }

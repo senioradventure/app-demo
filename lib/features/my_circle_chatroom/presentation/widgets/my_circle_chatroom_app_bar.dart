@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
-import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
 
 class MyCircleChatroomAppBar extends StatelessWidget
@@ -15,11 +13,7 @@ class MyCircleChatroomAppBar extends StatelessWidget
     return AppBar(
       elevation: 0,
       backgroundColor: AppColors.backgroundColor,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: AppColors.iconColor),
-        onPressed: () => Navigator.pop(context),
-      ),
-      leadingWidth: 24,
+      centerTitle: false,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
