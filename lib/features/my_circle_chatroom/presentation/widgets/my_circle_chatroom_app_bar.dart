@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 
 class MyCircleChatroomAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   const MyCircleChatroomAppBar({super.key, required this.chat});
 
-  final Chat chat;
+  final CircleChat chat;
 
   @override
   Widget build(BuildContext context) {
@@ -20,16 +20,16 @@ class MyCircleChatroomAppBar extends StatelessWidget
           if (chat.isGroup)
             CircleAvatar(
               radius: 18,
-              backgroundImage: chat.imageUrl.isNotEmpty
-                  ? NetworkImage(chat.imageUrl)
+              backgroundImage: chat.imageUrl!.isNotEmpty
+                  ? NetworkImage(chat.imageUrl!)
                   : AssetImage('assets/images/avatar.png'),
             ),
           if (!chat.isGroup)
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: chat.imageUrl.isNotEmpty
+              child: chat.imageUrl!.isNotEmpty
                   ? Image.network(
-                      chat.imageUrl,
+                      chat.imageUrl!,
                       width: 36,
                       height: 36,
                       fit: BoxFit.cover,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
-import 'package:senior_circle/core/utils/widgets/message_bubble.dart';
+import 'package:senior_circle/core/common/widgets/message_bubble.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
 
 class IndividualMessageCard extends StatelessWidget {

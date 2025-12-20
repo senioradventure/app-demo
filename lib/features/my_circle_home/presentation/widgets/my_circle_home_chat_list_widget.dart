@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
-import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 
 class ChatListWidget extends StatelessWidget {
-  final List<Chat> foundResults;
-  final void Function(Chat) onChatTap;
+  final List<CircleChat> foundResults;
+  final void Function(CircleChat) onChatTap;
 
   const ChatListWidget({
     super.key,
@@ -25,13 +25,13 @@ class ChatListWidget extends StatelessWidget {
           tileColor: AppColors.white,
           leading: chat.isGroup
               ? CircleAvatar(
-                  backgroundImage: NetworkImage(chat.imageUrl),
+                  backgroundImage: NetworkImage(chat.imageUrl!),
                   radius: 26,
                 )
               : ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    chat.imageUrl,
+                    chat.imageUrl!,
                     width: 50,
                     height: 50,
                     fit: BoxFit.cover,
@@ -52,7 +52,7 @@ class ChatListWidget extends StatelessWidget {
                 ),
               ),
               Text(
-                chat.time,
+                chat.time as String,
                 style: TextStyle(
                   fontWeight: FontWeight.w400,
                   fontSize: 10,
@@ -66,8 +66,8 @@ class ChatListWidget extends StatelessWidget {
               Expanded(
                 child: Builder(
                   builder: (context) {
-                    final parts = chat.lastMessage.split(': ');
-                    final sender = parts.length > 1 ? parts[0] : '';
+                    final parts = chat.lastMessage?.split(': ');
+                    final sender = parts!.length > 1 ? parts[0] : '';
                     final message = parts.length > 1
                         ? parts[1]
                         : chat.lastMessage;

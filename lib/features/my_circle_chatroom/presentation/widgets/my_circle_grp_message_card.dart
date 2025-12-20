@@ -24,12 +24,14 @@ class GroupMessageCard extends StatefulWidget {
 }
 
 class _GroupMessageCardState extends State<GroupMessageCard> {
-  bool _isReplyInputVisible = false;
+  
   final TextEditingController _replyController = TextEditingController();
   bool _isLiked = false;
+  bool _isReplyInputVisible = false;
   late int _likeCount;
   late Map<String, int> _reactionCounts;
   late Set<String> _selectedReactions;
+ 
   List<Reaction> _buildReactionList() {
   return _reactionCounts.entries
       .map((e) => Reaction(emoji: e.key, count: e.value))
