@@ -1,6 +1,8 @@
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
@@ -25,12 +27,80 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   bool _isReplyInputVisible = false;
   final TextEditingController _replyController = TextEditingController();
   bool _isLiked = false;
+  late int _likeCount;
+  late Map<String, int> _reactionCounts;
+  late Set<String> _selectedReactions;
+  List<Reaction> _buildReactionList() {
+  return _reactionCounts.entries
+      .map((e) => Reaction(emoji: e.key, count: e.value))
+      .toList();
+}
+
+
+  @override
+
+void initState() {
+  super.initState();
+  final likeReaction = widget.grpmessage.reactions
+      .where((r) => r.emoji == '👍')
+      .toList();
+
+  _likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
+
+  _reactionCounts = {
+    for (final r in widget.grpmessage.reactions)
+      if (r.emoji != '👍') r.emoji: r.count,
+  };
+
+  _selectedReactions = {};
+}
+
+
+  void _onReactionTap(String reactionName) {
+    setState(() {
+      if (_selectedReactions.contains(reactionName)) {
+        _reactionCounts[reactionName] =
+            (_reactionCounts[reactionName] ?? 1) - 1;
+
+        if (_reactionCounts[reactionName]! <= 0) {
+          _reactionCounts.remove(reactionName);
+        }
+
+        _selectedReactions.remove(reactionName);
+      } else {
+        _reactionCounts[reactionName] =
+            (_reactionCounts[reactionName] ?? 0) + 1;
+        _selectedReactions.add(reactionName);
+      }
+    });
+  }
 
   void _handleLike() {
     setState(() {
+      if (_isLiked) {
+        _likeCount -= 1;
+      } else {
+        _likeCount += 1;
+      }
       _isLiked = !_isLiked;
     });
   }
+
+void _showEmojiPicker() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) {
+      return EmojiPicker(
+        onEmojiSelected: (category, emoji) {
+          _onReactionTap(emoji.emoji); 
+          Navigator.pop(context);
+        },
+      );
+    },
+  );
+}
+
 
   @override
   void dispose() {
@@ -86,19 +156,16 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
                   MessageActions(
                     isLiked: _isLiked,
-
-                    likeCount:
-                        widget.grpmessage.reactions.fold(
-                          0,
-                          (sum, r) => sum + r.count,
-                        ) +
-                        (_isLiked ? 1 : 0),
+                    onReactionTap: _onReactionTap,
+                    onAddReactionTap: _showEmojiPicker,
+                    likeCount: _likeCount,
                     onLikeTap: _handleLike,
                     onReplyTap: () => setState(
                       () => _isReplyInputVisible = !_isReplyInputVisible,
                     ),
                     isReplyInputVisible: _isReplyInputVisible,
                     isReply: widget.isReply,
+                    reactions: _buildReactionList(),
                   ),
 
                   if (grpmessage.replies.isNotEmpty)
