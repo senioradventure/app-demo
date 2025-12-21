@@ -6,6 +6,10 @@ final List<Message> individualMessages = [
     sender: 'Alice',
     text: 'Good morning. How are you?',
     time: '10:00 AM',
+    reactions: {
+  "❤️": 1
+}
+
   ),
   Message(
     id: '2',

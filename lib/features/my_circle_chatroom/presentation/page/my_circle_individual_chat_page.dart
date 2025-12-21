@@ -6,6 +6,7 @@ import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/m
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/message_input_field.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_app_bar.dart';
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:uuid/uuid.dart';
 
 class MyCircleIndividualChatPage extends StatefulWidget {
   const MyCircleIndividualChatPage({super.key, required this.chat});
@@ -32,9 +33,9 @@ class _MyCircleIndividualChatPageState extends State<MyCircleIndividualChatPage>
 
   void _handleSendMessage(String text) {
     if (text.trim().isEmpty) return;
-
+final uuid = const Uuid();
     final newMessageData = {
-      'id' : '',
+      'id' : uuid.v4(),
       'text': text,
       'time': TimeOfDay.now().format(context),
       'sender': 'You',
@@ -74,11 +75,6 @@ class _MyCircleIndividualChatPageState extends State<MyCircleIndividualChatPage>
                 itemBuilder: (context, index) {
                   return IndividualMessageCard(
                     message: _messages[index],
-                    onAction: (action, msg) {
-                      if (action.contains('DELETE')) {
-                        setState(() => _messages.remove(msg));
-                      }
-                    },
                   );
                 },
               ),
