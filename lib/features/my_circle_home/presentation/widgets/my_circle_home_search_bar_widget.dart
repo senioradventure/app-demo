@@ -27,15 +27,15 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           hintStyle: AppTextTheme.lightTextTheme.labelMedium,
           prefixIcon: const Icon(Icons.search_rounded),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: AppColors.searchBorder),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: AppColors.searchBorder),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: AppColors.searchBorder, width: 2),
           ),
           filled: true,

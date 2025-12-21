@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:senior_circle/core/common/image_preview.dart';
+import 'package:senior_circle/core/common/widgets/image_preview.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 
@@ -57,7 +57,7 @@ class _MessageInputFieldState extends State<MessageInputField> {
                   padding: const EdgeInsets.only(
                     right: 12,
                     left: 4,
-                  ), // 👈 SAME spacing
+                  ), 
                   child: SvgPicture.asset(
                     'assets/icons/add_media_chat_icon.svg',
                   ),
@@ -71,7 +71,9 @@ class _MessageInputFieldState extends State<MessageInputField> {
 
                   child: TextField(
                     controller: _controller,
-
+                    onChanged: (_) {
+                      setState(() {});
+                    },
                     minLines: 1,
                     maxLines: 1,
                     keyboardType: TextInputType.multiline,
