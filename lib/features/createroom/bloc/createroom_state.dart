@@ -12,13 +12,12 @@ class CreateroomState {
   final bool showDropdown;
   final String query;
 
-  // Locations
-  final List<String> selectedLocation;
-  final List<String> filteredLocation;
+  // Locations (UPDATED)
+  final LocationModel? selectedLocation;
+  final List<LocationModel> filteredLocation;
   final bool showLocationDropdown;
   final String locationQuery;
 
-  // STATUS 
   final CreateroomStatus status;
 
   const CreateroomState({
@@ -29,7 +28,7 @@ class CreateroomState {
     this.filtered = const [],
     this.showDropdown = false,
     this.query = '',
-    this.selectedLocation = const [],
+    this.selectedLocation,
     this.filteredLocation = const [],
     this.showLocationDropdown = false,
     this.locationQuery = '',
@@ -44,8 +43,8 @@ class CreateroomState {
     List<String>? filtered,
     bool? showDropdown,
     String? query,
-    List<String>? selectedLocation,
-    List<String>? filteredLocation,
+    LocationModel? selectedLocation,
+    List<LocationModel>? filteredLocation,
     bool? showLocationDropdown,
     String? locationQuery,
     CreateroomStatus? status,
@@ -60,13 +59,13 @@ class CreateroomState {
       query: query ?? this.query,
       selectedLocation: selectedLocation ?? this.selectedLocation,
       filteredLocation: filteredLocation ?? this.filteredLocation,
-      showLocationDropdown:
-          showLocationDropdown ?? this.showLocationDropdown,
+      showLocationDropdown: showLocationDropdown ?? this.showLocationDropdown,
       locationQuery: locationQuery ?? this.locationQuery,
       status: status ?? this.status,
     );
   }
 }
+
 /// STATUS CLASSES
 @immutable
 sealed class CreateroomStatus {

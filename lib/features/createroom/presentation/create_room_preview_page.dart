@@ -8,10 +8,18 @@ import 'package:senior_circle/features/live_chat_chat_room/ui/live_chat_chat_roo
 import 'package:senior_circle/features/preview/presentation/widgets/preview_screen_caution_container.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class CreateRoomPreviewPage extends StatelessWidget {
+class CreateRoomPreviewPage extends StatefulWidget {
   final CreateroomPreviewDetailsModel previewDetails;
 
   const CreateRoomPreviewPage({super.key, required this.previewDetails});
+
+  @override
+  State<CreateRoomPreviewPage> createState() =>
+      _CreateRoomPreviewPageState();
+}
+
+class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -23,55 +31,65 @@ class CreateRoomPreviewPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: CreateRoomPreviewDetailsWidget(
-              imageFile: previewDetails.imageFile,
-              name: previewDetails.name,
-              interests: previewDetails.interests,
-              description: previewDetails.description,
+              imageFile: widget.previewDetails.imageFile,
+              name: widget.previewDetails.name,
+              interests: widget.previewDetails.interests,
+              description: widget.previewDetails.description,
             ),
           ),
-
           const CautionWidget(),
         ],
       ),
       bottomNavigationBar: BottomButton(
         buttonText: "CREATE ROOM",
-        onTap: () async {
-          final repo = CreateRoomRepository();
-          final user = Supabase.instance.client.auth.currentUser;
-
-          if (user == null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text("User not logged in")));
-            return;
-          }
-
-          try {
-            await repo.createRoom(preview: previewDetails, adminId: user.id);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Room created successfully")),
-            );
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => Chatroom(
-                  title: previewDetails.name,
-                  isAdmin: true,
-                  isNewRoom: true,
-                  imageFile: previewDetails.imageFile,
-                ),
-              ),
-            );
-          } catch (e) {
-            debugPrint("Create room error: $e");
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Failed: ${e.toString()}")));
-          }
-        },
+        isLoading: _isLoading,
+        onTap: _isLoading ? null : () => _createRoom(context),
       ),
     );
+  }
+
+  Future<void> _createRoom(BuildContext context) async {
+    final repo = CreateRoomRepository();
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not logged in")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final roomId = await repo.createRoom(
+        preview: widget.previewDetails,
+        adminId: user.id,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Chatroom(
+            title: widget.previewDetails.name,
+            isAdmin: true,
+            isNewRoom: true,
+            imageFile: widget.previewDetails.imageFile,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed: $e")),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

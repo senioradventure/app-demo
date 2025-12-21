@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/utils/location_service/location_model.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_interest_chip_widget.dart';
 
 class LocationPicker extends StatefulWidget {
-  final Function(List<String>)? onChanged;
+  final Function(LocationModel?)? onChanged;
 
   const LocationPicker({super.key, this.onChanged});
 
@@ -37,7 +38,7 @@ class _LocationPickerState extends State<LocationPicker> {
           prev.filteredLocation != curr.filteredLocation ||
           prev.showLocationDropdown != curr.showLocationDropdown,
       builder: (context, state) {
-        // Sync controller text ONLY when Bloc changes it
+        // Sync controller text from Bloc
         if (_controller.text != state.locationQuery) {
           _controller.text = state.locationQuery;
           _controller.selection = TextSelection.collapsed(
@@ -62,19 +63,23 @@ class _LocationPickerState extends State<LocationPicker> {
             /// 🔹 SEARCH FIELD
             TextField(
               controller: _controller,
-              enabled: state.selectedLocation.isEmpty,
+              enabled: state.selectedLocation == null,
               decoration: InputDecoration(
                 hintText: 'Search location',
                 hintStyle: Theme.of(context).textTheme.labelSmall,
-                suffixIcon: const Icon(Icons.location_on_outlined, size: 20),
+                suffixIcon:
+                    const Icon(Icons.location_on_outlined, size: 20),
               ),
               onChanged: (val) {
-                context.read<CreateroomBloc>().add(SearchLocationtEvent(val));
+                context
+                    .read<CreateroomBloc>()
+                    .add(SearchLocationEvent(val));
               },
             ),
 
             /// 🔹 DROPDOWN
-            if (state.showLocationDropdown && state.filteredLocation.isNotEmpty)
+            if (state.showLocationDropdown &&
+                state.filteredLocation.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.symmetric(vertical: 6),
@@ -93,17 +98,20 @@ class _LocationPickerState extends State<LocationPicker> {
                   shrinkWrap: true,
                   itemCount: state.filteredLocation.length,
                   itemBuilder: (_, index) {
-                    final item = state.filteredLocation[index];
+                    final LocationModel location =
+                        state.filteredLocation[index];
+
                     return ListTile(
                       dense: true,
                       title: Text(
-                        item,
-                        style: Theme.of(context).textTheme.labelMedium,
+                        location.name,
+                        style:
+                            Theme.of(context).textTheme.labelMedium,
                       ),
                       onTap: () {
-                        context.read<CreateroomBloc>().add(
-                          AddLocationEvent(item),
-                        );
+                        context
+                            .read<CreateroomBloc>()
+                            .add(AddLocationEvent(location));
                       },
                     );
                   },
@@ -113,21 +121,19 @@ class _LocationPickerState extends State<LocationPicker> {
             const SizedBox(height: 12),
 
             /// 🔹 SELECTED LOCATION CHIP
-            Wrap(
-              spacing: 8,
-              children: state.selectedLocation
-                  .map(
-                    (item) => InterestChip(
-                      label: item,
-                      onRemove: () {
-                        context.read<CreateroomBloc>().add(
-                          RemoveLocationEvent(item),
-                        );
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
+            if (state.selectedLocation != null)
+              Wrap(
+                children: [
+                  InterestChip(
+                    label: state.selectedLocation!.name,
+                    onRemove: () {
+                      context
+                          .read<CreateroomBloc>()
+                          .add(RemoveLocationEvent());
+                    },
+                  ),
+                ],
+              ),
           ],
         );
       },

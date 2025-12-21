@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/core/utils/image_compressor.dart';
-import 'package:senior_circle/core/utils/location_service.dart';
+import 'package:senior_circle/core/utils/location_service/location_model.dart';
+import 'package:senior_circle/core/utils/location_service/location_service.dart';
 import 'package:senior_circle/features/createroom/models/createroom_preview_details_model.dart';
 
 part 'createroom_event.dart';
@@ -19,7 +20,7 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
   final List<String> allInterests = AppLists.interests;
 
   // Dynamic locations (from Supabase)
-  List<String> allLocations = [];
+  List<LocationModel> allLocations = [];
 
   CreateroomBloc({required this.locationService})
     : super(const CreateroomState()) {
@@ -31,12 +32,14 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
     // ---------- LOAD LOCATIONS ----------
     on<LoadLocationsEvent>((event, emit) async {
       try {
-        final locations = await locationService.fetchLocationNames();
+        final locations = await locationService.fetchLocations();
+
+        allLocations = locations;
 
         emit(
           state.copyWith(
             filteredLocation: locations,
-            showLocationDropdown: false, // 👈 IMPORTANT
+            showLocationDropdown: false,
           ),
         );
       } catch (e) {
@@ -118,14 +121,14 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
     });
 
     // ---------- LOCATION SEARCH ----------
-    on<SearchLocationtEvent>((event, emit) {
+    on<SearchLocationEvent>((event, emit) {
       final query = event.query.toLowerCase();
 
-      final filtered = state.filteredLocation
+      final filtered = allLocations
           .where(
-            (item) =>
-                item.toLowerCase().contains(query) &&
-                !state.selectedLocation.contains(item),
+            (loc) =>
+                loc.name.toLowerCase().contains(query) &&
+                state.selectedLocation?.id != loc.id,
           )
           .toList();
 
@@ -142,7 +145,7 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
     on<AddLocationEvent>((event, emit) {
       emit(
         state.copyWith(
-          selectedLocation: [event.interest],
+          selectedLocation: event.location,
           filteredLocation: [],
           showLocationDropdown: false,
           locationQuery: '',
@@ -152,10 +155,7 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
 
     // ---------- REMOVE LOCATION ----------
     on<RemoveLocationEvent>((event, emit) {
-      final updated = List<String>.from(state.selectedLocation)
-        ..remove(event.interest);
-
-      emit(state.copyWith(selectedLocation: updated));
+      emit(state.copyWith(selectedLocation: null));
     });
 
     // ---------- CONFIRM ----------
@@ -178,7 +178,7 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
         return;
       }
 
-      if (state.selectedLocation.isEmpty) {
+      if (state.selectedLocation == null) {
         emit(
           state.copyWith(
             status: const CreateroomValidationError("Please select a location"),
@@ -203,6 +203,8 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
         name: event.roomName.trim(),
         interests: state.selected,
         description: event.description.trim(),
+        locationId: state.selectedLocation!.id,
+        locationName: state.selectedLocation!.name,
       );
 
       emit(state.copyWith(status: CreateroomPreviewReady(preview)));

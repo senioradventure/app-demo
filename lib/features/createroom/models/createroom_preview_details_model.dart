@@ -6,11 +6,17 @@ class CreateroomPreviewDetailsModel {
   final List<String> interests;
   final String description;
 
+  // ✅ NEW: Location info
+  final String locationId;
+  final String locationName;
+
   CreateroomPreviewDetailsModel({
     required this.imageFile,
     required this.name,
     required this.interests,
     required this.description,
+    required this.locationId,
+    required this.locationName,
   });
 
   /// Convert JSON → Model (LOCAL PREVIEW ONLY)
@@ -20,6 +26,8 @@ class CreateroomPreviewDetailsModel {
       name: json['name'] as String,
       interests: List<String>.from(json['interests'] ?? []),
       description: json['description'] as String? ?? '',
+      locationId: json['locationId'] as String,
+      locationName: json['locationName'] as String,
     );
   }
 
@@ -31,6 +39,8 @@ class CreateroomPreviewDetailsModel {
       'name': name,
       'interests': interests,
       'description': description,
+      'locationId': locationId,
+      'locationName': locationName,
     };
   }
 }
