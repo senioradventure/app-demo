@@ -9,48 +9,24 @@ import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/m
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_app_bar.dart';
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 
-
 class MyCircleIndividualChatPage extends StatefulWidget {
   const MyCircleIndividualChatPage({super.key, required this.chat});
 
   final CircleChat chat;
 
   @override
-  State<MyCircleIndividualChatPage> createState() => _MyCircleIndividualChatPageState();
+  State<MyCircleIndividualChatPage> createState() =>
+      _MyCircleIndividualChatPageState();
 }
 
-class _MyCircleIndividualChatPageState extends State<MyCircleIndividualChatPage> {
-
+class _MyCircleIndividualChatPageState
+    extends State<MyCircleIndividualChatPage> {
   final ScrollController _scrollController = ScrollController();
 
- @override
-void initState() {
-  super.initState();
-  context.read<ChatBloc>().add(LoadMessages());
-}
-
-
-  void _handleSendMessage(String text) {
-  if (text.trim().isEmpty) return;
-
-  context.read<ChatBloc>().add(
-    SendMessage(text: text),
-  );
-
-  _scrollToBottom();
-}
-
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    context.read<ChatBloc>().add(LoadMessages());
   }
 
   @override
@@ -61,23 +37,29 @@ void initState() {
         decoration: BoxDecoration(gradient: AppColors.chatGradient),
         child: Column(
           children: [
-           Expanded(
-  child: BlocBuilder<ChatBloc, ChatState>(
-    builder: (context, state) {
-      return ListView.builder(
-        controller: _scrollController,
-        itemCount: state.messages.length,
-        itemBuilder: (context, index) {
-          return IndividualMessageCard(
-            message: state.messages[index],
-          );
-        },
-      );
-    },
-  ),
-),
+            Expanded(
+              child: BlocBuilder<ChatBloc, ChatState>(
+                builder: (context, state) {
+                  return ListView.builder(
+                    controller: _scrollController,
+                    itemCount: state.messages.length,
+                    itemBuilder: (context, index) {
+                      return IndividualMessageCard(
+                        message: state.messages[index],
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
 
-            MessageInputField(onSend: _handleSendMessage),
+            MessageInputField(
+              onSend: (text, imagePath) {
+                context.read<ChatBloc>().add(
+                  SendMessage(text: text, imagePath: imagePath),
+                );
+              },
+            ),
           ],
         ),
       ),

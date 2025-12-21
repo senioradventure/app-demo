@@ -1,5 +1,6 @@
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/common/widgets/image_mesage_bubble.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
@@ -158,12 +159,25 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(grpmessage),
-                  const SizedBox(height: 4),
-                  Text(
-                    grpmessage.text,
-                    style: AppTextTheme.lightTextTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 4),
+
+                  if (grpmessage.imagePath != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: ImageMessageBubble(
+                        imagePath: grpmessage.imagePath!,
+                        isMe: grpmessage.senderName.toLowerCase() == 'you',
+                        isGroup: true,
+                      ),
+                    ),
+
+                  if (grpmessage.text != null && grpmessage.text!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: Text(
+                        grpmessage.text!,
+                        style: AppTextTheme.lightTextTheme.bodyMedium,
+                      ),
+                    ),
 
                   MessageActions(
                     isLiked: _isLiked,

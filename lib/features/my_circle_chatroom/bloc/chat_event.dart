@@ -8,14 +8,26 @@ abstract class ChatEvent extends Equatable {
 }
 
 class LoadMessages extends ChatEvent {}
+class LoadGroupMessages extends ChatEvent {
+  final String chatId;
+
+  const LoadGroupMessages({required this.chatId});
+}
 
 class SendMessage extends ChatEvent {
-  final String text;
+  final String? text;
+  final String? imagePath;
 
-  const SendMessage({required this.text});
+  const SendMessage({this.text,this.imagePath});
 
   @override
   List<Object?> get props => [text];
+}
+
+class SendImageMessage extends ChatEvent {
+  final String imagePath;
+
+  const SendImageMessage({required this.imagePath});
 }
 
 class DeleteMessage extends ChatEvent {
@@ -26,6 +38,18 @@ class DeleteMessage extends ChatEvent {
   @override
   List<Object?> get props => [messageId];
 }
+
+class SendGroupMessage extends ChatEvent {
+  final String? text;
+  final String? imagePath;
+
+  const SendGroupMessage({
+    this.text,
+    this.imagePath,
+  });
+}
+
+
 
 class ToggleReaction extends ChatEvent {
   final String messageId;

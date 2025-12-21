@@ -1,8 +1,9 @@
 class Message {
-  final String id; //message id
-  final String senderId;     
-  final String senderName;   
-  final String text;
+  final String id;
+  final String senderId;
+  final String senderName;
+  final String? text;
+  final String? imagePath;
   final String time;
 
   final Map<String, List<String>> reactions;
@@ -11,19 +12,22 @@ class Message {
     required this.id,
     required this.senderId,
     required this.senderName,
-    required this.text,
+    this.text,
+    this.imagePath,
     required this.time,
     this.reactions = const {},
   });
 
-  Message copyWith({
-    Map<String, List<String>>? reactions,
-  }) {
+  bool get isImage => imagePath != null;
+  bool get isText => text != null && text!.isNotEmpty;
+
+  Message copyWith({Map<String, List<String>>? reactions}) {
     return Message(
       id: id,
       senderId: senderId,
       senderName: senderName,
       text: text,
+      imagePath: imagePath,
       time: time,
       reactions: reactions ?? this.reactions,
     );
@@ -35,6 +39,7 @@ class Message {
       senderId: map['sender_id'],
       senderName: map['sender_name'],
       text: map['text'],
+      imagePath: map['imagePath'],
       time: map['time'],
       reactions: map['reactions'] != null
           ? Map<String, List<String>>.from(

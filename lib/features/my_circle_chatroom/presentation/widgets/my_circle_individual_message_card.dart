@@ -2,6 +2,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:senior_circle/core/common/widgets/image_mesage_bubble.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/core/common/widgets/message_bubble.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
@@ -76,8 +77,15 @@ class IndividualMessageCard extends StatelessWidget {
                 ? CrossAxisAlignment.end
                 : CrossAxisAlignment.start,
             children: [
-              MessageBubble(text: message.text, time: message.time, isMe: isMe),
-             
+              if (message.isImage)
+                ImageMessageBubble(imagePath: message.imagePath!, isMe: isMe , isGroup: false,)
+              else if (message.isText)
+                MessageBubble(
+                  text: message.text!,
+                  time: message.time,
+                  isMe: isMe,
+                ),
+
               if (message.reactions.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -88,7 +96,7 @@ class IndividualMessageCard extends StatelessWidget {
                         emoji: entry.key,
                         userIds: entry.value,
                       );
-                  
+
                       return ReactionChip(
                         reaction: reaction,
                         onTap: () {
@@ -125,13 +133,12 @@ class IndividualMessageCard extends StatelessWidget {
     late OverlayEntry reactionOverlay;
     bool overlayRemoved = false;
 
-void removeReactionOverlay() {
-  if (!overlayRemoved && reactionOverlay.mounted) {
-    reactionOverlay.remove();
-    overlayRemoved = true;
-  }
-}
-
+    void removeReactionOverlay() {
+      if (!overlayRemoved && reactionOverlay.mounted) {
+        reactionOverlay.remove();
+        overlayRemoved = true;
+      }
+    }
 
     reactionOverlay = OverlayEntry(
       builder: (_) => Positioned(
@@ -152,7 +159,7 @@ void removeReactionOverlay() {
           },
 
           onReactionTap: (emoji) {
-             removeReactionOverlay();
+            removeReactionOverlay();
 
             if (Navigator.canPop(context)) {
               Navigator.pop(context);

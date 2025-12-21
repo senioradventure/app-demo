@@ -6,7 +6,8 @@ class GroupMessage {
   final String senderId;
   final String senderName;
   final String? avatar;
-  final String text;
+  final String? text;
+  final String? imagePath;
   final String time;
   final List<Reaction> reactions;
   final List<GroupMessage> replies;
@@ -17,11 +18,12 @@ class GroupMessage {
     required this.senderId,
     required this.senderName,
     this.avatar,
-    required this.text,
+    this.text,
     required this.time,
     this.reactions = const [],
     this.replies = const [],
-    this.isThreadOpen = false,
+    this.isThreadOpen = false, 
+    this.imagePath,
   });
 
 
@@ -36,6 +38,7 @@ class GroupMessage {
     avatar: map['avatar'],
     text: map['text'],
     time: map['time'],
+    imagePath: map['imagePath'],
     replies: (map['replies'] as List? ?? [])
         .map((e) => GroupMessage.fromMap(
               Map<String, dynamic>.from(e),
@@ -59,6 +62,7 @@ class GroupMessage {
       'senderName': senderName,
       'avatar': avatar,
       'text': text,
+      'imagePath' : imagePath,
       'time': time,
       'isThreadOpen': isThreadOpen,
       'reactions': reactions.map((r) => r.toMap()).toList(),
