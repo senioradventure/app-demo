@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/createroom_preview_details_model.dart';
@@ -8,9 +7,17 @@ class CreateRoomRepository {
   final SupabaseClient _client = Supabase.instance.client;
   final _uuid = const Uuid();
 
-  CreateRoomRepository() {
-    final user = _client.auth.currentUser;
-    debugPrint("Current user: ${user?.id}");
+  /// Ensure profile exists (FIX for FK error)
+  Future<void> _ensureProfileExists(String userId) async {
+    final profile = await _client
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (profile == null) {
+      await _client.from('profiles').insert({'id': userId});
+    }
   }
 
   /// Upload image → return public URL
@@ -20,7 +27,9 @@ class CreateRoomRepository {
     final fileExt = imageFile.path.split('.').last;
     final fileName = 'live_chat_rooms/${_uuid.v4()}.$fileExt';
 
-    await _client.storage.from('media').upload(
+    await _client.storage
+        .from('media')
+        .upload(
           fileName,
           imageFile,
           fileOptions: const FileOptions(upsert: false),
@@ -29,26 +38,25 @@ class CreateRoomRepository {
     return _client.storage.from('media').getPublicUrl(fileName);
   }
 
-  /// Create live chat room
+  /// Create live chat room (FIXED)
   Future<void> createRoom({
     required CreateroomPreviewDetailsModel preview,
     required String adminId,
     String? locationId,
   }) async {
+    // 🔥 IMPORTANT FIX
+    await _ensureProfileExists(adminId);
+
     final imageUrl = await uploadRoomImage(preview.imageFile);
 
-    final response = await _client.from('live_chat_rooms').insert({
+    await _client.from('live_chat_rooms').insert({
       'name': preview.name,
       'description': preview.description,
       'image_url': imageUrl,
       'admin_id': adminId,
       'location_id': locationId,
-      'interests': preview.interests, // ✅ text[]
+      'interests': preview.interests,
       'is_active': true,
     });
-
-    if (response.error != null) {
-      throw response.error!;
-    }
   }
 }

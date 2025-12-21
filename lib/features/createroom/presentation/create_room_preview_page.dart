@@ -4,6 +4,7 @@ import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
 import 'package:senior_circle/features/createroom/models/createroom_preview_details_model.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_preview_details_widget.dart';
 import 'package:senior_circle/features/createroom/repositories/createroom_repository.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/live_chat_chat_room_page.dart';
 import 'package:senior_circle/features/preview/presentation/widgets/preview_screen_caution_container.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -46,22 +47,28 @@ class CreateRoomPreviewPage extends StatelessWidget {
           }
 
           try {
-            await repo.createRoom(
-              preview: previewDetails,
-              adminId: user.id,
-              // locationId: optional UUID if you have it
-            );
+            await repo.createRoom(preview: previewDetails, adminId: user.id);
 
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Room created successfully")),
             );
 
-            Navigator.popUntil(context, (route) => route.isFirst);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => Chatroom(
+                  title: previewDetails.name,
+                  isAdmin: true,
+                  isNewRoom: true,
+                  imageFile: previewDetails.imageFile,
+                ),
+              ),
+            );
           } catch (e) {
             debugPrint("Create room error: $e");
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text("Error: $e")));
+            ).showSnackBar(SnackBar(content: Text("Failed: ${e.toString()}")));
           }
         },
       ),
