@@ -1,38 +1,108 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/constants/contact.dart';
+import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/live_chat_chat_room_page.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
-
-final ValueNotifier<bool> isListening = ValueNotifier<bool>(false);
-final ValueNotifier<List<Contact>> filteredContactList =
-    ValueNotifier<List<Contact>>(List.from(masterContactList));
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LiveChatPage extends StatelessWidget {
-  const LiveChatPage({super.key});
+  
 
-  void _filterContacts(String query) {
-    final q = query.trim().toLowerCase();
-    if (q.isEmpty) {
-      filteredContactList.value = List.from(masterContactList);
-      return;
-    }
-    filteredContactList.value = masterContactList.where((c) {
-      return c.contactFirstName.toLowerCase().contains(q);
+
+  LiveChatPage({super.key});
+  final ValueNotifier<bool> isListening = ValueNotifier<bool>(false);
+final ValueNotifier<List<Contact>> filteredContactList =
+    ValueNotifier<List<Contact>>([]);
+final ValueNotifier<List<String>> locationList = ValueNotifier<List<String>>([]);
+String? selectedLocation;
+String? selectedInterest;
+String _currentSearch = "";
+final ValueNotifier<List<Contact>> allRooms =
+    ValueNotifier<List<Contact>>([]);
+
+void _filterContacts(String query) {
+  _currentSearch = query.trim().toLowerCase();
+  applyFilters();
+}
+
+void applyFilters() {
+ 
+  List<Contact> result = List.from(allRooms.value);
+
+
+  if (selectedLocation != null && selectedLocation!.isNotEmpty) {
+    result = result.where((room) {
+      return room.location_id != null &&
+          room.location_id!.toLowerCase() ==
+              selectedLocation!.toLowerCase();
     }).toList();
   }
 
-  void _toggleFavourite(Contact contact) {
-    final idx = masterContactList.indexOf(contact);
-    if (idx >= 0) {
-      masterContactList[idx].favourite = !masterContactList[idx].favourite;
-
-      filteredContactList.value = List.from(filteredContactList.value);
-    }
+ 
+  if (selectedInterest != null && selectedInterest!.isNotEmpty) {
+    result = result.where((room) {
+      return room.interests.contains(selectedInterest);
+    }).toList();
   }
+
+
+  if (_currentSearch.isNotEmpty) {
+    result = result.where((room) {
+      return room.name.toLowerCase().contains(_currentSearch);
+    }).toList();
+  }
+
+
+  filteredContactList.value = result;
+}
+
+
+Future<void> fetchLocations() async {
+  final supabase = Supabase.instance.client;
+
+  final response = await supabase
+      .from('locations')
+      .select('name');
+
+  final uniqueLocations = response
+      .map<String>((row) => row['name'] as String)
+      .toSet()
+      .toList();
+
+  locationList.value = uniqueLocations;
+}
+
+ Future<void> fetchRooms() async {
+  final supabase = Supabase.instance.client;
+
+  final response = await supabase.from('live_chat_rooms').select();
+
+  final rooms =
+      response.map<Contact>((room) => Contact.fromJson(room)).toList();
+
+
+  allRooms.value = rooms;
+
+  applyFilters();
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+  if (locationList.value.isEmpty) {
+    fetchLocations();
+  }
+  if (filteredContactList.value.isEmpty) {
+    fetchRooms();
+  }
+});
+
+
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F7),
       body: SafeArea(
@@ -64,6 +134,11 @@ class LiveChatPage extends StatelessWidget {
                 ),
                 child: TextFormField(
                   onChanged: _filterContacts,
+                  style: const TextStyle(
+    color: Colors.black,      
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+  ),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
@@ -135,54 +210,39 @@ class LiveChatPage extends StatelessWidget {
                             final Offset pos = btn.localToGlobal(Offset.zero);
                             final Size size = btn.size;
 
-                            await showMenu(
-                              context: ctx,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              color: const Color(0xFFE8EFF5),
-                              position: RelativeRect.fromLTRB(
-                                pos.dx,
-                                pos.dy + size.height + 6,
-                                pos.dx + size.width,
-                                0,
-                              ),
-                              items: [
-                                PopupMenuItem(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    "Ernakulam",
-                                    style: TextStyle(color: Colors.black87),
-                                  ),
-                                  value: "Ernakulam",
-                                ),
-                                PopupMenuItem(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    "Thrissur",
-                                    style: TextStyle(color: Colors.black87),
-                                  ),
-                                  value: "Thrissur",
-                                ),
-                                PopupMenuItem(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    "Kottayam",
-                                    style: TextStyle(color: Colors.black87),
-                                  ),
-                                  value: "Kottayam",
-                                ),
-                              ],
-                            );
+                            final selected = await showMenu(
+  context: ctx,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(16),
+  ),
+  color: const Color(0xFFE8EFF5),
+  position: RelativeRect.fromLTRB(
+    pos.dx,
+    pos.dy + size.height + 6,
+    pos.dx + size.width,
+    0,
+  ),
+  items: [
+    const PopupMenuItem(
+      value: "None",
+      child: Text("None",
+      style: TextStyle(color: Colors.black)),
+    ),
+    ...locationList.value.map((loc) {
+      return PopupMenuItem(
+        value: loc,
+        child: Text(loc, style: TextStyle(color: Colors.black87)),
+      );
+    }).toList(),
+  ],
+);
+
+if (selected != null) {
+  selectedLocation = (selected == "None") ? null : selected;
+  applyFilters();
+}
+
+
                           },
 
                           style: OutlinedButton.styleFrom(
@@ -200,22 +260,23 @@ class LiveChatPage extends StatelessWidget {
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(
+                            children: [
+                              const Icon(
                                 Icons.location_pin,
                                 size: 18,
                                 color: Colors.blueAccent,
                               ),
-                              SizedBox(width: 6),
+                              const SizedBox(width: 6),
                               Text(
-                                "by location",
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(width: 4),
-                              Icon(
+  selectedLocation == null ? "by location" : selectedLocation!,
+  style: const TextStyle(
+    color: Colors.black87,
+    fontWeight: FontWeight.w500,
+  ),
+),
+
+                              const SizedBox(width: 4),
+                              const Icon(
                                 Icons.keyboard_arrow_down,
                                 size: 18,
                                 color: Colors.blueAccent,
@@ -237,43 +298,39 @@ class LiveChatPage extends StatelessWidget {
                             final Offset pos = btn.localToGlobal(Offset.zero);
                             final Size size = btn.size;
 
-                            await showMenu(
-                              context: ctx,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              color: const Color(0xFFE8EFF5),
-                              position: RelativeRect.fromLTRB(
-                                pos.dx,
-                                pos.dy + size.height + 6,
-                                pos.dx + size.width,
-                                0,
-                              ),
-                              items: [
-                                PopupMenuItem(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    "Tea",
-                                    style: TextStyle(color: Colors.black87),
-                                  ),
-                                  value: "Tea",
-                                ),
-                                PopupMenuItem(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    "Friends",
-                                    style: TextStyle(color: Colors.black87),
-                                  ),
-                                  value: "Friends",
-                                ),
-                              ],
-                            );
+                         final selected = await showMenu(
+  context: ctx,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(16),
+  ),
+  color: const Color(0xFFE8EFF5),
+  position: RelativeRect.fromLTRB(
+    pos.dx,
+    pos.dy + size.height + 6,
+    pos.dx + size.width,
+    0,
+  ),
+  items: [
+    const PopupMenuItem(
+      value: "None",
+      child: Text("None",
+      style: TextStyle(color: Colors.black)),
+    ),
+    ...AppLists.interests.map((interest) {
+      return PopupMenuItem(
+        value: interest,
+        child: Text(interest, style: TextStyle(color: Colors.black87)),
+      );
+    }).toList(),
+  ],
+);
+
+if (selected != null) {
+  selectedInterest = (selected == "None") ? null : selected;
+  applyFilters();
+}
+
+
                           },
 
                           style: OutlinedButton.styleFrom(
@@ -291,22 +348,23 @@ class LiveChatPage extends StatelessWidget {
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(
+                            children: [
+                              const Icon(
                                 Icons.filter_alt,
                                 size: 18,
                                 color: Colors.blueAccent,
                               ),
-                              SizedBox(width: 6),
+                              const SizedBox(width: 6),
                               Text(
-                                "by interest",
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(width: 4),
-                              Icon(
+  selectedInterest == null ? "by interest" : selectedInterest!,
+  style: const TextStyle(
+    color: Colors.black87,
+    fontWeight: FontWeight.w500,
+  ),
+),
+
+                              const SizedBox(width: 4),
+                              const Icon(
                                 Icons.keyboard_arrow_down,
                                 size: 18,
                                 color: Colors.blueAccent,
@@ -364,7 +422,7 @@ class LiveChatPage extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 200),
+                                      SizedBox(height: 300),
                                     ],
                                   ),
                                 ),
@@ -384,7 +442,7 @@ class LiveChatPage extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      Chatroom(title: c.contactFirstName),
+                                      Chatroom(title: c.name),
                                 ),
                               );
                             },
@@ -398,11 +456,11 @@ class LiveChatPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   CircleAvatar(
-                                    backgroundImage: const AssetImage(
-                                      'assets/image/Frame_24.png',
-                                    ),
-                                    radius: 30,
-                                  ),
+  radius: 30,
+  backgroundImage: c.image_url != null
+      ? NetworkImage(c.image_url!)
+      : const AssetImage('assets/image/Frame_24.png') as ImageProvider,
+),
 
                                   const SizedBox(width: 12),
 
@@ -416,7 +474,7 @@ class LiveChatPage extends StatelessWidget {
                                             bottom: 6,
                                           ),
                                           child: Text(
-                                            c.contactFirstName,
+                                            c.name,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
@@ -431,7 +489,7 @@ class LiveChatPage extends StatelessWidget {
                                           spacing: 8,
                                           runSpacing: 4,
                                           children: [
-                                            for (final tag in c.tags)
+                                            for (final tag in c.interests)
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -545,21 +603,22 @@ class LiveChatPage extends StatelessWidget {
               ),
             ),
             onPressed: () async {
-              final result = await Navigator.push<Map<String, dynamic>?>(
-                context,
-                MaterialPageRoute(builder: (_) => const CreateRoomScreen()),
-              );
+  final result = await Navigator.push<Map<String, dynamic>?>(
+    context,
+    MaterialPageRoute(builder: (_) => const CreateRoomScreen()),
+  );
 
-              if (result != null) {
-                final newContact = Contact(
-                  contactFirstName: result['roomName'] ?? "Unnamed Room",
-                  // add description / image if needed
-                );
+  if (result != null) {
+    await Supabase.instance.client.from('live_chat_rooms').insert({
+      'name': result['roomName'],
+      'image_url': result['imageUrl'],
+      'interests': [],
+    });
 
-                masterContactList.add(newContact);
-                filteredContactList.value = List.from(masterContactList);
-              }
-            },
+    fetchRooms();  
+  }
+},
+
           ),
         ),
       ),

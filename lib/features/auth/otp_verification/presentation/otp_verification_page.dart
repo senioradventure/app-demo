@@ -38,7 +38,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       if (response.user != null) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const LiveChatPage()),
+          MaterialPageRoute(builder: (_) => LiveChatPage()),
           (_) => false,
         );
       }

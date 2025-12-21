@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 
 class LivetvPage extends StatelessWidget {
   const LivetvPage({super.key});
@@ -13,7 +12,7 @@ class LivetvPage extends StatelessWidget {
         child: Container(
           width: double.infinity,
           height: 60,
-          color: const Color(0xFFF9F9F7),  // full grey background
+          color: const Color(0xFFF9F9F7), 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
