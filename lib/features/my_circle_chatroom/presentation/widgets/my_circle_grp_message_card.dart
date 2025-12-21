@@ -24,55 +24,65 @@ class GroupMessageCard extends StatefulWidget {
 }
 
 class _GroupMessageCardState extends State<GroupMessageCard> {
-  
   final TextEditingController _replyController = TextEditingController();
   bool _isLiked = false;
   bool _isReplyInputVisible = false;
   late int _likeCount;
   late Map<String, int> _reactionCounts;
   late Set<String> _selectedReactions;
- 
-  List<Reaction> _buildReactionList() {
-  return _reactionCounts.entries
-      .map((e) => Reaction(emoji: e.key, count: e.value))
-      .toList();
-}
 
+  List<Reaction> _buildReactionList() {
+    return widget.grpmessage.reactions.map((r) {
+      return Reaction(emoji: r.emoji, userIds: r.userIds);
+    }).toList();
+  }
 
   @override
+  void initState() {
+    super.initState();
 
-void initState() {
-  super.initState();
-  final likeReaction = widget.grpmessage.reactions
-      .where((r) => r.emoji == '👍')
-      .toList();
+    final likeReaction = widget.grpmessage.reactions
+        .where((r) => r.emoji == '👍')
+        .toList();
 
-  _likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
+    _likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
 
-  _reactionCounts = {
-    for (final r in widget.grpmessage.reactions)
-      if (r.emoji != '👍') r.emoji: r.count,
-  };
+    _reactionCounts = {
+      for (final r in widget.grpmessage.reactions)
+        if (r.emoji != '👍') r.emoji: r.count,
+    };
 
-  _selectedReactions = {};
-}
+    const currentUserId = 'you';
 
+    _selectedReactions = {
+      for (final r in widget.grpmessage.reactions)
+        if (r.userIds.contains(currentUserId)) r.emoji,
+    };
+  }
 
-  void _onReactionTap(String reactionName) {
+  void _onReactionTap(String emoji) {
     setState(() {
-      if (_selectedReactions.contains(reactionName)) {
-        _reactionCounts[reactionName] =
-            (_reactionCounts[reactionName] ?? 1) - 1;
+      final userId = 'you';
 
-        if (_reactionCounts[reactionName]! <= 0) {
-          _reactionCounts.remove(reactionName);
+      final existing = widget.grpmessage.reactions
+          .where((r) => r.emoji == emoji)
+          .toList();
+
+      if (existing.isNotEmpty) {
+        final reaction = existing.first;
+
+        if (reaction.userIds.contains(userId)) {
+          reaction.userIds.remove(userId);
+          if (reaction.userIds.isEmpty) {
+            widget.grpmessage.reactions.remove(reaction);
+          }
+        } else {
+          reaction.userIds.add(userId);
         }
-
-        _selectedReactions.remove(reactionName);
       } else {
-        _reactionCounts[reactionName] =
-            (_reactionCounts[reactionName] ?? 0) + 1;
-        _selectedReactions.add(reactionName);
+        widget.grpmessage.reactions.add(
+          Reaction(emoji: emoji, userIds: [userId]),
+        );
       }
     });
   }
@@ -88,21 +98,20 @@ void initState() {
     });
   }
 
-void _showEmojiPicker() {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (_) {
-      return EmojiPicker(
-        onEmojiSelected: (category, emoji) {
-          _onReactionTap(emoji.emoji); 
-          Navigator.pop(context);
-        },
-      );
-    },
-  );
-}
-
+  void _showEmojiPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return EmojiPicker(
+          onEmojiSelected: (category, emoji) {
+            _onReactionTap(emoji.emoji);
+            Navigator.pop(context);
+          },
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {

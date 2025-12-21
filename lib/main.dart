@@ -5,8 +5,8 @@ import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/chat_event.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -35,7 +35,7 @@ class SeniorCircleApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) =>
-              ChatBloc(repository: ChatRepository())..add(LoadChats()),
+              CircleChatBloc(repository: ChatRepository())..add(LoadChats()),
         ),
       ],
       child: MaterialApp(

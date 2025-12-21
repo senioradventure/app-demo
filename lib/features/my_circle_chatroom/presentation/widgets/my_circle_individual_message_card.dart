@@ -1,23 +1,22 @@
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/core/common/widgets/message_bubble.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/reaction_bar.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/reaction_chip.dart';
 
 class IndividualMessageCard extends StatelessWidget {
   final Message message;
-  
 
-  const IndividualMessageCard({
-    super.key,
-    required this.message,
- 
-  });
+  const IndividualMessageCard({super.key, required this.message});
 
-  bool get isMe => message.sender.toLowerCase() == 'you';
+  bool get isMe => message.senderId.toLowerCase() == 'you';
 
   void _openEmojiPicker(BuildContext context) {
     showModalBottomSheet(
@@ -26,11 +25,11 @@ class IndividualMessageCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) {
         return SizedBox(
-          height: 350,
+          height: MediaQuery.of(context).size.height * 0.45,
           child: EmojiPicker(
             onEmojiSelected: (category, emoji) {
               Navigator.pop(context);
-              _handleReaction(emoji);
+              _handleReaction(context, emoji.emoji);
             },
           ),
         );
@@ -58,8 +57,10 @@ class IndividualMessageCard extends StatelessWidget {
     debugPrint('Delete for everyone: ${message.id}');
   }
 
-  void _handleReaction(Emoji emoji) {
-    debugPrint('Reacted with $emoji on message ${message.id}');
+  void _handleReaction(BuildContext context, String emoji) {
+    context.read<ChatBloc>().add(
+      ToggleReaction(messageId: message.id, emoji: emoji, userId: 'you'),
+    );
   }
 
   @override
@@ -70,10 +71,40 @@ class IndividualMessageCard extends StatelessWidget {
           onLongPress: () {
             _showContextMenu(context, message);
           },
-          child: MessageBubble(
-            text: message.text,
-            time: message.time,
-            isMe: isMe,
+          child: Column(
+            crossAxisAlignment: isMe
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            children: [
+              MessageBubble(text: message.text, time: message.time, isMe: isMe),
+             
+              if (message.reactions.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Wrap(
+                    spacing: 6,
+                    children: message.reactions.entries.map((entry) {
+                      final reaction = Reaction(
+                        emoji: entry.key,
+                        userIds: entry.value,
+                      );
+                  
+                      return ReactionChip(
+                        reaction: reaction,
+                        onTap: () {
+                          context.read<ChatBloc>().add(
+                            ToggleReaction(
+                              messageId: message.id,
+                              emoji: reaction.emoji,
+                              userId: 'you',
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
           ),
         );
       },
@@ -92,6 +123,15 @@ class IndividualMessageCard extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     late OverlayEntry reactionOverlay;
+    bool overlayRemoved = false;
+
+void removeReactionOverlay() {
+  if (!overlayRemoved && reactionOverlay.mounted) {
+    reactionOverlay.remove();
+    overlayRemoved = true;
+  }
+}
+
 
     reactionOverlay = OverlayEntry(
       builder: (_) => Positioned(
@@ -99,14 +139,29 @@ class IndividualMessageCard extends StatelessWidget {
         top: offset.dy - reactionBarHeight - 36,
         child: ReactionBar(
           onAddTap: () {
-            reactionOverlay.remove();
-            Navigator.pop(context);
-            _openEmojiPicker(context);
+            removeReactionOverlay();
+
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+
+            Future.microtask(() {
+              if (!context.mounted) return;
+              _openEmojiPicker(context);
+            });
           },
+
           onReactionTap: (emoji) {
-            reactionOverlay.remove();
-            Navigator.pop(context);
-           _handleReaction(emoji);
+             removeReactionOverlay();
+
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+
+            Future.microtask(() {
+              if (!context.mounted) return;
+              _handleReaction(context, emoji);
+            });
           },
         ),
       ),
@@ -114,66 +169,69 @@ class IndividualMessageCard extends StatelessWidget {
 
     overlay.insert(reactionOverlay);
 
-    await showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: "menu",
-      transitionDuration: const Duration(milliseconds: 150),
-      pageBuilder: (_, __, ___) {
-        return Stack(
-          children: [
-            Positioned(
-              top: offset.dy + box.size.height - 60,
-              left: isMe ? (screenWidth - menuWidth) - 16 : 16,
-              width: menuWidth,
-              child: Material(
-                color: Colors.white,
-                elevation: 8,
-                borderRadius: BorderRadius.circular(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildMenuItem(
-                      context,
-                      'STAR',
-                      iconPath: 'assets/icons/star_icon.svg',
-                      action: _handleStar,
-                    ),
-                    const PopupMenuDivider(),
-                    _buildMenuItem(
-                      context,
-                      'FORWARD',
-                      iconPath: 'assets/icons/forward_icon.svg',
-                      action: _handleForward,
-                    ),
-                    const PopupMenuDivider(),
-                    _buildMenuItem(
-                      context,
-                      'SHARE',
-                      iconPath: 'assets/icons/share_icon.svg',
-                      action: _handleShare,
-                    ),
-                    const PopupMenuDivider(),
-                    _buildMenuItem(
-                      context,
-                      'DELETE FOR ME',
-                      action: _handleDeleteForMe,
-                    ),
-                    const PopupMenuDivider(),
-                    _buildMenuItem(
-                      context,
-                      'DELETE FOR EVERYONE',
-                      action: _handleDeleteForEveryone,
-                    ),
-                  ],
+    try {
+      await showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: "menu",
+        transitionDuration: const Duration(milliseconds: 150),
+        pageBuilder: (_, __, ___) {
+          return Stack(
+            children: [
+              Positioned(
+                top: offset.dy + box.size.height - 60,
+                left: isMe ? (screenWidth - menuWidth) - 16 : 16,
+                width: menuWidth,
+                child: Material(
+                  color: Colors.white,
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildMenuItem(
+                        context,
+                        'STAR',
+                        iconPath: 'assets/icons/star_icon.svg',
+                        action: _handleStar,
+                      ),
+                      const PopupMenuDivider(),
+                      _buildMenuItem(
+                        context,
+                        'FORWARD',
+                        iconPath: 'assets/icons/forward_icon.svg',
+                        action: _handleForward,
+                      ),
+                      const PopupMenuDivider(),
+                      _buildMenuItem(
+                        context,
+                        'SHARE',
+                        iconPath: 'assets/icons/share_icon.svg',
+                        action: _handleShare,
+                      ),
+                      const PopupMenuDivider(),
+                      _buildMenuItem(
+                        context,
+                        'DELETE FOR ME',
+                        action: _handleDeleteForMe,
+                      ),
+                      const PopupMenuDivider(),
+                      _buildMenuItem(
+                        context,
+                        'DELETE FOR EVERYONE',
+                        action: _handleDeleteForEveryone,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
-    );
-    reactionOverlay.remove();
+            ],
+          );
+        },
+      );
+    } finally {
+      removeReactionOverlay();
+    }
   }
 
   PopupMenuEntry _buildMenuItem(

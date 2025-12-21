@@ -1,10 +1,9 @@
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:senior_circle/core/constants/reactions.dart';
 
 class ReactionBar extends StatelessWidget {
-  final void Function(Emoji emoji) onReactionTap;
+  final void Function(String emoji) onReactionTap;
   final VoidCallback onAddTap;
 
   const ReactionBar({
@@ -29,7 +28,7 @@ class ReactionBar extends StatelessWidget {
           children: [
             ...defaultReactions.map(
               (emoji) => GestureDetector(
-                onTap: () => onReactionTap(emoji as Emoji),
+                onTap: () => onReactionTap(emoji),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: Text(

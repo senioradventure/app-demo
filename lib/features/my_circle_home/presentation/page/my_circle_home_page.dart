@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/chat_event.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/chat_state.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_state.dart';
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
@@ -22,14 +24,18 @@ class MyCircleHomePage extends StatefulWidget {
 
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
   void navigateToChatRoom(CircleChat chat) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => chat.isGroup
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => BlocProvider(
+        create: (_) => ChatBloc()..add(LoadMessages()),
+        child: chat.isGroup
             ? MyCircleGroupChatPage(chat: chat)
             : MyCircleIndividualChatPage(chat: chat),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +59,13 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
         children: [
           SearchBarWidget(
             onChanged: (value) {
-              context.read<ChatBloc>().add(FilterChats(value));
+              context.read<CircleChatBloc>().add(FilterChats(value));
             },
           ),
           SizedBox(height: 4),
           StarredMessageWidget(),
           Expanded(
-            child: BlocBuilder<ChatBloc, ChatState>(
+            child: BlocBuilder<CircleChatBloc, CircleChatState>(
               builder: (context, state) {
                 if (state is ChatLoading) {
                   return const Center(child: CircularProgressIndicator());

@@ -1,16 +1,16 @@
 import 'package:equatable/equatable.dart';
 import '../models/circle_chat_model.dart';
 
-abstract class ChatState extends Equatable {
-  const ChatState();
+abstract class CircleChatState extends Equatable {
+  const CircleChatState();
 
   @override
   List<Object?> get props => [];
 }
 
-class ChatLoading extends ChatState {}
+class ChatLoading extends CircleChatState {}
 
-class ChatLoaded extends ChatState {
+class ChatLoaded extends CircleChatState {
   final List<CircleChat> chats;
 
   const ChatLoaded(this.chats);
@@ -19,7 +19,7 @@ class ChatLoaded extends ChatState {
   List<Object?> get props => [chats];
 }
 
-class ChatError extends ChatState {
+class ChatError extends CircleChatState {
   final String message;
 
   const ChatError(this.message);

@@ -4,7 +4,7 @@ import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
 import 'package:senior_circle/core/common/widgets/details_tag_widget.dart';
 import 'package:senior_circle/core/common/widgets/member_listview.dart';
 import 'package:senior_circle/features/details/model/chatroom_member_model.dart';
-import 'package:senior_circle/features/live_chat_chat_room/models/chat_messeges.dart';
+import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/live_chat_chat_room_page.dart';
 import 'package:senior_circle/features/preview/models/createroom_preview_details_model.dart';
 import 'package:senior_circle/features/preview/presentation/widgets/preview_screen_caution_container.dart';

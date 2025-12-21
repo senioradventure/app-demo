@@ -18,12 +18,15 @@ class MyCircleGroupChatPage extends StatefulWidget {
 class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
   late List<GroupMessage> _messages;
   final ScrollController _scrollController = ScrollController();
-
+  
   @override
-  void initState() {
-    super.initState();
-    _messages = groupMessages.map((msg) => msg).toList();
-  }
+void initState() {
+  super.initState();
+
+  _messages = groupMessages
+      .map((e) => GroupMessage.fromMap(e))
+      .toList();
+}
 
   void _handleSendMessage(String text) {
     if (text.trim().isEmpty) return;

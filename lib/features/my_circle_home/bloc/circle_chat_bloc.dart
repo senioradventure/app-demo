@@ -1,13 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
-import 'chat_event.dart';
-import 'chat_state.dart';
+import 'circle_chat_event.dart';
+import 'circle_chat_state.dart';
 
-class ChatBloc extends Bloc<ChatEvent, ChatState> {
+class CircleChatBloc extends Bloc<CirleChatEvent, CircleChatState> {
   final ChatRepository repository;
 
-  ChatBloc({required this.repository}) : super(ChatLoading()) {
+  CircleChatBloc({required this.repository}) : super(ChatLoading()) {
     on<LoadChats>(_onLoadChats);
     on<FilterChats>(_onFilterChats);
   }
@@ -16,7 +16,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   Future<void> _onLoadChats(
     LoadChats event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) async {
     emit(ChatLoading());
 
@@ -30,7 +30,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onFilterChats(
     FilterChats event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     final filtered = _allChats
         .where((chat) =>

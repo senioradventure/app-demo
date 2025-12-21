@@ -32,11 +32,11 @@ class ReactionChip extends StatelessWidget {
               reaction.emoji,
               style: const TextStyle(fontSize: 14),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Text(
               reaction.count.toString(),
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
             ),
