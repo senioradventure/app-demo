@@ -17,6 +17,7 @@ class AddChatWidget extends StatelessWidget {
         ),
         child: FloatingActionButton(
           onPressed: () async {
+            FocusManager.instance.primaryFocus?.unfocus(); //to remove focus of keyboard when navigating
             final result = await Navigator.push(
               context,
               MaterialPageRoute(

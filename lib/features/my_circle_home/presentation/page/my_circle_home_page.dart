@@ -23,6 +23,15 @@ class MyCircleHomePage extends StatefulWidget {
 }
 
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
+
+//add this function whenever focus need to be removed when navigating from any screen
+@override
+void deactivate() {
+  FocusManager.instance.primaryFocus?.unfocus();
+  super.deactivate();
+}
+
+
   void navigateToChatRoom(CircleChat chat) {
   Navigator.of(context).push(
     MaterialPageRoute(
