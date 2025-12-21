@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:senior_circle/features/auth/ui/login_page.dart';
+import 'package:senior_circle/core/utils/location_service.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
-import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
-//import 'package:senior_circle/features/details/presentation/details_screen.dart';
-//import 'package:senior_circle/features/preview/presentation/preview_screen.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
+import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -17,6 +15,7 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuZm96cm9vbGNlcXVjbGx0d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NzEzNzMsImV4cCI6MjA4MDE0NzM3M30.0MQAK_yOPZX8MxvmsmSnXkV2tcMPzKcGOOTpl2XdTlA',
   );
+
   runApp(const SeniorCircleApp());
 }
 
@@ -27,12 +26,11 @@ class SeniorCircleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ChatroomdetailsBloc>(
-          create: (context) => ChatroomdetailsBloc(),
-        ),
-        BlocProvider<CreateroomBloc>(create: (context) => CreateroomBloc()),
-        BlocProvider<ChatroomdetailsBloc>(
-          create: (context) => ChatroomdetailsBloc(),
+        BlocProvider(create: (_) => ChatroomdetailsBloc()),
+        BlocProvider(
+          create: (_) =>
+              CreateroomBloc(locationService: LocationService())
+                ..add(LoadLocationsEvent()),
         ),
       ],
       child: MaterialApp(
@@ -40,7 +38,7 @@ class SeniorCircleApp extends StatelessWidget {
         theme: AppTheme.lightMode,
         darkTheme: AppTheme.darkMode,
         debugShowCheckedModeBanner: false,
-        home: LoginPage(),
+        home: TabSelectorWidget(),
       ),
     );
   }

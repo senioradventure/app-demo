@@ -17,6 +17,10 @@ final class DisDescriptionTextFieldCounterEvent extends CreateroomEvent {
   DisDescriptionTextFieldCounterEvent(this.count);
 }
 
+class LoadLocationsEvent extends CreateroomEvent {
+  
+}
+
 class SearchInterestEvent extends CreateroomEvent {
   final String query;
   SearchInterestEvent(this.query);
@@ -30,4 +34,29 @@ class AddInterestEvent extends CreateroomEvent {
 class RemoveInterestEvent extends CreateroomEvent {
   final String interest;
   RemoveInterestEvent(this.interest);
+}
+
+class SearchLocationtEvent extends CreateroomEvent {
+  final String query;
+  SearchLocationtEvent(this.query);
+}
+
+class AddLocationEvent extends CreateroomEvent {
+  final String interest;
+  AddLocationEvent(this.interest);
+}
+
+class RemoveLocationEvent extends CreateroomEvent {
+  final String interest;
+  RemoveLocationEvent(this.interest);
+}
+
+class ConfirmCreateRoomEvent extends CreateroomEvent {
+  final String roomName;
+  final String description;
+
+  ConfirmCreateRoomEvent({
+    required this.roomName,
+    required this.description,
+  });
 }

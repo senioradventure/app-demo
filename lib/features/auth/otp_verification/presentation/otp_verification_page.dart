@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/auth/otp_verification/widget/otp_input_widget.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/live_chat_home_page.dart';
+import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class OtpVerificationPage extends StatefulWidget {
@@ -38,7 +39,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       if (response.user != null) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const LiveChatPage()),
+          MaterialPageRoute(builder: (_) => TabSelectorWidget()),
           (_) => false,
         );
       }

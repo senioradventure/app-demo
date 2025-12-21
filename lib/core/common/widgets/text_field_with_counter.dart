@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TextFieldWithCounter extends StatelessWidget {
   final int count;
@@ -6,7 +7,7 @@ class TextFieldWithCounter extends StatelessWidget {
   final String? hintText;
   final TextEditingController? controller;
   final String? label;
-  final Function(String)? onChanged;
+  final ValueChanged<String>? onChanged;
 
   const TextFieldWithCounter({
     super.key,
@@ -23,7 +24,6 @@ class TextFieldWithCounter extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header row with dynamic counter
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -37,20 +37,22 @@ class TextFieldWithCounter extends StatelessWidget {
 
         const SizedBox(height: 4),
 
-        // TextField
         TextField(
           controller: controller,
-
-          maxLength: maxLength,
+          maxLengthEnforcement: MaxLengthEnforcement.enforced,
+          inputFormatters: [LengthLimitingTextInputFormatter(maxLength)],
+          enableSuggestions: false,
+          autocorrect: false,
+          keyboardType: TextInputType.text,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: Theme.of(context).textTheme.labelSmall,
-            counterText: '', // Hide the default counter
+            counterText: '',
           ),
-
           onChanged: onChanged,
         ),
-        SizedBox(height: 20),
+
+        const SizedBox(height: 20),
       ],
     );
   }
