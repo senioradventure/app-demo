@@ -1,14 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
+import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:senior_circle/features/live_chat_chat_room/models/chat_messeges.dart';
 
 class Chatroom extends StatelessWidget {
   final ImagePicker picker = ImagePicker();

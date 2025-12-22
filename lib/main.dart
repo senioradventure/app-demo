@@ -5,12 +5,17 @@ import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
+import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
+import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
+import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   await Supabase.initialize(
     url: 'https://bnfozroolcequclltwjb.supabase.co',
     anonKey:
@@ -33,13 +38,20 @@ class SeniorCircleApp extends StatelessWidget {
               CreateroomBloc(locationService: LocationService())
                 ..add(LoadLocationsEvent()),
         ),
+        BlocProvider(
+          create: (_) =>
+              CircleChatBloc(repository: ChatRepository())..add(LoadChats()),
+        ),
       ],
       child: MaterialApp(
         title: 'Senior Circle',
         theme: AppTheme.lightMode,
         darkTheme: AppTheme.darkMode,
         debugShowCheckedModeBanner: false,
-        home: LoginPage(),
+        builder: (context, child) {
+          return SafeArea(bottom: true, child: child!);
+        },
+        home:TabSelectorWidget(),
       ),
     );
   }
