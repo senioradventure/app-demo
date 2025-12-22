@@ -2,15 +2,17 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/core/common/widgets/image_picker_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
 
-/*void main() {
+void main() {
   runApp(
     const MaterialApp(
       home: CircleCreationScreen(),
       debugShowCheckedModeBanner: false,
     ),
   );
-}*/
+}
 
 class CircleCreationScreen extends StatefulWidget {
   const CircleCreationScreen({super.key});
@@ -24,6 +26,9 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
   XFile? _pickedImage;
   final TextEditingController txtController = TextEditingController();
 
+  final supabase = Supabase.instance.client;
+  bool _isLoading = false;
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     try {
@@ -35,6 +40,25 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
+    }
+  }
+
+  Future<String?> _uploadImage(File image) async {
+    try {
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String path = 'circle_images/$fileName';
+
+      await supabase.storage.from('media').upload(
+        path,
+        image,
+        fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+      );
+      final String imageUrl =
+      supabase.storage.from('media').getPublicUrl(path);
+      return imageUrl;
+    } catch (e) {
+      debugPrint('Error uploading image: $e');
+      return null;
     }
   }
   
