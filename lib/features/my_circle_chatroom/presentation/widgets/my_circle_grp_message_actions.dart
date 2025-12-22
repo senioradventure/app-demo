@@ -34,7 +34,7 @@ class MessageActions extends StatelessWidget {
         .where((r) => r.emoji != '👍')
         .map(
           (reaction) => Padding(
-            padding: const EdgeInsets.only(right: 6),
+            padding: const EdgeInsets.only(right: 4),
             child: ReactionChip(
               reaction: reaction,
               onTap: () => onReactionTap?.call(reaction.emoji),
@@ -53,17 +53,22 @@ class MessageActions extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [buildLikeButton(), ..._buildReactionChips()],
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                buildLikeButton(),
+                SizedBox(width: 4),
+                ..._buildReactionChips(),
+                IconButton(
+                  icon: SvgPicture.asset(
+                    'assets/icons/group_add_reaction_icon.svg',
+                  ),
+
+                  onPressed: onAddReactionTap,
+                  padding: EdgeInsets.zero,
+                ),
+              ],
             ),
           ),
-        ),
-
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline),
-          color: const Color(0xFF5c5c5c),
-          onPressed: onAddReactionTap,
-          iconSize: 24,
         ),
 
         if (!isReply)
@@ -109,14 +114,11 @@ class MessageActions extends StatelessWidget {
                   ? 'assets/icons/liked_icon.svg'
                   : 'assets/icons/like_button.svg',
             ),
-            const SizedBox(width: 6),
+            if (likeCount != 0) const SizedBox(width: 4),
 
             Text(
               "${likeCount > 0 ? likeCount : ''}",
-              style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
-                color: isLiked ? AppColors.buttonBlue : AppColors.textDarkGray,
-                fontWeight: isLiked ? FontWeight.bold : FontWeight.normal,
-              ),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
             ),
           ],
         ),

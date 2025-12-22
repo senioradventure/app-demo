@@ -101,7 +101,7 @@ class ChatMessage {
     this.isFriend = false,
   });
 
-  // 👇 add this
+
  ChatMessage copyWith({
   bool? isSender,
   String? profileAsset,
@@ -109,7 +109,7 @@ class ChatMessage {
   String? text,
   String? time,
   String? imageAsset,
-  String? imageFile, // ✅ ADD THIS
+  String? imageFile, 
   bool? isFriend,
 }) {
   return ChatMessage(
@@ -119,7 +119,7 @@ class ChatMessage {
     text: text ?? this.text,
     time: time ?? this.time,
     imageAsset: imageAsset ?? this.imageAsset,
-    imageFile: imageFile ?? this.imageFile, // ✅ CRITICAL LINE
+    imageFile: imageFile ?? this.imageFile,
     isFriend: isFriend ?? this.isFriend,
   );
 }

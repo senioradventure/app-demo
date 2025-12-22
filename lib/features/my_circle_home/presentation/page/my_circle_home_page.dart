@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
-import 'package:senior_circle/features/my_circle_home/models/chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_state.dart';
+import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_search_bar_widget.dart';
@@ -18,91 +23,33 @@ class MyCircleHomePage extends StatefulWidget {
 }
 
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
-  final List<Map<String, dynamic>> chatData = [
-    {
-      'name': 'Chai Talks',
-      'lastMessage': 'Ram: How are you?',
-      'imageUrl': 'https://picsum.photos/400/400?random=1',
-      'isGroup': true,
-      'time': '32m ago',
-      'unreadCount': 2,
-    },
-    {
-      'name': 'Chai Talks',
-      'lastMessage': 'You: how about we start another project?',
-      'imageUrl': 'https://picsum.photos/400/400?random=1',
-      'isGroup': true,
-      'time': '10:45 AM',
-    },
-    {
-      'name': 'Ramsy',
-      'lastMessage': 'You: How are you today?',
-      'imageUrl':
-          'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
-      'isGroup': false,
-      'time': '9:30 AM',
-    },
-    {
-      'name': 'Reena',
-      'lastMessage': 'You: How are you?',
-      'imageUrl':
-          'https://stored-cf.slickpic.com/Mjg1ODI1MDZmMThjNTg,/20211004/MTgwNzc0ODk4ODBj/pn/600/radiant-smiles-close-up-portrait-beautiful-woman.jpg.webp',
-      'isGroup': false,
-      'time': 'yesterday',
-    },
-  ];
 
-  late final List<Chat> chats = chatData
-      .map(
-        (data) => Chat(
-          name: data['name'],
-          lastMessage: data['lastMessage'],
-          imageUrl: data['imageUrl'],
-          isGroup: data['isGroup'],
-          time: data['time'],
-          unreadCount: data['unreadCount'] ?? 0,
-        ),
-      )
-      .toList();
+//add this function whenever focus need to be removed when navigating from any screen
+@override
+void deactivate() {
+  FocusManager.instance.primaryFocus?.unfocus();
+  super.deactivate();
+}
 
-  List<Chat> foundResults = [];
-  @override
-  void initState() {
-    foundResults = chats;
-    super.initState();
-  }
 
-  void runfilter(String enteredKeyword) {
-    List<Chat> results = [];
-    if (enteredKeyword.isEmpty) {
-      results = chats;
-    } else {
-      results = chats
-          .where(
-            (chat) =>
-                chat.name.toLowerCase().contains(enteredKeyword.toLowerCase()),
-          )
-          .toList();
-    }
-
-    setState(() {
-      foundResults = results;
-    });
-  }
-
-  void navigateToChatRoom(Chat chat) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => chat.isGroup
+  void navigateToChatRoom(CircleChat chat) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => BlocProvider(
+        create: (_) => ChatBloc()..add(LoadMessages()),
+        child: chat.isGroup
             ? MyCircleGroupChatPage(chat: chat)
             : MyCircleIndividualChatPage(chat: chat),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.lightGray,
       appBar: AppBar(
         backgroundColor: AppColors.lightGray,
@@ -119,18 +66,42 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
       ),
       body: Column(
         children: [
-          SearchBarWidget(onChanged: (value) => runfilter(value)),
+          SearchBarWidget(
+            onChanged: (value) {
+              context.read<CircleChatBloc>().add(FilterChats(value));
+            },
+          ),
           SizedBox(height: 4),
           StarredMessageWidget(),
           Expanded(
-            child: ChatListWidget(
-              foundResults: foundResults,
-              onChatTap: navigateToChatRoom,
+            child: BlocBuilder<CircleChatBloc, CircleChatState>(
+              builder: (context, state) {
+                if (state is ChatLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state is ChatLoaded) {
+                  return ChatListWidget(
+                    foundResults: state.chats,
+                    onChatTap: navigateToChatRoom,
+                  );
+                }
+
+                if (state is ChatError) {
+                  return Center(child: Text(state.message));
+                }
+
+                return const SizedBox.shrink();
+              },
             ),
           ),
-          AddChatWidget(destinationPage: const CircleCreationScreen()),
         ],
       ),
+      floatingActionButton: AddChatWidget(
+        destinationPage: const CircleCreationScreen(),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
     );
   }
 }
+

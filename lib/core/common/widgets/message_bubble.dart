@@ -20,9 +20,8 @@ class MessageBubble extends StatelessWidget {
       mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         Container(
-          margin: isMe
-              ? EdgeInsets.symmetric(vertical: 2, horizontal: 12)
-              : EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+          margin: 
+              EdgeInsets.symmetric(vertical: 4, horizontal: 12),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: isMe ? AppColors.lightBlue : Colors.white,
