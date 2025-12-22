@@ -119,7 +119,7 @@ class ChatMessage {
     text: text ?? this.text,
     time: time ?? this.time,
     imageAsset: imageAsset ?? this.imageAsset,
-    imageFile: imageFile ?? this.imageFile, 
+    imageFile: imageFile ?? this.imageFile,
     isFriend: isFriend ?? this.isFriend,
   );
 }

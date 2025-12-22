@@ -6,7 +6,8 @@ class GroupMessage {
   final String senderId;
   final String senderName;
   final String? avatar;
-  final String text;
+  final String? text;
+  final String? imagePath;
   final String time;
   final List<Reaction> reactions;
   final List<GroupMessage> replies;
@@ -17,31 +18,42 @@ class GroupMessage {
     required this.senderId,
     required this.senderName,
     this.avatar,
-    required this.text,
+    this.text,
     required this.time,
     this.reactions = const [],
     this.replies = const [],
-    this.isThreadOpen = false,
+    this.isThreadOpen = false, 
+    this.imagePath,
   });
 
 
   factory GroupMessage.fromMap(Map<String, dynamic> map) {
-    return GroupMessage(
-      id: map['id']?.toString() ?? '',
-      senderId: map['senderId']?.toString() ?? '',
-      senderName: map['senderName'] ?? '',
-      avatar: map['avatar'],
-      text: map['text'] ?? '',
-      time: map['time'] ?? '',
-      isThreadOpen: map['isThreadOpen'] ?? false,
-      reactions: (map['reactions'] as List? ?? [])
-          .map((r) => Reaction.fromMap(r))
-          .toList(),
-      replies: (map['replies'] as List? ?? [])
-          .map((reply) => GroupMessage.fromMap(reply))
-          .toList(),
-    );
-  }
+  final reactionsRaw =
+      Map<String, dynamic>.from(map['reactions'] ?? {});
+
+  return GroupMessage(
+    id: map['id'],
+    senderId: map['senderId'],
+    senderName: map['senderName'],
+    avatar: map['avatar'],
+    text: map['text'],
+    time: map['time'],
+    imagePath: map['imagePath'],
+    replies: (map['replies'] as List? ?? [])
+        .map((e) => GroupMessage.fromMap(
+              Map<String, dynamic>.from(e),
+            ))
+        .toList(),
+    reactions: reactionsRaw.entries.map((entry) {
+      final userIds = List<String>.from(entry.value);
+      return Reaction(
+        emoji: entry.key,
+        userIds: userIds,
+      );
+    }).toList(),
+  );
+}
+
 
   Map<String, dynamic> toMap() {
     return {
@@ -50,6 +62,7 @@ class GroupMessage {
       'senderName': senderName,
       'avatar': avatar,
       'text': text,
+      'imagePath' : imagePath,
       'time': time,
       'isThreadOpen': isThreadOpen,
       'reactions': reactions.map((r) => r.toMap()).toList(),

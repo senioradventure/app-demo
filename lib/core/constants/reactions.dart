@@ -1,0 +1,8 @@
+
+const List<String> defaultReactions = [
+  '👍',
+  '❤️',
+  '😂',
+  '😮',
+  '😢',
+];

@@ -12,7 +12,7 @@ class MainBottomNavBar extends StatelessWidget {
       valueListenable: currentPageIndex,
       builder: (context, value, child) {
         return SizedBox(
-          height: 75,
+          height: 80,
           child: BottomNavigationBar(
             backgroundColor: Colors.white,
             type: BottomNavigationBarType.fixed,
