@@ -3,7 +3,7 @@ import 'package:senior_circle/core/constants/contact.dart';
 import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/live_chat_chat_room_page.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/widget/search_text_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LiveChatPage extends StatelessWidget {
@@ -132,68 +132,7 @@ Future<void> fetchLocations() async {
                   horizontal: 22,
                   vertical: 4,
                 ),
-                child: TextFormField(
-                  onChanged: _filterContacts,
-                  style: const TextStyle(
-    color: Colors.black,      
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-  ),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    hint: Padding(
-                      padding: const EdgeInsets.fromLTRB(4, 6, 0, 6),
-                      child: Text(
-                        'Search for rooms',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
-                      child: Image.asset(
-                        'assets/icons/search.png',
-                        width: 10,
-                        height: 10,
-                      ),
-                    ),
-
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 35,
-                      minHeight: 35,
-                    ),
-
-                    contentPadding: const EdgeInsets.fromLTRB(4, 4, 0, 4),
-
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: const Color.fromARGB(255, 228, 230, 231),
-                      ),
-                    ),
-
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: const Color.fromARGB(255, 228, 230, 231),
-                        width: 1.2,
-                      ),
-                    ),
-
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: const Color.fromARGB(255, 228, 230, 231),
-                        width: 1.2,
-                      ),
-                    ),
-                  ),
-                ),
+                child: SearchTextField(onChanged: _filterContacts),
               ),
               SizedBox(height: 8),
               Padding(
@@ -442,7 +381,7 @@ if (selected != null) {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      Chatroom(title: c.name),
+                                      Chatroom(title: c.name, imageUrl: c.image_url),
                                 ),
                               );
                             },

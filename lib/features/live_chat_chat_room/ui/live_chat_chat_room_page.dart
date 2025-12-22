@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
+import 'package:senior_circle/features/live_chat_home/ui/presentation/widget/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';            
 import 'package:url_launcher/url_launcher.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messeges.dart';
@@ -24,8 +24,9 @@ final TextEditingController messageController = TextEditingController();
 final ValueNotifier<String?> tappedLink = ValueNotifier(null);
   final String? title;  
   final bool isAdmin;
+  final String? imageUrl;
   final bool isNewRoom;
-  Chatroom({super.key, this.title,this.isAdmin = true,this.isNewRoom = false,});
+  Chatroom({super.key, this.title,this.imageUrl,this.isAdmin = true,this.isNewRoom = false,});
   void _initMessages() {
   if (isNewRoom) {
     chatMessages.value = [];
@@ -441,11 +442,13 @@ final ValueNotifier<String?> tappedLink = ValueNotifier(null);
 ),
 
 
-          const CircleAvatar(
-            radius: 18,
-            backgroundImage:
-                AssetImage('assets/images/chat_profile.png'),
-          ),
+          CircleAvatar(
+  radius: 20,
+  backgroundImage: imageUrl != null
+      ? NetworkImage(imageUrl!)
+      : const AssetImage("assets/image/Frame_24.png") as ImageProvider,
+),
+
           const SizedBox(width: 10),
           Text(
   (title != null && title!.length > 14)

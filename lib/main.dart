@@ -7,6 +7,7 @@ import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
 //import 'package:senior_circle/features/details/presentation/details_screen.dart';
 //import 'package:senior_circle/features/preview/presentation/preview_screen.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
+import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -40,7 +41,7 @@ class SeniorCircleApp extends StatelessWidget {
         theme: AppTheme.lightMode,
         darkTheme: AppTheme.darkMode,
         debugShowCheckedModeBanner: false,
-        home: LoginPage(),
+        home: TabSelectorWidget(),
       ),
     );
   }
