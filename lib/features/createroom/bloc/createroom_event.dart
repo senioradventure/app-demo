@@ -31,3 +31,30 @@ class RemoveInterestEvent extends CreateroomEvent {
   final String interest;
   RemoveInterestEvent(this.interest);
 }
+
+
+class LoadLocationsEvent extends CreateroomEvent {
+  
+}
+
+class SearchLocationEvent extends CreateroomEvent {
+  final String query;
+  SearchLocationEvent(this.query);
+}
+
+class AddLocationEvent extends CreateroomEvent {
+  final LocationModel location;
+  AddLocationEvent(this.location);
+}
+
+class RemoveLocationEvent extends CreateroomEvent {}
+
+class ConfirmCreateRoomEvent extends CreateroomEvent {
+  final String roomName;
+  final String description;
+
+  ConfirmCreateRoomEvent({
+    required this.roomName,
+    required this.description,
+  });
+}

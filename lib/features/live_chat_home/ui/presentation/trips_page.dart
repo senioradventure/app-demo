@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 
 class TripsPage extends StatelessWidget {
   const TripsPage({super.key});
