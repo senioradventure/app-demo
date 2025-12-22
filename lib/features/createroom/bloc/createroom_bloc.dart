@@ -29,24 +29,6 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
       emit(const CreateroomState());
     });
 
-    // ---------- LOAD LOCATIONS ----------
-    on<LoadLocationsEvent>((event, emit) async {
-      try {
-        final locations = await locationService.fetchLocations();
-
-        allLocations = locations;
-
-        emit(
-          state.copyWith(
-            filteredLocation: locations,
-            showLocationDropdown: false,
-          ),
-        );
-      } catch (e) {
-        debugPrint('Failed to load locations: $e');
-      }
-    });
-
     // ---------- IMAGE PICK ----------
     on<PickImageFromGalleryEvent>((event, emit) async {
       final XFile? pickedImage = await _picker.pickImage(
@@ -119,6 +101,26 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
 
       emit(state.copyWith(selected: updated));
     });
+
+    // ---------- LOAD LOCATIONS ----------
+    on<LoadLocationsEvent>((event, emit) async {
+      try {
+        final locations = await locationService.fetchLocations();
+
+        allLocations = locations;
+
+        emit(
+          state.copyWith(
+            filteredLocation: locations,
+            showLocationDropdown: false,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Failed to load locations: $e');
+      }
+    });
+
+
 
     // ---------- LOCATION SEARCH ----------
     on<SearchLocationEvent>((event, emit) {
