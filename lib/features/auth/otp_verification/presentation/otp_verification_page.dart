@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/auth/otp_verification/widget/otp_input_widget.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/live_chat_home_page.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/live_chat_home_page.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

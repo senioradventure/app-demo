@@ -5,7 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/widget/main_bottom_nav.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:url_launcher/url_launcher.dart';
 
