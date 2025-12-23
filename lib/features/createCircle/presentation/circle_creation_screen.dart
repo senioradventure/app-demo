@@ -11,7 +11,9 @@ class CircleCreationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CreateCircleBloc(repository: CircleRepository()),
+      create: (context) =>
+          CreateCircleBloc(repository: CircleRepository())
+            ..add(const CreateCircleLoadFriends()),
       child: const CircleCreationView(),
     );
   }
@@ -166,12 +168,25 @@ class _CircleCreationViewState extends State<CircleCreationView> {
                               ),
                             ),
                             const SizedBox(height: 25),
-                            const Text(
-                              "Add Friends (1)",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Add Friends (${state.selectedFriendIds.length})",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                if (state.isLoadingFriends)
+                                  const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                              ],
                             ),
                             const SizedBox(height: 10),
                             TextField(
@@ -213,71 +228,97 @@ class _CircleCreationViewState extends State<CircleCreationView> {
                         ),
                         child: Container(
                           color: Colors.white,
-                          child: ListView(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: Colors.grey.shade200,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              ...List.generate(
-                                10,
-                                (index) => Container(
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.grey.shade200,
-                                        width: 1,
+                          child: state.isLoadingFriends
+                              ? const Center(child: CircularProgressIndicator())
+                              : state.friends.isEmpty
+                              ? const Center(child: Text('No friends found'))
+                              : ListView.builder(
+                                  itemCount: state.friends.length,
+                                  itemBuilder: (context, index) {
+                                    final friend = state.friends[index];
+                                    final friendId = friend['id'] as String;
+                                    final friendName =
+                                        friend['full_name'] as String? ??
+                                        'Unknown';
+                                    final friendAvatar =
+                                        friend['avatar_url'] as String?;
+                                    final isSelected = state.selectedFriendIds
+                                        .contains(friendId);
+
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: Colors.grey.shade200,
+                                            width: 1,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  child: ListTile(
-                                    tileColor: Colors.white,
-                                    leading: Checkbox(
-                                      value: false,
-                                      onChanged: (value) {},
-                                    ),
-                                    title: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          width: 44.0,
-                                          height: 44.0,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              8.0,
-                                            ),
-                                            image: const DecorationImage(
-                                              image: AssetImage(
-                                                'assets/images/member_avatar.jpg',
+                                      child: ListTile(
+                                        tileColor: Colors.white,
+                                        leading: Checkbox(
+                                          value: isSelected,
+                                          onChanged: (value) {
+                                            context.read<CreateCircleBloc>().add(
+                                              CreateCircleToggleFriendSelection(
+                                                friendId,
                                               ),
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
+                                            );
+                                          },
                                         ),
-                                        const SizedBox(width: 10),
-                                        const Expanded(
-                                          child: Text(
-                                            'Chai Talks',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.black,
+                                        title: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 44.0,
+                                              height: 44.0,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                image: DecorationImage(
+                                                  image: friendAvatar != null
+                                                      ? NetworkImage(
+                                                          friendAvatar,
+                                                        )
+                                                      : const AssetImage(
+                                                              'assets/images/member_avatar.jpg',
+                                                            )
+                                                            as ImageProvider,
+                                                  fit: BoxFit.cover,
+                                                  onError:
+                                                      (
+                                                        exception,
+                                                        stackTrace,
+                                                      ) => const AssetImage(
+                                                        'assets/images/member_avatar.jpg',
+                                                      ),
+                                                ),
+                                              ),
                                             ),
-                                          ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                friendName,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
+                                        onTap: () {
+                                          context.read<CreateCircleBloc>().add(
+                                            CreateCircleToggleFriendSelection(
+                                              friendId,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),

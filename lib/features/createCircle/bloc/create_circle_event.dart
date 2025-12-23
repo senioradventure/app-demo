@@ -30,3 +30,16 @@ final class CreateCircleImagePicked extends CreateCircleEvent {
 final class CreateCircleSubmitted extends CreateCircleEvent {
   const CreateCircleSubmitted();
 }
+
+class CreateCircleLoadFriends extends CreateCircleEvent {
+  const CreateCircleLoadFriends();
+}
+
+class CreateCircleToggleFriendSelection extends CreateCircleEvent {
+  final String friendId;
+
+  const CreateCircleToggleFriendSelection(this.friendId);
+
+  @override
+  List<Object> get props => [friendId];
+}

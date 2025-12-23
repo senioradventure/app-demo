@@ -16,6 +16,8 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
       super(const CreateCircleState()) {
     on<CreateCircleNameChanged>(_onNameChanged);
     on<CreateCircleImagePicked>(_onImagePicked);
+    on<CreateCircleLoadFriends>(_onLoadFriends);
+    on<CreateCircleToggleFriendSelection>(_onToggleFriendSelection);
     on<CreateCircleSubmitted>(_onSubmitted);
   }
 
@@ -31,6 +33,32 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
     Emitter<CreateCircleState> emit,
   ) {
     emit(state.copyWith(image: event.image));
+  }
+
+  Future<void> _onLoadFriends(
+    CreateCircleLoadFriends event,
+    Emitter<CreateCircleState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingFriends: true));
+    try {
+      final friends = await _repository.fetchFriends();
+      emit(state.copyWith(friends: friends, isLoadingFriends: false));
+    } catch (e) {
+      emit(state.copyWith(isLoadingFriends: false));
+    }
+  }
+
+  void _onToggleFriendSelection(
+    CreateCircleToggleFriendSelection event,
+    Emitter<CreateCircleState> emit,
+  ) {
+    final selectedIds = List<String>.from(state.selectedFriendIds);
+    if (selectedIds.contains(event.friendId)) {
+      selectedIds.remove(event.friendId);
+    } else {
+      selectedIds.add(event.friendId);
+    }
+    emit(state.copyWith(selectedFriendIds: selectedIds));
   }
 
   Future<void> _onSubmitted(
@@ -56,7 +84,7 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
       );
 
       if (circleId != null) {
-        await _repository.addMembersToCircle(circleId);
+        await _repository.addMembersToCircle(circleId, state.selectedFriendIds);
         emit(state.copyWith(status: CreateCircleStatus.success));
       } else {
         emit(
