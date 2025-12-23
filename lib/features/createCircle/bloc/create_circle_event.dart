@@ -1,7 +1,5 @@
 part of 'create_circle_bloc.dart';
 
-import 'package:image_picker/image_picker.dart';
-
 sealed class CreateCircleEvent extends Equatable {
   const CreateCircleEvent();
 

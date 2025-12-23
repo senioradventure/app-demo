@@ -1,12 +1,8 @@
 part of 'create_circle_bloc.dart';
 
-import 'package:image_picker/image_picker.dart';
-
 enum CreateCircleStatus { initial, loading, success, failure }
 
 final class CreateCircleState extends Equatable {
-
-
   final CreateCircleStatus status;
   final String name;
   final XFile? image;
