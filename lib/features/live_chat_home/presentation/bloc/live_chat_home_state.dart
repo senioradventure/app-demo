@@ -1,10 +1,71 @@
 part of 'live_chat_home_bloc.dart';
 
-sealed class LiveChatHomeState extends Equatable {
-  const LiveChatHomeState();
-  
-  @override
-  List<Object> get props => [];
-}
+class LiveChatHomeState extends Equatable {
+  final List<String> locations;
+  final List<String> interests;
+  final List<Contact> rooms;
+  final List<Contact> filteredRooms;
 
-final class LiveChatHomeInitial extends LiveChatHomeState {}
+  final String? selectedLocation;
+  final String? selectedInterest;
+  final String search;
+
+  final bool loading;
+
+  const LiveChatHomeState({
+    this.locations = const [],
+    this.interests = const [],
+    this.rooms = const [],
+    this.filteredRooms = const [],
+    this.selectedLocation,
+    this.selectedInterest,
+    this.search = "",
+    this.loading = false,
+  });
+
+  LiveChatHomeState copyWith({
+    List<String>? locations,
+    List<String>? interests,
+    List<Contact>? rooms,
+    List<Contact>? filteredRooms,
+
+    /// Special fields used to CLEAR filters
+    bool clearLocation = false,
+    bool clearInterest = false,
+
+    String? selectedLocation,
+    String? selectedInterest,
+    String? search,
+    bool? loading,
+  }) {
+    return LiveChatHomeState(
+      locations: locations ?? this.locations,
+      interests: interests ?? this.interests,
+      rooms: rooms ?? this.rooms,
+      filteredRooms: filteredRooms ?? this.filteredRooms,
+
+      /// If clearLocation = true → set null
+      selectedLocation:
+          clearLocation ? null : selectedLocation ?? this.selectedLocation,
+
+      /// Same for interest
+      selectedInterest:
+          clearInterest ? null : selectedInterest ?? this.selectedInterest,
+
+      search: search ?? this.search,
+      loading: loading ?? this.loading,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        locations,
+        interests,
+        rooms,
+        filteredRooms,
+        selectedLocation,
+        selectedInterest,
+        search,
+        loading,
+      ];
+}
