@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
+import 'package:senior_circle/features/createCircle/presentation/circle_creation_screen.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
@@ -23,28 +23,25 @@ class MyCircleHomePage extends StatefulWidget {
 }
 
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
-
-//add this function whenever focus need to be removed when navigating from any screen
-@override
-void deactivate() {
-  FocusManager.instance.primaryFocus?.unfocus();
-  super.deactivate();
-}
-
+  //add this function whenever focus need to be removed when navigating from any screen
+  @override
+  void deactivate() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    super.deactivate();
+  }
 
   void navigateToChatRoom(CircleChat chat) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => BlocProvider(
-        create: (_) => ChatBloc()..add(LoadMessages()),
-        child: chat.isGroup
-            ? MyCircleGroupChatPage(chat: chat)
-            : MyCircleIndividualChatPage(chat: chat),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => ChatBloc()..add(LoadMessages()),
+          child: chat.isGroup
+              ? MyCircleGroupChatPage(chat: chat)
+              : MyCircleIndividualChatPage(chat: chat),
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,4 +101,3 @@ void deactivate() {
     );
   }
 }
-
