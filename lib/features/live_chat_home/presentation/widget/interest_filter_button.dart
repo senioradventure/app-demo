@@ -39,6 +39,7 @@ class InterestFilterButton extends StatelessWidget {
                   value: "None",
                   child: Text("None", style: TextStyle(color: Colors.black)),
                 ),
+
                 ...interests.map(
                   (i) => PopupMenuItem(
                     value: i,
@@ -52,7 +53,11 @@ class InterestFilterButton extends StatelessWidget {
             );
 
             if (selected != null) {
-              onInterestSelected(selected == "None" ? null : selected);
+              if (selected == "None") {
+                onInterestSelected(null);
+              } else {
+                onInterestSelected(selected);
+              }
             }
           },
           style: OutlinedButton.styleFrom(
@@ -70,13 +75,19 @@ class InterestFilterButton extends StatelessWidget {
             children: [
               const Icon(Icons.filter_alt, size: 18, color: Colors.blueAccent),
               const SizedBox(width: 6),
+
               Text(
-                selectedInterest ?? "by interest",
+                selectedInterest == null || selectedInterest!.isEmpty
+                    ? "by interest"
+                    : selectedInterest!,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
                 style: const TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
               ),
+
               const SizedBox(width: 4),
               const Icon(
                 Icons.keyboard_arrow_down,

@@ -1,7 +1,8 @@
 part of 'live_chat_home_bloc.dart';
 
 class LiveChatHomeState extends Equatable {
-  final List<String> locations;
+  final List<Map<String, String>> locations; 
+
   final List<String> interests;
   final List<Contact> rooms;
   final List<Contact> filteredRooms;
@@ -13,7 +14,7 @@ class LiveChatHomeState extends Equatable {
   final bool loading;
 
   const LiveChatHomeState({
-    this.locations = const [],
+    this.locations = const <Map<String, String>>[], 
     this.interests = const [],
     this.rooms = const [],
     this.filteredRooms = const [],
@@ -24,12 +25,11 @@ class LiveChatHomeState extends Equatable {
   });
 
   LiveChatHomeState copyWith({
-    List<String>? locations,
+    List<Map<String, String>>? locations,
     List<String>? interests,
     List<Contact>? rooms,
     List<Contact>? filteredRooms,
 
-    /// Special fields used to CLEAR filters
     bool clearLocation = false,
     bool clearInterest = false,
 
@@ -40,15 +40,14 @@ class LiveChatHomeState extends Equatable {
   }) {
     return LiveChatHomeState(
       locations: locations ?? this.locations,
+
       interests: interests ?? this.interests,
       rooms: rooms ?? this.rooms,
       filteredRooms: filteredRooms ?? this.filteredRooms,
 
-      /// If clearLocation = true → set null
       selectedLocation:
           clearLocation ? null : selectedLocation ?? this.selectedLocation,
 
-      /// Same for interest
       selectedInterest:
           clearInterest ? null : selectedInterest ?? this.selectedInterest,
 

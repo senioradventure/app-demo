@@ -14,7 +14,6 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
     on<UpdateInterestFilterEvent>(_onUpdateInterest);
     on<UpdateSearchEvent>(_onUpdateSearch);
   }
-
   Future<void> _onFetchLocations(
     FetchLocationsEvent event,
     Emitter<LiveChatHomeState> emit,
@@ -22,12 +21,12 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
     emit(state.copyWith(loading: true));
 
     final supabase = Supabase.instance.client;
-    final response = await supabase.from('locations').select('name');
 
-    final locations = response
-        .map<String>((row) => row['name'] as String)
-        .toSet()
-        .toList();
+    final response = await supabase.from('locations').select('id, name');
+
+    final locations = response.map<Map<String, String>>((row) {
+      return {"id": row['id'] as String, "name": row['name'] as String};
+    }).toList();
 
     emit(state.copyWith(locations: locations, loading: false));
   }
@@ -67,7 +66,11 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
     );
 
     emit(
-      state.copyWith(selectedLocation: event.location, filteredRooms: filtered),
+      state.copyWith(
+        selectedLocation: event.location,
+        clearLocation: event.location == null,
+        filteredRooms: filtered,
+      ),
     );
   }
 
@@ -83,7 +86,11 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
     );
 
     emit(
-      state.copyWith(selectedInterest: event.interest, filteredRooms: filtered),
+      state.copyWith(
+        selectedInterest: event.interest,
+        clearInterest: event.interest == null,
+        filteredRooms: filtered,
+      ),
     );
   }
 
@@ -109,30 +116,19 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
     String? interest,
     String search,
   ) {
-    List<Contact> result = List.from(rooms);
+    return rooms.where((room) {
+      final matchesSearch =
+          search.isEmpty || room.name.toLowerCase().contains(search);
 
-    if (location != null && location.isNotEmpty) {
-      result = result
-          .where(
-            (room) =>
-                room.location_id != null &&
-                room.location_id!.toLowerCase() == location.toLowerCase(),
-          )
-          .toList();
-    }
+      final matchesLocation =
+          location == null || location.isEmpty || room.location_id == location;
 
-    if (interest != null && interest.isNotEmpty) {
-      result = result
-          .where((room) => room.interests.contains(interest))
-          .toList();
-    }
+      final matchesInterest =
+          interest == null ||
+          interest.isEmpty ||
+          room.interests.contains(interest);
 
-    if (search.isNotEmpty) {
-      result = result
-          .where((room) => room.name.toLowerCase().contains(search))
-          .toList();
-    }
-
-    return result;
+      return matchesSearch && matchesLocation && matchesInterest;
+    }).toList();
   }
 }

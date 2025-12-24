@@ -9,6 +9,12 @@ class ContactRoomList extends StatelessWidget {
   final List<Contact> roomList;
 
   const ContactRoomList({super.key, required this.roomList});
+  bool _validImage(String? url) {
+    if (url == null || url.isEmpty) return false;
+    if (!url.startsWith("http")) return false;
+    if (!url.contains(".")) return false;
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +68,7 @@ class ContactRoomList extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: room.image_url != null
+                  backgroundImage: _validImage(room.image_url)
                       ? NetworkImage(room.image_url!)
                       : const AssetImage('assets/images/Frame_24.png')
                             as ImageProvider,

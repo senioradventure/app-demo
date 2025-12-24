@@ -25,77 +25,75 @@ class LiveChatPage extends StatelessWidget {
         body: SafeArea(
           child: Container(
             color: const Color(0xFFF9F9F7),
-            child: Column(
-              children: [
-                const PageHeader(title: 'Live Chat'),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 22,
-                    vertical: 4,
-                  ),
-                  child: SearchTextField(
-                    onChanged: (txt) => context.read<LiveChatHomeBloc>().add(
-                      UpdateSearchEvent(txt),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 22),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
-                        builder: (context, state) {
-                          return LocationFilterButton(
-                            locations: state.locations,
-                            selectedLocation: state.selectedLocation,
-                            onLocationSelected: (loc) {
-                              context.read<LiveChatHomeBloc>().add(
-                                UpdateLocationFilterEvent(loc),
-                              );
-                            },
+            // FIX: All UI reacts to Bloc state
+            child: BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
+              builder: (context, state) {
+                return Column(
+                  children: [
+                    const PageHeader(title: 'Live Chat'),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 4,
+                      ),
+                      child: SearchTextField(
+                        onChanged: (txt) {
+                          context.read<LiveChatHomeBloc>().add(
+                            UpdateSearchEvent(txt),
                           );
                         },
                       ),
+                    ),
 
-                      const SizedBox(width: 15),
+                    const SizedBox(height: 8),
 
-                      BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
-                        builder: (context, state) {
-                          return InterestFilterButton(
-                            interests: state.interests.isEmpty
-                                ? AppLists.interests
-                                : state.interests,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 22),
+                      child: Row(
+                        children: [
+                          LocationFilterButton(
+                            locations: state.locations,
+                            selectedLocation: state.selectedLocation,
+                            onLocationSelected: (locId) {
+                              context.read<LiveChatHomeBloc>().add(
+                                UpdateLocationFilterEvent(locId),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(width: 15),
+
+                          InterestFilterButton(
+                            interests: AppLists.interests,
                             selectedInterest: state.selectedInterest,
                             onInterestSelected: (interest) {
                               context.read<LiveChatHomeBloc>().add(
                                 UpdateInterestFilterEvent(interest),
                               );
                             },
-                          );
-                        },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-
-                Expanded(
-                  child: Container(
-                    color: Colors.white,
-                    child: BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
-                      builder: (context, state) {
-                        return ContactRoomList(roomList: state.filteredRooms);
-                      },
                     ),
-                  ),
-                ),
-              ],
+
+                    const SizedBox(height: 16),
+
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+
+                        child: ContactRoomList(roomList: state.filteredRooms),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
+
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(right: 23, bottom: 17),
           child: AppFAB(

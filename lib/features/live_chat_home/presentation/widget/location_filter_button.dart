@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class LocationFilterButton extends StatelessWidget {
-  final List<String> locations;
+  final List<Map<String, String>> locations;
   final String? selectedLocation;
   final Function(String?) onLocationSelected;
 
@@ -14,6 +14,16 @@ class LocationFilterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String displayName = "by location";
+
+    if (selectedLocation != null && selectedLocation!.isNotEmpty) {
+      final match = locations.firstWhere(
+        (loc) => loc["id"] == selectedLocation,
+        orElse: () => {"name": "by location"},
+      );
+      displayName = match["name"]!;
+    }
+
     return Builder(
       builder: (ctx) {
         return OutlinedButton(
@@ -39,17 +49,28 @@ class LocationFilterButton extends StatelessWidget {
                   value: "None",
                   child: Text("None", style: TextStyle(color: Colors.black)),
                 ),
-                ...locations.map((loc) {
+
+                ...locations.map((item) {
+                  final id = item["id"].toString();
+                  final name = item["name"].toString();
+
                   return PopupMenuItem(
-                    value: loc,
-                    child: Text(loc, style: const TextStyle(color: Colors.black87)),
+                    value: id,
+                    child: Text(
+                      name,
+                      style: const TextStyle(color: Colors.black87),
+                    ),
                   );
                 }),
               ],
             );
 
             if (selected != null) {
-              onLocationSelected(selected == "None" ? null : selected);
+              if (selected == "None") {
+                onLocationSelected(null);
+              } else {
+                onLocationSelected(selected);
+              }
             }
           },
           style: OutlinedButton.styleFrom(
@@ -71,13 +92,17 @@ class LocationFilterButton extends StatelessWidget {
                 color: Colors.blueAccent,
               ),
               const SizedBox(width: 6),
+
               Text(
-                selectedLocation ?? "by location",
+                displayName,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
                 style: const TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
               ),
+
               const SizedBox(width: 4),
               const Icon(
                 Icons.keyboard_arrow_down,
