@@ -46,8 +46,8 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                 if (messages.isEmpty) {
                   return const Center(child: Text('No messages yet'));
                 }
-
                 return ListView.builder(
+                  padding: EdgeInsets.zero,
                   controller: _scrollController,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
@@ -56,10 +56,15 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                         index > 0 &&
                         messages[index - 1].senderName == currentMsg.senderName;
 
+                    final isLastInGroup =
+                        index == messages.length - 1 ||
+                        messages[index + 1].senderName != currentMsg.senderName;
+
                     return GroupMessageCard(
                       key: ValueKey(currentMsg.id),
                       grpmessage: currentMsg,
                       isContinuation: isContinuation,
+                      isLastInGroup: isLastInGroup,
                     );
                   },
                 );

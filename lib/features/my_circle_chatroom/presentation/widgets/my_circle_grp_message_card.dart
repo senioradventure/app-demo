@@ -7,7 +7,6 @@ import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_message_type.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
@@ -16,12 +15,14 @@ class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
   final bool isReply;
   final bool isContinuation;
+  final bool isLastInGroup;
 
   const GroupMessageCard({
     super.key,
     required this.grpmessage,
     this.isReply = false,
     this.isContinuation = false,
+    this.isLastInGroup = false,
   });
 
   @override
@@ -66,6 +67,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   @override
   Widget build(BuildContext context) {
     final grpmessage = widget.grpmessage;
+    final isMe = grpmessage.senderName.toLowerCase() == 'you';
     final likeReaction = grpmessage.reactions
         .where((r) => r.emoji == '👍')
         .toList();
@@ -74,136 +76,109 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
     final isLiked =
         likeReaction.isNotEmpty && likeReaction.first.userIds.contains('you');
+    final BoxBorder? customBorder = widget.isReply
+        ? null
+        : Border(
+            left: BorderSide(color: AppColors.borderColor),
+            right: BorderSide(color: AppColors.borderColor),
+            top: widget.isContinuation
+                ? BorderSide.none
+                : BorderSide(color: AppColors.borderColor),
+            bottom: widget.isLastInGroup
+                ? BorderSide(color: AppColors.borderColor)
+                : BorderSide.none,
+          );
 
     return Container(
       margin: EdgeInsets.only(
-       // top: widget.isContinuation || widget.isReply ? 0 : 4,
-        bottom: widget.isContinuation || widget.isReply ? 0 : 6,
+        bottom: widget.isLastInGroup && !widget.isReply ? 8 : 0,
       ),
+
       decoration: BoxDecoration(
-        color: grpmessage.senderName.toLowerCase() == 'you'
-            ? const Color(0xFFF9EFDB)
-            : AppColors.white,
-        border: widget.isReply
-            ? null
-            : Border(
-                left: BorderSide(color: AppColors.borderColor),
-                right: BorderSide(color: AppColors.borderColor),
-                bottom: BorderSide(color: AppColors.borderColor),
-                top: widget.isContinuation
-                    ? BorderSide.none
-                   : BorderSide(color: AppColors.borderColor),
-              ),
+        color: isMe ? const Color(0xFFF9EFDB) : AppColors.white,
+        border: widget.isContinuation || widget.isReply ? null : customBorder,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage(grpmessage.avatar ?? ''),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+              top: widget.isContinuation ? 2 : 12,
+              bottom: widget.isLastInGroup ? 12 : 2,
+              left: 12,
+              right: 12,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(grpmessage),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(grpmessage.avatar ?? ''),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(grpmessage),
 
-                  if (grpmessage.imagePath != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 4),
-                      child: ImageMessageBubble(
-                        imagePath: grpmessage.imagePath!,
-                        isMe: grpmessage.senderName.toLowerCase() == 'you',
-                        isGroup: true,
-                      ),
-                    ),
-
-                  if (grpmessage.text != null && grpmessage.text!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 4),
-                      child: Text(
-                        grpmessage.text!,
-                        style: AppTextTheme.lightTextTheme.bodyMedium,
-                      ),
-                    ),
-
-                  MessageActions(
-                    isLiked: isLiked,
-                    likeCount: likeCount,
-                    reactions: grpmessage.reactions,
-                    onReactionTap: (emoji) => _onReactionTap(context, emoji),
-                    onAddReactionTap: _showEmojiPicker,
-                    onLikeTap: () => _onReactionTap(context, '👍'),
-                    onReplyTap: () {
-                      context.read<ChatBloc>().add(
-                        ToggleReplyInput(messageId: grpmessage.id),
-                      );
-                    },
-
-                    isReply: widget.isReply,
-                  ),
-
-                  if (grpmessage.replies.isNotEmpty)
-                    _buildReplyButton(grpmessage),
-
-                  if (grpmessage.isThreadOpen)
-                    Column(
-                      children: [
-                        Divider(color: AppColors.lightGray),
-                        MessageReplies(replies: grpmessage.replies),
-                      ],
-                    ),
-                  if (grpmessage.isReplyInputOpen)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: TextField(
-                        controller: _replyController,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          hintText: "Write a reply...",
-                          hintStyle: AppTextTheme.lightTextTheme.labelMedium,
-                          suffixIcon: IconButton(
-                            icon: const Icon(
-                              Icons.send,
-                              color: AppColors.buttonBlue,
-                            ),
-                            onPressed: () {
-                              if (_replyController.text.trim().isEmpty) return;
-
-                              context.read<ChatBloc>().add(
-                                AddGroupReply(
-                                  parentMessageId: grpmessage.id,
-                                  text: _replyController.text.trim(),
-                                ),
-                              );
-
-                              _replyController.clear();
-
-                              context.read<ChatBloc>().add(
-                                ToggleReplyInput(messageId: grpmessage.id),
-                              );
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide(
-                              color: AppColors.borderColor,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                      if (grpmessage.imagePath != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 4),
+                          child: ImageMessageBubble(
+                            imagePath: grpmessage.imagePath!,
+                            isMe: grpmessage.senderName.toLowerCase() == 'you',
+                            isGroup: true,
                           ),
                         ),
+
+                      if (grpmessage.text != null &&
+                          grpmessage.text!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, bottom: 4),
+                          child: Text(
+                            grpmessage.text!,
+                            style: AppTextTheme.lightTextTheme.bodyMedium,
+                          ),
+                        ),
+
+                      MessageActions(
+                        isLiked: isLiked,
+                        likeCount: likeCount,
+                        reactions: grpmessage.reactions,
+                        onReactionTap: (emoji) =>
+                            _onReactionTap(context, emoji),
+                        onAddReactionTap: _showEmojiPicker,
+                        onLikeTap: () => _onReactionTap(context, '👍'),
+                        onReplyTap: () {
+                          context.read<ChatBloc>().add(
+                            ToggleReplyInput(messageId: grpmessage.id),
+                          );
+                        },
+
+                        isReply: widget.isReply,
                       ),
-                    ),
-                ],
+
+                      if (grpmessage.replies.isNotEmpty)
+                        _buildReplyButton(grpmessage),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (grpmessage.isThreadOpen)
+            MessageReplies(replies: grpmessage.replies),
+
+          if (grpmessage.isReplyInputOpen)
+            Padding(
+              padding: const EdgeInsets.only(left: 33,right: 12,bottom: 12),
+              child: BuildReplyInputField(
+                replyController: _replyController,
+                grpmessage: grpmessage,
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -254,4 +229,54 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
       iconAlignment: IconAlignment.end,
     ),
   );
+}
+
+class BuildReplyInputField extends StatelessWidget {
+  const BuildReplyInputField({
+    super.key,
+    required TextEditingController replyController,
+    required this.grpmessage,
+  }) : _replyController = replyController;
+
+  final TextEditingController _replyController;
+  final GroupMessage grpmessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: TextField(
+        controller: _replyController,
+        autofocus: true,
+        decoration: InputDecoration(
+          hintText: "Write a reply...",
+          hintStyle: AppTextTheme.lightTextTheme.labelMedium,
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.send, color: AppColors.buttonBlue),
+            onPressed: () {
+              if (_replyController.text.trim().isEmpty) return;
+
+              context.read<ChatBloc>().add(
+                AddGroupReply(
+                  parentMessageId: grpmessage.id,
+                  text: _replyController.text.trim(),
+                ),
+              );
+
+              _replyController.clear();
+
+              context.read<ChatBloc>().add(
+                ToggleReplyInput(messageId: grpmessage.id),
+              );
+            },
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: AppColors.borderColor),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+      ),
+    );
+  }
 }
