@@ -1,8 +1,12 @@
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/image_mesage_bubble.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_message_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
@@ -26,77 +30,16 @@ class GroupMessageCard extends StatefulWidget {
 
 class _GroupMessageCardState extends State<GroupMessageCard> {
   final TextEditingController _replyController = TextEditingController();
-  bool _isLiked = false;
-  bool _isReplyInputVisible = false;
-  late int _likeCount;
-  late Map<String, int> _reactionCounts;
-  late Set<String> _selectedReactions;
 
-  List<Reaction> _buildReactionList() {
-    return widget.grpmessage.reactions.map((r) {
-      return Reaction(emoji: r.emoji, userIds: r.userIds);
-    }).toList();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    final likeReaction = widget.grpmessage.reactions
-        .where((r) => r.emoji == '👍')
-        .toList();
-
-    _likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
-
-    _reactionCounts = {
-      for (final r in widget.grpmessage.reactions)
-        if (r.emoji != '👍') r.emoji: r.count,
-    };
-
-    const currentUserId = 'you';
-
-    _selectedReactions = {
-      for (final r in widget.grpmessage.reactions)
-        if (r.userIds.contains(currentUserId)) r.emoji,
-    };
-  }
-
-  void _onReactionTap(String emoji) {
-    setState(() {
-      final userId = 'you';
-
-      final existing = widget.grpmessage.reactions
-          .where((r) => r.emoji == emoji)
-          .toList();
-
-      if (existing.isNotEmpty) {
-        final reaction = existing.first;
-
-        if (reaction.userIds.contains(userId)) {
-          reaction.userIds.remove(userId);
-          if (reaction.userIds.isEmpty) {
-            widget.grpmessage.reactions.remove(reaction);
-          }
-        } else {
-          reaction.userIds.add(userId);
-        }
-      } else {
-        widget.grpmessage.reactions.add(
-          Reaction(emoji: emoji, userIds: [userId]),
-        );
-      }
-    });
-  }
-
-  void _handleLike() {
-    setState(() {
-      if (_isLiked) {
-        _likeCount -= 1;
-      } else {
-        _likeCount += 1;
-      }
-      _isLiked = !_isLiked;
-    });
+  void _onReactionTap(BuildContext context, String emoji) {
+    context.read<ChatBloc>().add(
+      ToggleReaction(
+        messageId: widget.grpmessage.id,
+        emoji: emoji,
+        userId: 'you',
+        type: ChatMessageType.group,
+      ),
+    );
   }
 
   void _showEmojiPicker() {
@@ -106,7 +49,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
       builder: (_) {
         return EmojiPicker(
           onEmojiSelected: (category, emoji) {
-            _onReactionTap(emoji.emoji);
+            _onReactionTap(context, emoji.emoji);
             Navigator.pop(context);
           },
         );
@@ -123,11 +66,19 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   @override
   Widget build(BuildContext context) {
     final grpmessage = widget.grpmessage;
+    final likeReaction = grpmessage.reactions
+        .where((r) => r.emoji == '👍')
+        .toList();
+
+    final likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
+
+    final isLiked =
+        likeReaction.isNotEmpty && likeReaction.first.userIds.contains('you');
 
     return Container(
       margin: EdgeInsets.only(
-        top: widget.isContinuation || widget.isReply ? 0 : 4,
-        bottom: widget.isContinuation || widget.isReply ? 0 : 4,
+       // top: widget.isContinuation || widget.isReply ? 0 : 4,
+        bottom: widget.isContinuation || widget.isReply ? 0 : 6,
       ),
       decoration: BoxDecoration(
         color: grpmessage.senderName.toLowerCase() == 'you'
@@ -141,7 +92,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                 bottom: BorderSide(color: AppColors.borderColor),
                 top: widget.isContinuation
                     ? BorderSide.none
-                    : BorderSide(color: AppColors.borderColor),
+                   : BorderSide(color: AppColors.borderColor),
               ),
       ),
       child: Padding(
@@ -180,17 +131,19 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                     ),
 
                   MessageActions(
-                    isLiked: _isLiked,
-                    onReactionTap: _onReactionTap,
+                    isLiked: isLiked,
+                    likeCount: likeCount,
+                    reactions: grpmessage.reactions,
+                    onReactionTap: (emoji) => _onReactionTap(context, emoji),
                     onAddReactionTap: _showEmojiPicker,
-                    likeCount: _likeCount,
-                    onLikeTap: _handleLike,
-                    onReplyTap: () => setState(
-                      () => _isReplyInputVisible = !_isReplyInputVisible,
-                    ),
-                    isReplyInputVisible: _isReplyInputVisible,
+                    onLikeTap: () => _onReactionTap(context, '👍'),
+                    onReplyTap: () {
+                      context.read<ChatBloc>().add(
+                        ToggleReplyInput(messageId: grpmessage.id),
+                      );
+                    },
+
                     isReply: widget.isReply,
-                    reactions: _buildReactionList(),
                   ),
 
                   if (grpmessage.replies.isNotEmpty)
@@ -203,7 +156,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                         MessageReplies(replies: grpmessage.replies),
                       ],
                     ),
-                  if (_isReplyInputVisible)
+                  if (grpmessage.isReplyInputOpen)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
                       child: TextField(
@@ -218,24 +171,20 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                               color: AppColors.buttonBlue,
                             ),
                             onPressed: () {
-                              if (_replyController.text.trim().isNotEmpty) {
-                                setState(() {
-                                  grpmessage.replies.add(
-                                    GroupMessage(
-                                      senderName: "You",
-                                      text: _replyController.text.trim(),
-                                      time: "Just now",
-                                      avatar: "",
-                                      replies: [],
-                                      id: '',
-                                      senderId: '',
-                                    ),
-                                  );
-                                  _isReplyInputVisible = false;
-                                  _replyController.clear();
-                                  grpmessage.isThreadOpen = true;
-                                });
-                              }
+                              if (_replyController.text.trim().isEmpty) return;
+
+                              context.read<ChatBloc>().add(
+                                AddGroupReply(
+                                  parentMessageId: grpmessage.id,
+                                  text: _replyController.text.trim(),
+                                ),
+                              );
+
+                              _replyController.clear();
+
+                              context.read<ChatBloc>().add(
+                                ToggleReplyInput(messageId: grpmessage.id),
+                              );
                             },
                           ),
                           border: OutlineInputBorder(
@@ -279,8 +228,12 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
   Widget _buildReplyButton(GroupMessage grpmessage) => Center(
     child: TextButton.icon(
-      onPressed: () =>
-          setState(() => grpmessage.isThreadOpen = !grpmessage.isThreadOpen),
+      onPressed: () {
+        context.read<ChatBloc>().add(
+          ToggleGroupThread(messageId: grpmessage.id),
+        );
+      },
+
       label: Text(
         "${grpmessage.replies.length} Replies",
         style: TextStyle(

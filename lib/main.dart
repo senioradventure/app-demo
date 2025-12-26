@@ -44,7 +44,7 @@ class SeniorCircleApp extends StatelessWidget {
         darkTheme: AppTheme.darkMode,
         debugShowCheckedModeBanner: false,
         builder: (context, child) {
-          return SafeArea(bottom: true, child: child!);
+          return SafeArea(top: false, bottom: true, child: child!);
         },
         home:TabSelectorWidget(),
       ),

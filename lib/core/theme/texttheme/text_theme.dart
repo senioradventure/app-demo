@@ -23,6 +23,12 @@ class AppTextTheme {
       fontWeight: FontWeight.w700,
       color: AppColors.textBlack,
     ),
+     titleLarge: TextStyle(
+      fontFamily: _fontFamily,
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: AppColors.textBlack,
+    ),
     displayLarge: TextStyle(
       fontFamily: _fontFamily,
       fontSize: 20,

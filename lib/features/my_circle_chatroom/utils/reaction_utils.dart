@@ -1,4 +1,6 @@
+import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
 
 Message toggleReaction({
   required Message message,
@@ -34,4 +36,41 @@ Message toggleReaction({
   newReactions[emoji]!.add(userId);
 
   return message.copyWith(reactions: newReactions);
+}
+
+GroupMessage toggleGroupReaction({
+  required GroupMessage message,
+  required String emoji,
+  required String userId,
+}) {
+  final reactions = [...message.reactions];
+
+  final index = reactions.indexWhere((r) => r.emoji == emoji);
+
+  if (index != -1) {
+    final reaction = reactions[index];
+
+    final updatedUserIds = [...reaction.userIds];
+
+    if (updatedUserIds.contains(userId)) {
+      updatedUserIds.remove(userId);
+    } else {
+      updatedUserIds.add(userId);
+    }
+
+    if (updatedUserIds.isEmpty) {
+      reactions.removeAt(index);
+    } else {
+      reactions[index] = reaction.copyWith(userIds: updatedUserIds);
+    }
+  } else {
+    reactions.add(
+      Reaction(
+        emoji: emoji,
+        userIds: [userId],
+      ),
+    );
+  }
+
+  return message.copyWith(reactions: reactions);
 }

@@ -8,54 +8,51 @@ class MyCircleChatroomAppBar extends StatelessWidget
 
   final CircleChat chat;
 
-  ImageProvider _getAvatar() {
-    if (chat.imageUrl != null && chat.imageUrl!.isNotEmpty) {
-      return NetworkImage(chat.imageUrl!);
-    }
-    return const AssetImage('assets/images/avatar.png');
-  }
-
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      elevation: 0,
       backgroundColor: AppColors.backgroundColor,
-      centerTitle: false,
+      elevation: 0,
+      leading: const BackButton(),
+      leadingWidth: 48,
+      titleSpacing: 0,
       title: Row(
         children: [
-          chat.isGroup
-              ? CircleAvatar(
-                  radius: 18,
-                  backgroundImage: _getAvatar(),
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image(
-                    image: _getAvatar(),
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+          _buildAvatar(),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               chat.name,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
         ],
       ),
+
       actions: [
-        IconButton(
-          icon: const Icon(Icons.more_vert, color: AppColors.iconColor),
-          onPressed: () {},
-        ),
+        IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
       ],
     );
   }
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  Widget _buildAvatar() {
+    final hasImage = chat.imageUrl != null && chat.imageUrl!.isNotEmpty;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(chat.isGroup ? 999 : 10),
+      child: Container(
+        width: 32,
+        height: 32,
+        color: AppColors.borderColor,
+        child: hasImage
+            ? Image.network(chat.imageUrl!, fit: BoxFit.cover)
+            : Icon(chat.isGroup ? Icons.group : Icons.person, size: 18),
+      ),
+    );
+  }
 }
