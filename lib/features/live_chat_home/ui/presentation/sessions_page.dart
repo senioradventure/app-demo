@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
 
 class SessionsPage extends StatelessWidget {
   const SessionsPage({super.key});

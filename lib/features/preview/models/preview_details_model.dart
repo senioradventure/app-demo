@@ -1,10 +1,10 @@
-class CreateroomPreviewDetailsModel {
+class PreviewDetailsModel {
   final String imageUrl;
   final String name;
   final List<String> interests;
   final String description;
 
-  CreateroomPreviewDetailsModel({
+  PreviewDetailsModel({
     required this.imageUrl,
     required this.name,
     required this.interests,
@@ -12,8 +12,8 @@ class CreateroomPreviewDetailsModel {
   });
 
   /// Convert JSON → Model
-  factory CreateroomPreviewDetailsModel.fromJson(Map<String, dynamic> json) {
-    return CreateroomPreviewDetailsModel(
+  factory PreviewDetailsModel.fromJson(Map<String, dynamic> json) {
+    return PreviewDetailsModel(
       imageUrl: json['imageUrl'] as String,
       name: json['name'] as String,
       interests: List<String>.from(json['interests'] ?? []),
