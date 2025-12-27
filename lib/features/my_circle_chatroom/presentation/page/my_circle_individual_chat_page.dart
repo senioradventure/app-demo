@@ -32,7 +32,7 @@ class _MyCircleIndividualChatPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyCircleChatroomAppBar(chat: widget.chat),
+      appBar: MyCircleChatroomAppBar(chat: widget.chat,isAdmin: false),
       body: Container(
         decoration: BoxDecoration(gradient: AppColors.chatGradient),
         child: Column(

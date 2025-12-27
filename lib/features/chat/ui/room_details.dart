@@ -29,12 +29,12 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         /*Pink tint will appear w/o this */
         //elevation: 500,
         /*Elevation is not working. No idea why*/
-        leading: IconButton(
-          onPressed: () {
+        //leading: IconButton(
+         /* onPressed: () {
             /*Go back to the previous screen*/
           },
           icon: Icon(Icons.arrow_back, color: Colors.black),
-        ),
+        ),*/
         title: const Text(
           'Details',
           style: TextStyle(

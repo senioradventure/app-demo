@@ -14,6 +14,7 @@ import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_ci
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_search_bar_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_starred_message_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MyCircleHomePage extends StatefulWidget {
   const MyCircleHomePage({super.key});
@@ -33,12 +34,15 @@ void deactivate() {
 
 
   void navigateToChatRoom(CircleChat chat) {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+
+  bool isAdmin = chat.adminId == currentUserId;
   Navigator.of(context).push(
     MaterialPageRoute(
       builder: (_) => BlocProvider(
         create: (_) => ChatBloc()..add(LoadMessages()),
         child: chat.isGroup
-            ? MyCircleGroupChatPage(chat: chat)
+            ? MyCircleGroupChatPage(chat: chat,isAdmin: isAdmin,)
             : MyCircleIndividualChatPage(chat: chat),
       ),
     ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/live_chat_home_page.dart';
-import 'package:senior_circle/features/live_chat_home/ui/presentation/main_bottom_nav.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/live_chat_home_page.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
+
 import 'package:senior_circle/features/my_circle_home/presentation/page/my_circle_home_page.dart';
 import 'package:senior_circle/features/tab/dummy_page.dart';
 
