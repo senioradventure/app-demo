@@ -1,5 +1,4 @@
-final List<Map<String, dynamic>> groupMessages =
- [
+final List<Map<String, dynamic>> groupMessages = [
   {
     "id": "1",
     "senderId": "alice-id",
@@ -7,12 +6,23 @@ final List<Map<String, dynamic>> groupMessages =
     "avatar": "https://i.pravatar.cc/150?img=1",
     "text": "Hello everyone!",
     "time": "10:00 AM",
-    "replies": [],
+    "replies": [
+      {
+        "id": "1-1",
+        "senderId": "santra-id",
+        "senderName": "Santra",
+        "avatar": "...",
+        "text": "Good morning!",
+        "time": "10:05 AM",
+        "replies": [],
+        "reactions": {},
+      },
+    ],
     "reactions": {
       "👍": ["me-id", "bob-id"],
       "❤️": ["me-id", "alice-id"],
-      "😂": ["bob-id"]
-    }
+      "😂": ["bob-id"],
+    },
   },
   {
     "id": "2",
@@ -23,8 +33,8 @@ final List<Map<String, dynamic>> groupMessages =
     "time": "10:02 AM",
     "replies": [],
     "reactions": {
-      "😂": ["alice-id"]
-    }
+      "😂": ["alice-id"],
+    },
   },
   {
     "id": "3",
@@ -34,7 +44,6 @@ final List<Map<String, dynamic>> groupMessages =
     "text": "Good morning!",
     "time": "10:05 AM",
     "replies": [],
-    "reactions": {}
+    "reactions": {},
   },
 ];
-

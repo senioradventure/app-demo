@@ -7,6 +7,7 @@ import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/core/common/widgets/message_bubble.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
+import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_message_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/reaction_bar.dart';
@@ -60,7 +61,7 @@ class IndividualMessageCard extends StatelessWidget {
 
   void _handleReaction(BuildContext context, String emoji) {
     context.read<ChatBloc>().add(
-      ToggleReaction(messageId: message.id, emoji: emoji, userId: 'you'),
+      ToggleReaction(messageId: message.id, emoji: emoji, userId: 'you', type: ChatMessageType.individual,),
     );
   }
 
@@ -104,7 +105,7 @@ class IndividualMessageCard extends StatelessWidget {
                             ToggleReaction(
                               messageId: message.id,
                               emoji: reaction.emoji,
-                              userId: 'you',
+                              userId: 'you', type: ChatMessageType.individual,
                             ),
                           );
                         },

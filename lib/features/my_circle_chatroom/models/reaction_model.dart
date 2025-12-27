@@ -9,6 +9,16 @@ class Reaction {
 
   int get count => userIds.length;
 
+  Reaction copyWith({
+    String? emoji,
+    List<String>? userIds,
+  }) {
+    return Reaction(
+      emoji: emoji ?? this.emoji,
+      userIds: userIds ?? this.userIds,
+    );
+  }
+
   factory Reaction.fromMap(String emoji, List<dynamic> users) {
     return Reaction(
       emoji: emoji,
