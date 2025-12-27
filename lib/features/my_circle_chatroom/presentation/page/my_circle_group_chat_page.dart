@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_state.dart';
