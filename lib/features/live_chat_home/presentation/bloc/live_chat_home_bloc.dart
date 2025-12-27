@@ -1,32 +1,29 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
 import 'package:senior_circle/core/constants/contact.dart';
 
 part 'live_chat_home_event.dart';
 part 'live_chat_home_state.dart';
 
 class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
-  LiveChatHomeBloc() : super(const LiveChatHomeState()) {
+  final LiveChatHomeRepository repo;
+
+  LiveChatHomeBloc(this.repo) : super(const LiveChatHomeState()) {
     on<FetchLocationsEvent>(_onFetchLocations);
     on<FetchRoomsEvent>(_onFetchRooms);
     on<UpdateLocationFilterEvent>(_onUpdateLocation);
     on<UpdateInterestFilterEvent>(_onUpdateInterest);
     on<UpdateSearchEvent>(_onUpdateSearch);
   }
+
   Future<void> _onFetchLocations(
     FetchLocationsEvent event,
     Emitter<LiveChatHomeState> emit,
   ) async {
     emit(state.copyWith(loading: true));
 
-    final supabase = Supabase.instance.client;
-
-    final response = await supabase.from('locations').select('id, name');
-
-    final locations = response.map<Map<String, String>>((row) {
-      return {"id": row['id'] as String, "name": row['name'] as String};
-    }).toList();
+    final locations = await repo.fetchLocations();
 
     emit(state.copyWith(locations: locations, loading: false));
   }
@@ -37,12 +34,7 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
   ) async {
     emit(state.copyWith(loading: true));
 
-    final supabase = Supabase.instance.client;
-    final response = await supabase.from('live_chat_rooms').select();
-
-    final rooms = response
-        .map<Contact>((json) => Contact.fromJson(json))
-        .toList();
+    final rooms = await repo.fetchRooms();
 
     final filtered = _applyFilters(
       rooms,

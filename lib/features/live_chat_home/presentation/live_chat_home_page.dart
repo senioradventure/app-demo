@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/app_bar.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/contact_list.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/floating_button.dart';
@@ -16,17 +17,21 @@ class LiveChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => LiveChatHomeBloc()
-        ..add(FetchLocationsEvent())
-        ..add(FetchRoomsEvent()),
-      child: Scaffold(
+    return RepositoryProvider(
+  create: (_) => LiveChatHomeRepository(),
+  child: BlocProvider(
+    create: (context) => LiveChatHomeBloc(
+      context.read<LiveChatHomeRepository>(),
+    )
+      ..add(FetchLocationsEvent())
+      ..add(FetchRoomsEvent()),
+    child: Scaffold(
         backgroundColor: const Color(0xFFF9F9F7),
         body: SafeArea(
           child: Container(
             color: const Color(0xFFF9F9F7),
 
-            // FIX: All UI reacts to Bloc state
+            
             child: BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
               builder: (context, state) {
                 return Column(
@@ -120,6 +125,7 @@ class LiveChatPage extends StatelessWidget {
           ),
         ),
       ),
+    )
     );
   }
 }
