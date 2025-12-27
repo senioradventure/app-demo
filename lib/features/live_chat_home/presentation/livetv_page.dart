@@ -12,7 +12,7 @@ class LivetvPage extends StatelessWidget {
         child: Container(
           width: double.infinity,
           height: 60,
-          color: const Color(0xFFF9F9F7),  // full grey background
+          color: const Color(0xFFF9F9F7),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
@@ -31,7 +31,6 @@ class LivetvPage extends StatelessWidget {
           ),
         ),
       ),
-
     );
   }
 }

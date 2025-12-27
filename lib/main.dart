@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/utils/location_service/location_service.dart';
-import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
-import 'package:senior_circle/features/auth/login/presentation/login_page.dart';
-import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
@@ -15,7 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Supabase.initialize(
     url: 'https://bnfozroolcequclltwjb.supabase.co',
     anonKey:
@@ -42,6 +41,11 @@ class SeniorCircleApp extends StatelessWidget {
           create: (_) =>
               CircleChatBloc(repository: ChatRepository())..add(LoadChats()),
         ),
+        BlocProvider(
+          create: (context) => LiveChatHomeBloc(LiveChatHomeRepository())
+            ..add(FetchLocationsEvent())
+            ..add(FetchRoomsEvent()),
+        ),
       ],
       child: MaterialApp(
         title: 'Senior Circle',
@@ -51,7 +55,7 @@ class SeniorCircleApp extends StatelessWidget {
         builder: (context, child) {
           return SafeArea(top: false, bottom: true, child: child!);
         },
-        home:TabSelectorWidget(),
+        home: TabSelectorWidget(),
       ),
     );
   }

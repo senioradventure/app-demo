@@ -5,7 +5,6 @@ ValueNotifier<int> currentPageIndex = ValueNotifier<int>(0);
 class MainBottomNavBar extends StatelessWidget {
   const MainBottomNavBar({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
