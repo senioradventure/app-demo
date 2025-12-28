@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/utils/location_service/location_service.dart';
+import 'package:senior_circle/features/auth/bloc/auth_bloc.dart';
+import 'package:senior_circle/features/auth/presentation/create_user/create_user_page.dart';
+import 'package:senior_circle/features/auth/presentation/splash_screen/splash_screen.dart';
+import 'package:senior_circle/features/auth/repositories/auth_repository.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
@@ -9,7 +13,6 @@ import 'package:senior_circle/features/live_chat_home/presentation/repository/li
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
-import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -31,6 +34,9 @@ class SeniorCircleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (_) => AuthBloc(AuthRepository(), LocationService()),
+        ),
         BlocProvider(create: (_) => ChatroomdetailsBloc()),
         BlocProvider(
           create: (_) =>
@@ -55,7 +61,7 @@ class SeniorCircleApp extends StatelessWidget {
         builder: (context, child) {
           return SafeArea(top: false, bottom: true, child: child!);
         },
-        home: TabSelectorWidget(),
+        home: SplashPage(),
       ),
     );
   }
