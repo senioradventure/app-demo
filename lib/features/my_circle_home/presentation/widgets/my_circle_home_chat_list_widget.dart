@@ -17,14 +17,15 @@ class ChatListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       itemCount: foundResults.length,
-      separatorBuilder: (context, index) => SizedBox(),
+      separatorBuilder: (context, index) =>
+          Divider(height: 1, thickness: 1, color: AppColors.borderColor),
+
       itemBuilder: (context, index) {
         final chat = foundResults[index];
         final bool hasImage =
             chat.imageUrl != null && chat.imageUrl!.isNotEmpty;
 
         return ListTile(
-          shape: Border.all(color: AppColors.borderColor),
           tileColor: AppColors.white,
           leading: chat.isGroup
               ? CircleAvatar(

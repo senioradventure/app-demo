@@ -20,6 +20,8 @@ class AppColors {
   static const Color lightBlue = Color(0xFFD2EAFF);
   static const Color lightGray = Color(0xFFF0F0F0);
   static const Color darkGray = Color(0xFFCBCBCB);
+  static const Color red = Color(0xFFDA5552);
+  static const Color green = Color(0xFF13A047);
   static const Gradient chatGradient = LinearGradient(
     colors: [
       Color(0xFF6697FF),

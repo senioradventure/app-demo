@@ -9,6 +9,7 @@ import 'package:senior_circle/features/live_chat_home/presentation/widget/floati
 import 'package:senior_circle/features/live_chat_home/presentation/widget/interest_filter_button.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/location_filter_button.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/search_text_field.dart';
+import 'package:senior_circle/features/profile/presentation/page/profile_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LiveChatPage extends StatelessWidget {
@@ -26,11 +27,17 @@ class LiveChatPage extends StatelessWidget {
             builder: (context, state) {
               return Column(
                 children: [
-                  const PageHeader(title: 'Live Chat'),
-
+                  PageHeader(
+                    title: 'Live Chat',
+                    onProfileTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      );
+                    },
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 22,
+                      horizontal: 16,
                       vertical: 4,
                     ),
                     child: SearchTextField(
@@ -45,7 +52,7 @@ class LiveChatPage extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
                         LocationFilterButton(

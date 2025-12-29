@@ -12,7 +12,7 @@ import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_state.dar
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
-import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_search_bar_widget.dart';
+import 'package:senior_circle/core/common/widgets/search_bar_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_starred_message_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
