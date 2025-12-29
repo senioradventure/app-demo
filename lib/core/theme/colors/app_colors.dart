@@ -13,6 +13,7 @@ class AppColors {
   static const Color textLightGray = Color(0xFFB2B2B2);
   static const Color buttonBlue = Color(0xFF4A90E2);
   static const Color chipBlue = Color(0xFFE8EFF5);
+  static const Color bottomButtonBlue = Color(0xFF2B8DFF);
   static const Color borderColor = Color(0xFFEAEAEA);
   static const Color adminColor = Color(0xFFFFD6A5);
   static const Color cautionColor = Color(0xFFF7E8CF);
