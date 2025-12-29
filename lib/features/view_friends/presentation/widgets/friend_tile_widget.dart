@@ -10,6 +10,9 @@ class FriendTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool hasImage =
+            friend.profileImage != null && friend.profileImage!.isNotEmpty;
+
     return Material(
       color: Colors.white,
       child: InkWell(
@@ -18,10 +21,22 @@ class FriendTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundImage: NetworkImage(friend.imageUrl),
-              ),
+              ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: hasImage
+                      ? Image.network(
+                          friend.profileImage!,
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          width: 52,
+                          height: 52,
+                          color: AppColors.borderColor,
+                          child: const Icon(Icons.person),
+                        ),
+                ),
               const SizedBox(width: 12),
 
               Expanded(
@@ -56,10 +71,15 @@ class FriendTile extends StatelessWidget {
                 ),
               ),
 
-              IconButton(
-                icon: SvgPicture.asset('assets/icons/message_circle.svg'),
-                onPressed: () {},
-              ),
+             IconButton(
+  onPressed: () {},
+  icon: SizedBox(
+    width: 24,
+    height: 24,
+    child: SvgPicture.asset('assets/icons/message_circle.svg'),
+  ),
+),
+
 
               IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
             ],

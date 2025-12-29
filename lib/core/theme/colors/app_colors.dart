@@ -7,7 +7,7 @@ class AppColors {
   static const Color textWhite = Color(0xFFF9F9F7);
   static const Color iconColor = Color(0xFF5C5C5C);
   static const Color dateColor = Color(0xFF5C5C5C);
-  static const Color backgroundColor = Color(0xFFF9F9F7);
+  static const Color backgroundColor = Color(0xFFF0F0F0);
   static const Color white = Color(0xFFFFFFFF);
   static const Color textGray = Color(0xFF5C5C5C);
   static const Color textLightGray = Color(0xFFB2B2B2);

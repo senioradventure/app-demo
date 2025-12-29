@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/profile/domain/profile_visibility.dart';
+import 'package:senior_circle/core/enum/profile_visibility.dart';
 
 class VisibilityDropdown extends StatelessWidget {
   final ProfileVisibility value;

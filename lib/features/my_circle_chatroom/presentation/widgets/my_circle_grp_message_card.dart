@@ -6,11 +6,11 @@ import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_message_type.dart';
+import 'package:senior_circle/core/enum/chat_message_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/utils/time_utils.dart';
+import 'package:senior_circle/core/utils/time_utils.dart';
 
 class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;

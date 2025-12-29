@@ -1,11 +1,13 @@
 class Friend {
+  final String id;
   final String name;
-  final String imageUrl;
+  final String? profileImage;
   final bool isOnline;
 
   const Friend({
+    required this.id,
     required this.name,
-    required this.imageUrl,
-    required this.isOnline,
+    this.profileImage,
+    this.isOnline = false,
   });
 }

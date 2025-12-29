@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/presentation/page/view_friends_page.dart';
 
 class FriendsCard extends StatelessWidget {
-  const FriendsCard({
-    super.key,
-    required this.friends,
-  });
+  const FriendsCard({super.key, required this.friends});
 
   final int? friends;
 
@@ -28,15 +28,21 @@ class FriendsCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                 '${friends ?? 0} Friends',
-                  style:  theme.textTheme.displaySmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.04,),
+                  '${friends ?? 0} Friends',
+                  style: theme.textTheme.displaySmall!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.04,
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ViewFriendsPage(),
+                        builder: (_) => BlocProvider(
+                          create: (_) => ViewFriendsBloc()..add(LoadFriends()),
+                          child: const ViewFriendsPage(),
+                        ),
                       ),
                     );
                   },
@@ -47,7 +53,9 @@ class FriendsCard extends StatelessWidget {
                   ),
                   label: Text(
                     'See all',
-                    style:  theme.textTheme.displaySmall!.copyWith(color: AppColors.buttonBlue)
+                    style: theme.textTheme.displaySmall!.copyWith(
+                      color: AppColors.buttonBlue,
+                    ),
                   ),
                   icon: SvgPicture.asset('assets/icons/arrow_right.svg'),
                   iconAlignment: IconAlignment.end,
@@ -64,9 +72,7 @@ class FriendsCard extends StatelessWidget {
               splashColor: AppColors.chipBlue,
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: AppColors.borderColor),
-                  ),
+                  border: Border(top: BorderSide(color: AppColors.borderColor)),
                 ),
                 padding: const EdgeInsets.all(12.0),
                 child: Row(
@@ -76,7 +82,10 @@ class FriendsCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       'EDIT PROFILE',
-                      style:theme.textTheme.displaySmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.04,)
+                      style: theme.textTheme.displaySmall!.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.04,
+                      ),
                     ),
                   ],
                 ),

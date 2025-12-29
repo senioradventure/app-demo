@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/common/widgets/common_page_header.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
@@ -55,19 +56,7 @@ void deactivate() {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.lightGray,
-      appBar: AppBar(
-        backgroundColor: AppColors.lightGray,
-        title: Text(
-          'My Circle',
-          textAlign: TextAlign.left,
-          style: TextStyle(
-            fontSize: 24,
-            color: AppColors.textBlack,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        iconTheme: IconThemeData(color: AppColors.iconColor),
-      ),
+      appBar: PageHeaderAppBar(title: 'My Circle'),
       body: Column(
         children: [
           SearchBarWidget(

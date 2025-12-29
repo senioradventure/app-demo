@@ -9,6 +9,9 @@ import 'package:senior_circle/features/live_chat_home/presentation/repository/li
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
+import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
+import 'package:senior_circle/features/profile/bloc/profile_event.dart';
+import 'package:senior_circle/features/profile/presentation/page/profile_page.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -32,6 +35,11 @@ class SeniorCircleApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ChatroomdetailsBloc()),
+        BlocProvider(
+          create: (_) => ProfileBloc()..add(LoadProfile()),
+          child: ProfilePage(),
+        ),
+
         BlocProvider(
           create: (_) =>
               CreateroomBloc(locationService: LocationService())

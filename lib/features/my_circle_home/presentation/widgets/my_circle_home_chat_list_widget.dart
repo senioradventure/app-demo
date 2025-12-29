@@ -37,17 +37,17 @@ class ChatListWidget extends StatelessWidget {
                   child: hasImage ? null : const Icon(Icons.group),
                 )
               : ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                   child: hasImage
                       ? Image.network(
                           chat.imageUrl!,
-                          width: 50,
-                          height: 50,
+                          width: 52,
+                          height: 52,
                           fit: BoxFit.cover,
                         )
                       : Container(
-                          width: 50,
-                          height: 50,
+                          width: 52,
+                          height: 52,
                           color: AppColors.borderColor,
                           child: const Icon(Icons.person),
                         ),

@@ -3,17 +3,17 @@ import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 final List<Friend> friends = [
   Friend(
     name: 'Ramcy',
-    imageUrl: 'https://i.pravatar.cc/150?img=3',
-    isOnline: false,
+    profileImage: 'https://i.pravatar.cc/150?img=3',
+    isOnline: false, id: '',
   ),
   Friend(
     name: 'Ramcy',
-    imageUrl: 'https://i.pravatar.cc/150?img=4',
-    isOnline: true,
+    profileImage: 'https://i.pravatar.cc/150?img=3',
+    isOnline: true, id: '',
   ),
   Friend(
     name: 'Alex',
-    imageUrl: 'https://i.pravatar.cc/150?img=5',
-    isOnline: true,
+        profileImage: 'https://i.pravatar.cc/150?img=3',
+    isOnline: true, id: '',
   ),
 ];
