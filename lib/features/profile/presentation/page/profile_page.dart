@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
+import 'package:senior_circle/core/constants/friends_list.dart';
 import 'package:senior_circle/core/enum/profile_visibility.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/core/utils/phone_number_masker.dart';
 import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/bloc/profile_event.dart';
 import 'package:senior_circle/features/profile/bloc/profile_state.dart';
 import 'package:senior_circle/features/profile/models/profile_model.dart';
 import 'package:senior_circle/features/profile/presentation/widgets/profile_details_widget.dart';
-import 'package:senior_circle/features/profile/presentation/widgets/visibility_drop_down_widget.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -64,8 +65,8 @@ class ProfilePage extends StatelessWidget {
                     child: ProfileDetailsWidget(
                       imageUrl: state.profile.avatarUrl ?? '',
                       name: state.profile.fullName ?? '',
-                      phone: state.profile.username ?? '',
-                      //friends: state.profile.friendsCount, // if exists
+                      phone:maskPhoneNumber(state.profile.username?? ''),
+                      friends: friends.length,
                     ),
                   ),
 
@@ -127,11 +128,11 @@ class ProfilePage extends StatelessWidget {
   ) {
     return settingsCard(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Visibility', style: textStyle),
+            Text('Friend Request Privacy', style: textStyle),
 
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
@@ -142,9 +143,12 @@ class ProfilePage extends StatelessWidget {
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<ProfileVisibility>(
                   value: profile.settings!.visibility,
+                  icon: Icon(Icons.keyboard_arrow_down, size: 20),
+                  
                   items: ProfileVisibility.values.map((v) {
                     return DropdownMenuItem(
                       value: v,
+
                       child: Text(
                         v.label,
                         style: textStyle.copyWith(
