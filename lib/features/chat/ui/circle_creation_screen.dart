@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:senior_circle/core/common/widgets/image_picker_widget.dart';
 
 /*void main() {
@@ -23,6 +24,42 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
   XFile? _pickedImage;
   final TextEditingController txtController = TextEditingController();
 
+  List<Map<String, dynamic>> _friends = [];
+  Set<String> _selectedFriendIds = {};
+  bool _isLoadingFriends = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFriends();
+  }
+
+  Future<void> _fetchFriends() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        setState(() => _isLoadingFriends = false);
+        return;
+      }
+
+      final data = await Supabase.instance.client.rpc(
+        'get_friends',
+        params: {'user_id': userId},
+      );
+      if (mounted) {
+        setState(() {
+          _friends = List<Map<String, dynamic>>.from(data);
+          _isLoadingFriends = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching friends: $e');
+      if (mounted) {
+        setState(() => _isLoadingFriends = false);
+      }
+    }
+  }
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     try {
@@ -36,7 +73,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
       debugPrint('Error picking image: $e');
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,9 +125,9 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                         // Camera Placeholder
                         Center(
                           child: ImagePickerCircle(
-                          image: _pickedImage,
-                          onImagePicked: _pickImage,
-                          size: 80,
+                            image: _pickedImage,
+                            onImagePicked: _pickImage,
+                            size: 80,
                           ),
                         ),
                         const SizedBox(height: 25),
@@ -144,8 +181,8 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                         ),
                         const SizedBox(height: 25),
                         // Add Friends Header
-                        const Text(
-                          "Add Friends (1)",
+                        Text(
+                          "Add Friends (${_selectedFriendIds.length})",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -183,84 +220,102 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                   ),
                 ),
                 Expanded(
-                  child: ScrollConfiguration(
-                    behavior: const ScrollBehavior().copyWith(overscroll: false),
-                    child: Container(
-                      color: Colors.white,
-                      child: ListView(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey.shade200,
-                                  width: 1,
-                                ),
-                              ),
-                            ),
+                  child: _isLoadingFriends
+                      ? const Center(child: CircularProgressIndicator())
+                      : _friends.isEmpty
+                      ? const Center(child: Text("No friends found"))
+                      : ScrollConfiguration(
+                          behavior: const ScrollBehavior().copyWith(
+                            overscroll: false,
                           ),
-                          ...List.generate(
-                            10,
-                            (index) => Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Colors.grey.shade200,
-                                    width: 1,
+                          child: Container(
+                            color: Colors.white,
+                            child: ListView.builder(
+                              itemCount: _friends.length,
+                              itemBuilder: (context, index) {
+                                final friend = _friends[index];
+                                final friendId = friend['id'] as String;
+                                final isSelected = _selectedFriendIds.contains(
+                                  friendId,
+                                );
+
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.grey.shade200,
+                                        width: 1,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              child: ListTile(
-                                tileColor: Colors.white,
-                                leading: Checkbox(
-                                  value: false,
-                                  onChanged: (value) {},
-                                ),
-                                title: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 44.0,
-                                      height: 44.0,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8.0),
-                                        image: DecorationImage(
-                                          image: const AssetImage(
-                                            'assets/images/member_avatar.jpg',
+                                  child: ListTile(
+                                    tileColor: Colors.white,
+                                    leading: Checkbox(
+                                      value: isSelected,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          if (value == true) {
+                                            _selectedFriendIds.add(friendId);
+                                          } else {
+                                            _selectedFriendIds.remove(friendId);
+                                          }
+                                        });
+                                      },
+                                    ),
+                                    title: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 44.0,
+                                          height: 44.0,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              8.0,
+                                            ),
+                                            image: DecorationImage(
+                                              image:
+                                                  friend['avatar_url'] != null
+                                                  ? NetworkImage(
+                                                      friend['avatar_url'],
+                                                    )
+                                                  : const AssetImage(
+                                                          'assets/images/member_avatar.jpg',
+                                                        )
+                                                        as ImageProvider,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
-                                          fit: BoxFit.cover,
                                         ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        'Chai Talks',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black,
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            friend['full_name'] ??
+                                                friend['username'] ??
+                                                'Unknown',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
+                        ),
                 ),
               ],
             ),
           ),
           Container(height: 1, color: Colors.grey.shade300),
           InkWell(
-           onTap: () {
-  Navigator.pop(context);  
-},
+            onTap: () {
+              Navigator.pop(context);
+            },
 
             child: Container(
               width: double.infinity,
