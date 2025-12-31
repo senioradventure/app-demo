@@ -23,7 +23,7 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
     LoadFriends event,
     Emitter<CreateCircleState> emit,
   ) async {
-    emit(state.copyWith(status: CreateCircleStatus.loading));
+    emit(state.copyWith(status: CreateCircleStatus.loadingFriends));
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) {
@@ -37,7 +37,10 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
       }
       final friends = await _repository.fetchFriends(userId);
       emit(
-        state.copyWith(status: CreateCircleStatus.success, friends: friends),
+        state.copyWith(
+          status: CreateCircleStatus.friendsLoaded,
+          friends: friends,
+        ),
       );
     } catch (e) {
       emit(
@@ -66,7 +69,7 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
     CreateCircle event,
     Emitter<CreateCircleState> emit,
   ) async {
-    emit(state.copyWith(status: CreateCircleStatus.loading));
+    emit(state.copyWith(status: CreateCircleStatus.submitting));
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) {

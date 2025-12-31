@@ -1,6 +1,13 @@
 part of 'create_circle_bloc.dart';
 
-enum CreateCircleStatus { initial, loading, success, failure }
+enum CreateCircleStatus {
+  initial,
+  loadingFriends,
+  friendsLoaded,
+  submitting,
+  success,
+  failure,
+}
 
 class CreateCircleState extends Equatable {
   final CreateCircleStatus status;
