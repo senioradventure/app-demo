@@ -13,6 +13,12 @@ import 'package:senior_circle/features/live_chat_home/presentation/repository/li
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
+import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
+import 'package:senior_circle/features/profile/bloc/profile_event.dart';
+import 'package:senior_circle/features/profile/repository/profile_repository.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
+import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -38,6 +44,18 @@ class SeniorCircleApp extends StatelessWidget {
           create: (_) => AuthBloc(AuthRepository(), LocationService()),
         ),
         BlocProvider(create: (_) => ChatroomdetailsBloc()),
+        BlocProvider(
+          create: (_) => ProfileBloc(
+            ProfileRepository(Supabase.instance.client),
+            LocationService(),
+          )..add(LoadProfile()),
+        ),
+        BlocProvider(
+      create: (_) => ViewFriendsBloc(
+        ViewFriendsRepository(Supabase.instance.client),
+      )..add(LoadFriends()),
+    ),
+
         BlocProvider(
           create: (_) =>
               CreateroomBloc(locationService: LocationService())

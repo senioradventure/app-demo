@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
-import 'package:senior_circle/features/my_circle_chatroom/utils/time_utils.dart';
+import 'package:senior_circle/core/utils/time_utils.dart';
 
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
