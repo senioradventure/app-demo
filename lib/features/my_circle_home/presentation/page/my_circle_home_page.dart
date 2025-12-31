@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:senior_circle/core/common/widgets/common_page_header.dart';
+import 'package:senior_circle/features/live_chat_home/presentation/widget/common_page_header.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/chat/ui/circle_creation_screen.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';

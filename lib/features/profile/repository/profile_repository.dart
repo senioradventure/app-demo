@@ -44,18 +44,19 @@ class ProfileRepository {
     String? avatarUrl;
 
     if (imageFile != null) {
-      final ext = extension(imageFile.path);
-      final path = 'profiles/$userId$ext';
+  final ext = extension(imageFile.path);
+  final fileName = '${DateTime.now().millisecondsSinceEpoch}$ext';
+  final path = 'profiles/$userId/$fileName';
 
-      await supabase.storage.from('media').upload(
-            path,
-            File(imageFile.path),
-            fileOptions: const FileOptions(upsert: true),
-          );
+  await supabase.storage.from('media').upload(
+        path,
+        File(imageFile.path),
+        fileOptions: const FileOptions(upsert: true),
+      );
 
-      avatarUrl =
-          supabase.storage.from('media').getPublicUrl(path);
-    }
+  avatarUrl = supabase.storage.from('media').getPublicUrl(path);
+}
+
 
     final updateData = <String, dynamic>{};
 

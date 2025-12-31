@@ -11,7 +11,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository repository;
   final LocationService locationService;
 
-  ProfileBloc(this.repository,this.locationService) : super(ProfileInitial()) {
+  ProfileBloc(this.repository, this.locationService) : super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<UpdateProfile>(_onUpdateProfile);
     on<PickProfileImage>(_onPickProfileImage);
@@ -20,25 +20,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<UpdateProfileVisibility>(_onUpdateVisibility);
   }
 
-Future<void> _onProfileLocationSelected(
-  ProfileLocationSelected event,
-  Emitter<ProfileState> emit,
-) async {
-  if (state is! ProfileLoaded) return;
+  Future<void> _onProfileLocationSelected(
+    ProfileLocationSelected event,
+    Emitter<ProfileState> emit,
+  ) async {
+    if (state is! ProfileLoaded) return;
 
-  final current = state as ProfileLoaded;
+    final current = state as ProfileLoaded;
 
-  emit(
-    current.copyWith(
-      selectedLocation: event.location,
-      profile: current.profile.copyWith(
-        locationId: event.location?.id,
+    emit(
+      current.copyWith(
+        selectedLocation: event.location,
+        profile: current.profile.copyWith(locationId: event.location?.id),
       ),
-    ),
-  );
-}
-
-
+    );
+  }
 
   Future<void> _onLoadProfile(
     LoadProfile event,
@@ -57,89 +53,99 @@ Future<void> _onProfileLocationSelected(
       final profile = await repository.fetchProfile(userId);
       final locations = await locationService.fetchLocations();
 
-LocationModel? selected;
-    if (profile.locationId != null) {
-      selected = locations.firstWhere(
-        (l) => l.id == profile.locationId,
-        orElse: () => locations.first,
-      );
-    }
+      if (locations.isEmpty) {
+        emit(ProfileError('Locations not available'));
+        return;
+      }
+
+      LocationModel? selected;
+
+      if (profile.locationId != null) {
+        selected = locations
+            .where((l) => l.id == profile.locationId)
+            .cast<LocationModel?>()
+            .firstOrNull;
+      }
+
       emit(
         ProfileLoaded(
-        profile,
-        allLocations: locations,
-        selectedLocation: selected,
-        ));
+          profile,
+          allLocations: locations,
+          selectedLocation: selected,
+          profileImageFile: null,
+        ),
+      );
     } catch (e) {
       emit(ProfileError(e.toString()));
     }
   }
 
   Future<void> _onUpdateProfile(
-  UpdateProfile event,
-  Emitter<ProfileState> emit,
-) async {
-  if (state is! ProfileLoaded) return;
+    UpdateProfile event,
+    Emitter<ProfileState> emit,
+  ) async {
+    if (state is! ProfileLoaded) return;
 
-  final current = state as ProfileLoaded;
+    final current = state as ProfileLoaded;
 
-  emit(
-    current.copyWith(
-      profile: current.profile.copyWith(
-        fullName: event.fullName ?? current.profile.fullName,
-        locationId: event.locationId ?? current.profile.locationId,
-        avatarUrl: event.avatarUrl ?? current.profile.avatarUrl,
-      ),
-    ),
-  );
-}
-
-
-Future<void> _onPickProfileImage(
-  PickProfileImage event,
-  Emitter<ProfileState> emit,
-) async {
-  if (state is! ProfileLoaded) return;
-
-  final current = state as ProfileLoaded;
-
-  final picker = ImagePicker();
-  final image = await picker.pickImage(source: ImageSource.gallery);
-
-  if (image != null) {
     emit(
       current.copyWith(
-        profileImageFile: image,
+        profile: current.profile.copyWith(
+          fullName: event.fullName ?? current.profile.fullName,
+          locationId: event.locationId ?? current.profile.locationId,
+          avatarUrl: event.avatarUrl ?? current.profile.avatarUrl,
+        ),
       ),
     );
   }
-}
 
-Future<void> _onSubmitProfile(
-  SubmitProfile event,
-  Emitter<ProfileState> emit,
-) async {
-  if (state is! ProfileLoaded) return;
+  Future<void> _onPickProfileImage(
+    PickProfileImage event,
+    Emitter<ProfileState> emit,
+  ) async {
+    if (state is! ProfileLoaded) return;
 
-  final current = state as ProfileLoaded;
+    final current = state as ProfileLoaded;
 
-  emit(ProfileLoading());
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
 
-  try {
-    final updatedProfile = await repository.updateProfile(
-      userId: current.profile.id,
-      fullName: current.profile.fullName,
-      locationId: current.profile.locationId,
-      imageFile: current.profileImageFile,
-    );
-
-    emit(ProfileLoaded(updatedProfile));
-  } catch (e) {
-    emit(ProfileError(e.toString()));
+    if (image != null) {
+      emit(current.copyWith(profileImageFile: image));
+    }
   }
-}
 
- Future<void> _onUpdateVisibility(
+  Future<void> _onSubmitProfile(
+    SubmitProfile event,
+    Emitter<ProfileState> emit,
+  ) async {
+    if (state is! ProfileLoaded) return;
+
+    final current = state as ProfileLoaded;
+    emit(ProfileLoading());
+
+    try {
+      final updatedProfile = await repository.updateProfile(
+        userId: current.profile.id,
+        fullName: current.profile.fullName,
+        locationId: current.profile.locationId,
+        imageFile: current.profileImageFile,
+      );
+
+      emit(
+        ProfileLoaded(
+          updatedProfile,
+          allLocations: current.allLocations,
+          selectedLocation: current.selectedLocation,
+          profileImageFile: null,
+        ),
+      );
+    } catch (e) {
+      emit(ProfileError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateVisibility(
     UpdateProfileVisibility event,
     Emitter<ProfileState> emit,
   ) async {
@@ -147,7 +153,6 @@ Future<void> _onSubmitProfile(
 
     if (currentState is! ProfileLoaded) return;
 
-    // 🔹 Optimistic UI update
     final updatedProfile = currentState.profile.copyWith(
       settings: currentState.profile.settings!.copyWith(
         visibility: event.visibility,
@@ -162,9 +167,7 @@ Future<void> _onSubmitProfile(
         visibility: event.visibility,
       );
     } catch (e) {
-      // 🔴 rollback if API fails
       emit(currentState);
     }
   }
-
 }

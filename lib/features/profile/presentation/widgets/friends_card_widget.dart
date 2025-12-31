@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/presentation/page/edit_profile_page.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/presentation/page/view_friends_page.dart';
+import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FriendsCard extends StatelessWidget {
   const FriendsCard({super.key, required this.friends});
@@ -42,7 +43,9 @@ class FriendsCard extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => BlocProvider(
-                          create: (_) => ViewFriendsBloc()..add(LoadFriends()),
+                          create: (context) => ViewFriendsBloc(
+                            ViewFriendsRepository(Supabase.instance.client),
+                          )..add(LoadFriends()),
                           child: const ViewFriendsPage(),
                         ),
                       ),
@@ -71,12 +74,7 @@ class FriendsCard extends StatelessWidget {
             child: InkWell(
               onTap: () async {
                 await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<ProfileBloc>(),
-                      child: const EditProfilePage(),
-                    ),
-                  ),
+                  MaterialPageRoute(builder: (_) => const EditProfilePage()),
                 );
               },
 

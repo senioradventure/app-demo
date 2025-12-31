@@ -34,3 +34,4 @@ class UpdateProfileVisibility extends ProfileEvent {
   UpdateProfileVisibility(this.visibility);
 }
 
+

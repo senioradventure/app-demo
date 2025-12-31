@@ -17,7 +17,6 @@ class ProfileLocationDropdown extends StatelessWidget {
         if (state is! ProfileLoaded) {
           return const SizedBox.shrink();
         }
-
         final locations = state.allLocations;
         final selected = state.selectedLocation;
         print('Locations count: ${locations.length}');

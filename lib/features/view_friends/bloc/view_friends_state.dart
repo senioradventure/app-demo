@@ -20,3 +20,5 @@ class ViewFriendsError extends ViewFriendsState {
 
   ViewFriendsError(this.message);
 }
+
+

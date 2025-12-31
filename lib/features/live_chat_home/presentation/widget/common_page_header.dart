@@ -15,11 +15,11 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-   void onProfileTap() {
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => const ProfilePage()),
-  );
-}
+    void onProfileTap() {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const ProfilePage()));
+    }
 
     void onNotificationTap() {
       Navigator.of(
@@ -84,7 +84,16 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         child: ClipOval(
           child: profileImage != null
-              ? Image.network(profileImage!, fit: BoxFit.cover)
+              ? Image.network(
+                  profileImage!,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    );
+                  },
+                )
               : Container(
                   color: Colors.grey.shade300,
                   child: const Icon(

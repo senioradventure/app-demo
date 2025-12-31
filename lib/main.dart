@@ -42,8 +42,11 @@ class SeniorCircleApp extends StatelessWidget {
         ),
         BlocProvider(create: (_) => ChatroomdetailsBloc()),
         BlocProvider(
-      create: (_) => ProfileBloc(ProfileRepository(Supabase.instance.client),LocationService())..add(LoadProfile()),
-    ),
+          create: (_) => ProfileBloc(
+            ProfileRepository(Supabase.instance.client),
+            LocationService(),
+          )..add(LoadProfile()),
+        ),
 
         BlocProvider(
           create: (_) =>

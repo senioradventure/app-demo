@@ -7,3 +7,4 @@ class SearchFriends extends ViewFriendsEvent {
 
   SearchFriends(this.query);
 }
+

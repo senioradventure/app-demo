@@ -55,11 +55,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
               child: Column(
                 children: [
                   ImagePickerCircle(
-                    image: state.profileImageFile,
+                    networkImage: loadedState.profile.avatarUrl,
+                    image: loadedState.profileImageFile,
                     onImagePicked: () {
                       context.read<ProfileBloc>().add(PickProfileImage());
                     },
                   ),
+
                   const SizedBox(height: 16),
                   TextFieldWithCounter(
                     label: 'Name',

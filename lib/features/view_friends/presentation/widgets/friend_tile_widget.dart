@@ -11,7 +11,7 @@ class FriendTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool hasImage =
-            friend.profileImage != null && friend.profileImage!.isNotEmpty;
+        friend.profileImage != null && friend.profileImage!.isNotEmpty;
 
     return Material(
       color: Colors.white,
@@ -22,21 +22,21 @@ class FriendTile extends StatelessWidget {
           child: Row(
             children: [
               ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: hasImage
-                      ? Image.network(
-                          friend.profileImage!,
-                          width: 52,
-                          height: 52,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          width: 52,
-                          height: 52,
-                          color: AppColors.borderColor,
-                          child: const Icon(Icons.person),
-                        ),
-                ),
+                borderRadius: BorderRadius.circular(10),
+                child: hasImage
+                    ? Image.network(
+                        friend.profileImage!,
+                        width: 52,
+                        height: 52,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        width: 52,
+                        height: 52,
+                        color: AppColors.borderColor,
+                        child: const Icon(Icons.person),
+                      ),
+              ),
               const SizedBox(width: 12),
 
               Expanded(
@@ -50,7 +50,7 @@ class FriendTile extends StatelessWidget {
                         color: AppColors.textDarkGray,
                       ),
                     ),
-                    if (friend.isOnline) ...[
+                    if (friend.isOnline!) ...[
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -71,15 +71,14 @@ class FriendTile extends StatelessWidget {
                 ),
               ),
 
-             IconButton(
-  onPressed: () {},
-  icon: SizedBox(
-    width: 24,
-    height: 24,
-    child: SvgPicture.asset('assets/icons/message_circle.svg'),
-  ),
-),
-
+              IconButton(
+                onPressed: () {},
+                icon: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: SvgPicture.asset('assets/icons/message_circle.svg'),
+                ),
+              ),
 
               IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
             ],
