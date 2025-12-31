@@ -200,7 +200,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                       ),
                     ),
                     Expanded(
-                      child: state.status == CreateCircleStatus.loading
+                      child: state.status == CreateCircleStatus.loadingFriends
                           ? const Center(child: CircularProgressIndicator())
                           : state.friends.isEmpty
                           ? const Center(child: Text("No friends found"))
@@ -288,7 +288,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
               ),
               Container(height: 1, color: Colors.grey.shade300),
               InkWell(
-                onTap: state.status == CreateCircleStatus.loading
+                onTap: state.status == CreateCircleStatus.submitting
                     ? null
                     : () {
                         if (txtController.text.trim().isEmpty) {
@@ -311,13 +311,13 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                 child: Container(
                   width: double.infinity,
                   height: 55,
-                  color: state.status == CreateCircleStatus.loading
+                  color: state.status == CreateCircleStatus.submitting
                       ? Colors.grey
                       : const Color(0xFF4A90E2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (state.status == CreateCircleStatus.loading)
+                      if (state.status == CreateCircleStatus.submitting)
                         const Padding(
                           padding: EdgeInsets.only(right: 8.0),
                           child: SizedBox(
@@ -331,7 +331,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                         )
                       else
                         const Icon(Icons.add, color: Colors.white),
-                      if (state.status != CreateCircleStatus.loading)
+                      if (state.status != CreateCircleStatus.submitting)
                         const SizedBox(width: 8),
                       const Text(
                         "CREATE",
