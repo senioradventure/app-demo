@@ -100,6 +100,9 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
       ),
       floatingActionButton: AddChatWidget(
         destinationPage: const CircleCreationScreen(),
+        onReturn: () {
+          context.read<CircleChatBloc>().add(LoadChats());
+        },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
     );
