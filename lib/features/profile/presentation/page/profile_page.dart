@@ -10,6 +10,8 @@ import 'package:senior_circle/features/profile/bloc/profile_event.dart';
 import 'package:senior_circle/features/profile/bloc/profile_state.dart';
 import 'package:senior_circle/features/profile/models/profile_model.dart';
 import 'package:senior_circle/features/profile/presentation/widgets/profile_details_widget.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_state.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -62,11 +64,21 @@ class ProfilePage extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(12),
-                    child: ProfileDetailsWidget(
-                      imageUrl: state.profile.avatarUrl ?? '',
-                      name: state.profile.fullName ?? '',
-                      phone:maskPhoneNumber(state.profile.username?? ''),
-                      friends: friends.length,
+                    child: BlocBuilder<ViewFriendsBloc, ViewFriendsState>(
+                      builder: (context, friendsState) {
+                        int friendsCount = 0;
+
+                        if (friendsState is ViewFriendsLoaded) {
+                          friendsCount = friendsState.friends.length;
+                        }
+
+                        return ProfileDetailsWidget(
+                          imageUrl: state.profile.avatarUrl ?? '',
+                          name: state.profile.fullName ?? '',
+                          phone: maskPhoneNumber(state.profile.username ?? ''),
+                          friends: friendsCount,
+                        );
+                      },
                     ),
                   ),
 
@@ -144,7 +156,7 @@ class ProfilePage extends StatelessWidget {
                 child: DropdownButton<ProfileVisibility>(
                   value: profile.settings!.visibility,
                   icon: Icon(Icons.keyboard_arrow_down, size: 20),
-                  
+
                   items: ProfileVisibility.values.map((v) {
                     return DropdownMenuItem(
                       value: v,

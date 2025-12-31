@@ -16,6 +16,9 @@ import 'package:senior_circle/features/my_circle_home/repository/chat_repository
 import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/bloc/profile_event.dart';
 import 'package:senior_circle/features/profile/repository/profile_repository.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
+import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -47,6 +50,11 @@ class SeniorCircleApp extends StatelessWidget {
             LocationService(),
           )..add(LoadProfile()),
         ),
+        BlocProvider(
+      create: (_) => ViewFriendsBloc(
+        ViewFriendsRepository(Supabase.instance.client),
+      )..add(LoadFriends()),
+    ),
 
         BlocProvider(
           create: (_) =>
