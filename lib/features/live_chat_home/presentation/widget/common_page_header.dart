@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/notification_page/presentation/page/notification_page.dart';
+import 'package:senior_circle/features/notification/bloc/notification_bloc.dart';
+import 'package:senior_circle/features/notification/bloc/notification_event.dart';
+import 'package:senior_circle/features/notification/notification_repository.dart';
+import 'package:senior_circle/features/notification/presentation/page/notification_page.dart';
 import 'package:senior_circle/features/profile/presentation/page/profile_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -22,9 +27,18 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     void onNotificationTap() {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const NotificationPage()));
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) {
+            return BlocProvider(
+              create: (_) => NotificationBloc(
+                NotificationRepository(Supabase.instance.client),
+              )..add(LoadNotifications()),
+              child: const NotificationPage(),
+            );
+          },
+        ),
+      );
     }
 
     return AppBar(
@@ -59,11 +73,7 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
       borderRadius: BorderRadius.circular(24),
       child: Padding(
         padding: const EdgeInsets.all(6),
-        child: SvgPicture.asset(
-          'assets/icons/notification_bell.svg',
-          //width: 22,
-          //height: 22,
-        ),
+        child: SvgPicture.asset('assets/icons/notification_bell.svg'),
       ),
     );
   }
