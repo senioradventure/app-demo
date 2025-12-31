@@ -13,6 +13,8 @@ import 'package:senior_circle/features/live_chat_home/presentation/repository/li
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
+import 'package:senior_circle/features/createCircle/bloc/create_circle_bloc.dart';
+import 'package:senior_circle/features/createCircle/repository/create_circle_repository.dart';
 import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/bloc/profile_event.dart';
 import 'package:senior_circle/features/profile/repository/profile_repository.dart';
@@ -69,6 +71,13 @@ class SeniorCircleApp extends StatelessWidget {
           create: (context) => LiveChatHomeBloc(LiveChatHomeRepository())
             ..add(FetchLocationsEvent())
             ..add(FetchRoomsEvent()),
+        ),
+        BlocProvider(
+          create: (_) => CreateCircleBloc(
+            repository: CreateCircleRepository(
+              supabaseClient: Supabase.instance.client,
+            ),
+          ),
         ),
       ],
       child: MaterialApp(
