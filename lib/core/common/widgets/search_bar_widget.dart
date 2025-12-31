@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 
@@ -25,7 +26,15 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           ),
           hintText: widget.hintText ?? 'Search Conversations',
           hintStyle: AppTextTheme.lightTextTheme.labelMedium,
-          prefixIcon: const Icon(Icons.search_rounded),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12),
+            child: SvgPicture.asset(
+              'assets/icons/search.svg',
+              height: 18,
+              width: 18,
+            ),
+          ),
+
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: AppColors.searchBorder),

@@ -23,8 +23,8 @@ class BottomButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: isLoading
-              ? AppColors.buttonBlue.withOpacity(0.6)
-              : AppColors.buttonBlue,
+              ? AppColors.buttonBlue
+              : AppColors.bottomButtonBlue,
         ),
         child: Center(
           child: isLoading

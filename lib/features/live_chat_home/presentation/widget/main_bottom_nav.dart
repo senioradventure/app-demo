@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
 ValueNotifier<int> currentPageIndex = ValueNotifier<int>(0);
 
@@ -13,7 +14,7 @@ class MainBottomNavBar extends StatelessWidget {
         return SizedBox(
           height: 80,
           child: BottomNavigationBar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.backgroundColor,
             type: BottomNavigationBarType.fixed,
             currentIndex: currentPageIndex.value,
             selectedItemColor: Colors.blueAccent,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/common/widgets/profile_aware_appbar.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createCircle/presentation/circle_creation_screen.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
@@ -12,7 +13,7 @@ import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_state.dar
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
-import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_search_bar_widget.dart';
+import 'package:senior_circle/core/common/widgets/search_bar_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_starred_message_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -52,19 +53,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.lightGray,
-      appBar: AppBar(
-        backgroundColor: AppColors.lightGray,
-        title: Text(
-          'My Circle',
-          textAlign: TextAlign.left,
-          style: TextStyle(
-            fontSize: 24,
-            color: AppColors.textBlack,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        iconTheme: IconThemeData(color: AppColors.iconColor),
-      ),
+      appBar: ProfileAwareAppBar(title: 'My Circle'),
       body: Column(
         children: [
           SearchBarWidget(

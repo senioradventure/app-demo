@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/constants/group_messages.dart';
 import 'package:senior_circle/core/constants/inividual_messages.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_message_type.dart';
+import 'package:senior_circle/core/enum/chat_message_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/utils/reaction_utils.dart';
+import 'package:senior_circle/core/utils/reaction_utils.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 import '../models/message_model.dart';

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'chat_message_type.dart';
+import '../../../core/enum/chat_message_type.dart';
 
 abstract class ChatEvent extends Equatable {
   const ChatEvent();

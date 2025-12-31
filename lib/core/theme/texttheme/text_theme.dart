@@ -54,6 +54,13 @@ class AppTextTheme {
       color: AppColors.textBlack,
       fontStyle: FontStyle.normal,
     ),
+    bodyLarge: TextStyle(
+      fontFamily: _fontFamily,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      color: AppColors.textGray,
+    ),
+    
   );
 
   static TextTheme darkTextTheme = TextTheme(

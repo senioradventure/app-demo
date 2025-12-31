@@ -7,12 +7,13 @@ class AppColors {
   static const Color textWhite = Color(0xFFF9F9F7);
   static const Color iconColor = Color(0xFF5C5C5C);
   static const Color dateColor = Color(0xFF5C5C5C);
-  static const Color backgroundColor = Color(0xFFF9F9F7);
+  static const Color backgroundColor = Color(0xFFF0F0F0);
   static const Color white = Color(0xFFFFFFFF);
   static const Color textGray = Color(0xFF5C5C5C);
   static const Color textLightGray = Color(0xFFB2B2B2);
   static const Color buttonBlue = Color(0xFF4A90E2);
   static const Color chipBlue = Color(0xFFE8EFF5);
+  static const Color bottomButtonBlue = Color(0xFF2B8DFF);
   static const Color borderColor = Color(0xFFEAEAEA);
   static const Color adminColor = Color(0xFFFFD6A5);
   static const Color cautionColor = Color(0xFFF7E8CF);
@@ -20,6 +21,8 @@ class AppColors {
   static const Color lightBlue = Color(0xFFD2EAFF);
   static const Color lightGray = Color(0xFFF0F0F0);
   static const Color darkGray = Color(0xFFCBCBCB);
+  static const Color red = Color(0xFFDA5552);
+  static const Color green = Color(0xFF13A047);
   static const Gradient chatGradient = LinearGradient(
     colors: [
       Color(0xFF6697FF),
