@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/common/widgets/profile_aware_appbar.dart';
 import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
@@ -19,14 +20,13 @@ class LiveChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
+      appBar: ProfileAwareAppBar(title: 'Live Chat',),
       body: SafeArea(
         child: BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
           builder: (context, state) {
             return Column(
               children: [
-                PageHeaderAppBar(
-                  title: 'Live Chat',
-                ),
+               
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,

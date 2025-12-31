@@ -45,7 +45,7 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             const Spacer(),
             _notificationIcon(onNotificationTap),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
             _profileAvatar(onProfileTap),
           ],
         ),
@@ -61,15 +61,15 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
         padding: const EdgeInsets.all(6),
         child: SvgPicture.asset(
           'assets/icons/notification_bell.svg',
-          width: 22,
-          height: 22,
+          //width: 22,
+          //height: 22,
         ),
       ),
     );
   }
 
   Widget _profileAvatar(GestureTapCallback? onProfileTap) {
-    const double size = 28;
+    const double size = 34;
     const double borderWidth = 2;
 
     return InkWell(

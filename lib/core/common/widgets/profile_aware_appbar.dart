@@ -19,6 +19,9 @@ class ProfileAwareAppBar extends StatelessWidget
     return BlocBuilder<ProfileBloc, ProfileState>(
   buildWhen: (prev, curr) => curr is ProfileLoaded,
   builder: (context, state) {
+    if (state is ProfileLoaded) {
+      debugPrint('APPBAR AVATAR URL: ${state.profile.avatarUrl}');
+    }
     final avatarUrl = state is ProfileLoaded
         ? state.profile.avatarUrl
         : null;
