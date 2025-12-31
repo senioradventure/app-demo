@@ -27,7 +27,7 @@ class LocationDropdown extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          initialValue: value, 
+          initialValue:locations.contains(value) ? value : null, 
           hint: Text(hintText,style: Theme.of(context).textTheme.labelSmall),
           items: locations
               .map(

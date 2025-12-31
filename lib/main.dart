@@ -11,7 +11,6 @@ import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dar
 import 'package:senior_circle/features/my_circle_home/repository/chat_repository.dart';
 import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/bloc/profile_event.dart';
-import 'package:senior_circle/features/profile/presentation/page/profile_page.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -36,9 +35,8 @@ class SeniorCircleApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => ChatroomdetailsBloc()),
         BlocProvider(
-          create: (_) => ProfileBloc()..add(LoadProfile()),
-          child: ProfilePage(),
-        ),
+      create: (_) => ProfileBloc()..add(LoadProfile()),
+    ),
 
         BlocProvider(
           create: (_) =>

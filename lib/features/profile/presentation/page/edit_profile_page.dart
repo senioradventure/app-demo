@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
 import 'package:senior_circle/core/common/widgets/image_picker_widget.dart';
 import 'package:senior_circle/core/common/widgets/text_field_with_counter.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/createroom/presentation/widgets/create_room_location_picker.dart';
-import 'package:senior_circle/features/edit_profile/presentation/widgets/location_dropdown.dart';
+import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
+import 'package:senior_circle/features/profile/bloc/profile_event.dart';
+import 'package:senior_circle/features/profile/bloc/profile_state.dart';
+import 'package:senior_circle/features/profile/presentation/widgets/location_dropdown.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -15,6 +19,7 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   String? _selectedLocation;
+  String _imageUrl = '';
 
   final List<String> _locations = [
     'Kochi',
@@ -28,9 +33,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   int _nameCount = 0;
 
+  XFile? _pickedImage;
+  String? _imagePath;
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _pickedImage = image;
+        _imagePath = image.path;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+
+    final state = context.read<ProfileBloc>().state;
+    if (state is ProfileLoaded) {
+      _nameController.text = state.profile.name;
+      _selectedLocation = state.profile.location;
+      _imageUrl = state.profile.imageUrl;
+      _nameCount = _nameController.text.length;
+    }
+
     _nameController.addListener(() {
       setState(() {
         _nameCount = _nameController.text.length;
@@ -52,8 +82,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            const ImagePickerCircle(),
+            ImagePickerCircle(image: _pickedImage, onImagePicked: _pickImage),
             const SizedBox(height: 20),
+
             TextFieldWithCounter(
               label: 'Name',
               hintText: 'Give your name',
@@ -66,7 +97,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 });
               },
             ),
+
             const SizedBox(height: 16),
+
             LocationDropdown(
               value: _selectedLocation,
               locations: _locations,
@@ -76,6 +109,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 });
               },
             ),
+
             const SizedBox(height: 80),
           ],
         ),
@@ -84,17 +118,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         child: Container(
           height: 60,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(color: AppColors.bottomButtonBlue),
+          decoration: const BoxDecoration(color: AppColors.bottomButtonBlue),
           child: ElevatedButton(
-            onPressed: () {
-              if (_nameController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Name cannot be empty')),
-                );
-                return;
-              }
-              Navigator.pop(context);
-            },
+            onPressed: _onSavePressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               elevation: 0,
@@ -114,5 +140,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
       ),
     );
+  }
+
+  void _onSavePressed() {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Name cannot be empty')));
+      return;
+    }
+
+    context.read<ProfileBloc>().add(
+      UpdateProfile(
+        name: _nameController.text.trim(),
+        location: _selectedLocation!,
+        imageUrl: _imageUrl,
+      ),
+    );
+
+    Navigator.pop(context);
   }
 }

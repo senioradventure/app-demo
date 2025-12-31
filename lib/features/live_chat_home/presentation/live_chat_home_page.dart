@@ -10,7 +10,6 @@ import 'package:senior_circle/features/live_chat_home/presentation/widget/floati
 import 'package:senior_circle/features/live_chat_home/presentation/widget/interest_filter_button.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/location_filter_button.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/search_text_field.dart';
-import 'package:senior_circle/features/profile/presentation/page/profile_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LiveChatPage extends StatelessWidget {

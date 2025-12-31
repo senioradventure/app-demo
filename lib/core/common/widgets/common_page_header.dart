@@ -15,11 +15,11 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    void onProfileTap() {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const ProfilePage()));
-    }
+   void onProfileTap() {
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) => const ProfilePage()),
+  );
+}
 
     void onNotificationTap() {
       Navigator.of(
