@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
+import 'package:senior_circle/core/enum/profile_visibility.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/bloc/profile_event.dart';
@@ -61,9 +62,10 @@ class ProfilePage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: ProfileDetailsWidget(
-                      name: profile.name,
-                      phone: profile.phone,
-                      friends: profile.friendsCount,
+                      imageUrl: state.profile.avatarUrl ?? '',
+                      name: state.profile.fullName ?? '',
+                      phone: state.profile.username ?? '',
+                      //friends: state.profile.friendsCount, // if exists
                     ),
                   ),
 
@@ -121,7 +123,7 @@ class ProfilePage extends StatelessWidget {
   Widget visibilityTile(
     BuildContext context,
     TextStyle textStyle,
-    ProfileModel profile,
+    Profile profile,
   ) {
     return settingsCard(
       child: Padding(
@@ -130,13 +132,37 @@ class ProfilePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Visibility', style: textStyle),
-            VisibilityDropdown(
-              value: profile.visibility,
-              onChanged: (value) {
-                context
-                    .read<ProfileBloc>()
-                    .add(UpdateVisibility(value));
-              },
+
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.borderColor),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<ProfileVisibility>(
+                  value: profile.settings!.visibility,
+                  items: ProfileVisibility.values.map((v) {
+                    return DropdownMenuItem(
+                      value: v,
+                      child: Text(
+                        v.label,
+                        style: textStyle.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+
+                    context.read<ProfileBloc>().add(
+                      UpdateProfileVisibility(value),
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),

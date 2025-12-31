@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/presentation/page/edit_profile_page.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
@@ -68,9 +69,14 @@ class FriendsCard extends StatelessWidget {
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(4),
             child: InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const EditProfilePage()),
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<ProfileBloc>(),
+                      child: const EditProfilePage(),
+                    ),
+                  ),
                 );
               },
 

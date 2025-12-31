@@ -1,67 +1,170 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:senior_circle/core/enum/profile_visibility.dart';
-import 'package:senior_circle/core/utils/phone_number_masker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:senior_circle/core/utils/location_service/location_model.dart';
+import 'package:senior_circle/core/utils/location_service/location_service.dart';
 import 'package:senior_circle/features/profile/bloc/profile_event.dart';
 import 'package:senior_circle/features/profile/bloc/profile_state.dart';
-import 'package:senior_circle/features/profile/models/profile_model.dart';
+import 'package:senior_circle/features/profile/repository/profile_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  ProfileBloc() : super(ProfileLoading()) {
+  final ProfileRepository repository;
+  final LocationService locationService;
+
+  ProfileBloc(this.repository,this.locationService) : super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<UpdateProfile>(_onUpdateProfile);
-    on<UpdateVisibility>(_onUpdateVisibility);
+    on<PickProfileImage>(_onPickProfileImage);
+    on<SubmitProfile>(_onSubmitProfile);
+    on<ProfileLocationSelected>(_onProfileLocationSelected);
+    on<UpdateProfileVisibility>(_onUpdateVisibility);
   }
 
-  void _onLoadProfile(
+Future<void> _onProfileLocationSelected(
+  ProfileLocationSelected event,
+  Emitter<ProfileState> emit,
+) async {
+  if (state is! ProfileLoaded) return;
+
+  final current = state as ProfileLoaded;
+
+  emit(
+    current.copyWith(
+      selectedLocation: event.location,
+      profile: current.profile.copyWith(
+        locationId: event.location?.id,
+      ),
+    ),
+  );
+}
+
+
+
+  Future<void> _onLoadProfile(
     LoadProfile event,
     Emitter<ProfileState> emit,
-  ) {
- 
+  ) async {
+    emit(ProfileLoading());
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+
+      if (session == null) {
+        emit(ProfileError('User not logged in'));
+        return;
+      }
+
+      final userId = session.user.id;
+      final profile = await repository.fetchProfile(userId);
+      final locations = await locationService.fetchLocations();
+
+LocationModel? selected;
+    if (profile.locationId != null) {
+      selected = locations.firstWhere(
+        (l) => l.id == profile.locationId,
+        orElse: () => locations.first,
+      );
+    }
+      emit(
+        ProfileLoaded(
+        profile,
+        allLocations: locations,
+        selectedLocation: selected,
+        ));
+    } catch (e) {
+      emit(ProfileError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateProfile(
+  UpdateProfile event,
+  Emitter<ProfileState> emit,
+) async {
+  if (state is! ProfileLoaded) return;
+
+  final current = state as ProfileLoaded;
+
+  emit(
+    current.copyWith(
+      profile: current.profile.copyWith(
+        fullName: event.fullName ?? current.profile.fullName,
+        locationId: event.locationId ?? current.profile.locationId,
+        avatarUrl: event.avatarUrl ?? current.profile.avatarUrl,
+      ),
+    ),
+  );
+}
+
+
+Future<void> _onPickProfileImage(
+  PickProfileImage event,
+  Emitter<ProfileState> emit,
+) async {
+  if (state is! ProfileLoaded) return;
+
+  final current = state as ProfileLoaded;
+
+  final picker = ImagePicker();
+  final image = await picker.pickImage(source: ImageSource.gallery);
+
+  if (image != null) {
     emit(
-      ProfileLoaded(
-        ProfileModel(
-          name: 'Nidha',
-          location: 'Kochi',
-          imageUrl: '',
-          visibility:ProfileVisibility.public,
-          phone: maskPhoneNumber('+917894561230'), 
-          friendsCount: 0,
-        ),
+      current.copyWith(
+        profileImageFile: image,
       ),
     );
   }
+}
 
-  void _onUpdateProfile(
-    UpdateProfile event,
+Future<void> _onSubmitProfile(
+  SubmitProfile event,
+  Emitter<ProfileState> emit,
+) async {
+  if (state is! ProfileLoaded) return;
+
+  final current = state as ProfileLoaded;
+
+  emit(ProfileLoading());
+
+  try {
+    final updatedProfile = await repository.updateProfile(
+      userId: current.profile.id,
+      fullName: current.profile.fullName,
+      locationId: current.profile.locationId,
+      imageFile: current.profileImageFile,
+    );
+
+    emit(ProfileLoaded(updatedProfile));
+  } catch (e) {
+    emit(ProfileError(e.toString()));
+  }
+}
+
+ Future<void> _onUpdateVisibility(
+    UpdateProfileVisibility event,
     Emitter<ProfileState> emit,
-  ) {
-    if (state is ProfileLoaded) {
-      final current = (state as ProfileLoaded).profile;
+  ) async {
+    final currentState = state;
 
-      emit(
-        ProfileLoaded(
-          current.copyWith(
-            name: event.name,
-            location: event.location,
-            imageUrl: event.imageUrl,
-          ),
-        ),
+    if (currentState is! ProfileLoaded) return;
+
+    // 🔹 Optimistic UI update
+    final updatedProfile = currentState.profile.copyWith(
+      settings: currentState.profile.settings!.copyWith(
+        visibility: event.visibility,
+      ),
+    );
+
+    emit(ProfileLoaded(updatedProfile));
+
+    try {
+      await repository.updateVisibility(
+        userId: currentState.profile.id,
+        visibility: event.visibility,
       );
+    } catch (e) {
+      // 🔴 rollback if API fails
+      emit(currentState);
     }
   }
 
-  void _onUpdateVisibility(
-    UpdateVisibility event,
-    Emitter<ProfileState> emit,
-  ) {
-    if (state is ProfileLoaded) {
-      final current = (state as ProfileLoaded).profile;
-
-      emit(
-        ProfileLoaded(
-          current.copyWith(visibility: event.visibility),
-        ),
-      );
-    }
-  }
 }

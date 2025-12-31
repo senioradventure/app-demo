@@ -1,24 +1,36 @@
 import 'package:senior_circle/core/enum/profile_visibility.dart';
+import 'package:senior_circle/core/utils/location_service/location_model.dart';
 
 abstract class ProfileEvent {}
 
 class LoadProfile extends ProfileEvent {}
 
+class PickProfileImage extends ProfileEvent {}
+
+
 class UpdateProfile extends ProfileEvent {
-  final String name;
-  final String location;
-  final String imageUrl;
+  final String? fullName;
+  final String? avatarUrl;
+  final String? locationId;
 
   UpdateProfile({
-    required this.name,
-    required this.location,
-    required this.imageUrl,
+    this.fullName,
+    this.avatarUrl,
+    this.locationId,
   });
 }
 
-class UpdateVisibility extends ProfileEvent {
+class SubmitProfile extends ProfileEvent {}
+
+class ProfileLocationSelected extends ProfileEvent {
+  final LocationModel? location;
+  ProfileLocationSelected(this.location);
+}
+
+
+class UpdateProfileVisibility extends ProfileEvent {
   final ProfileVisibility visibility;
 
-  UpdateVisibility(this.visibility);
+  UpdateProfileVisibility(this.visibility);
 }
 

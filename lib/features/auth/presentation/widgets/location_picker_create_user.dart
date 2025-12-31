@@ -9,7 +9,7 @@ import 'package:senior_circle/features/createroom/presentation/widgets/create_ro
 class LocationPickerCreateUser extends StatefulWidget {
   final Function(LocationModel?)? onChanged;
 
-  const LocationPickerCreateUser({super.key, this.onChanged});
+  const LocationPickerCreateUser({super.key, this.onChanged, String? initialLocationId});
 
   @override
   State<LocationPickerCreateUser> createState() =>
