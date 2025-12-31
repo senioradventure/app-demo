@@ -3,8 +3,13 @@ import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
 class AddChatWidget extends StatelessWidget {
   final Widget destinationPage;
+  final VoidCallback? onReturn;
 
-  const AddChatWidget({super.key, required this.destinationPage});
+  const AddChatWidget({
+    super.key,
+    required this.destinationPage,
+    this.onReturn,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +22,11 @@ class AddChatWidget extends StatelessWidget {
         ),
         child: FloatingActionButton(
           onPressed: () async {
-            FocusManager.instance.primaryFocus?.unfocus(); //to remove focus of keyboard when navigating
+            FocusManager.instance.primaryFocus
+                ?.unfocus(); //to remove focus of keyboard when navigating
             final result = await Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => destinationPage, 
-              ),
+              MaterialPageRoute(builder: (context) => destinationPage),
             );
 
             if (result != null) {
@@ -30,6 +34,7 @@ class AddChatWidget extends StatelessWidget {
                 SnackBar(content: Text('Created circle: ${result['name']}')),
               );
             }
+            onReturn?.call();
           },
 
           shape: const CircleBorder(),
