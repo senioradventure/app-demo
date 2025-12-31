@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
 import '../repository/create_circle_repository.dart';
 import '../model/friend_model.dart';
 
@@ -15,6 +16,7 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
       super(const CreateCircleState()) {
     on<LoadFriends>(_onLoadFriends);
     on<ToggleFriendSelection>(_onToggleFriendSelection);
+    on<CreateCircle>(_onCreateCircle);
   }
 
   Future<void> _onLoadFriends(
@@ -58,5 +60,40 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
       updatedSelection.add(event.friendId);
     }
     emit(state.copyWith(selectedFriendIds: updatedSelection));
+  }
+
+  Future<void> _onCreateCircle(
+    CreateCircle event,
+    Emitter<CreateCircleState> emit,
+  ) async {
+    emit(state.copyWith(status: CreateCircleStatus.loading));
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        emit(
+          state.copyWith(
+            status: CreateCircleStatus.failure,
+            errorMessage: "User not logged in",
+          ),
+        );
+        return;
+      }
+
+      await _repository.createCircle(
+        name: event.name,
+        adminId: userId,
+        imageFile: event.image,
+        friendIds: state.selectedFriendIds.toList(),
+      );
+
+      emit(state.copyWith(status: CreateCircleStatus.success));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: CreateCircleStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 }

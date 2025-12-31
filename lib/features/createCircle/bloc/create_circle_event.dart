@@ -17,3 +17,13 @@ class ToggleFriendSelection extends CreateCircleEvent {
   @override
   List<Object> get props => [friendId];
 }
+
+class CreateCircle extends CreateCircleEvent {
+  final String name;
+  final File? image;
+
+  const CreateCircle({required this.name, this.image});
+
+  @override
+  List<Object> get props => [name, image ?? ''];
+}

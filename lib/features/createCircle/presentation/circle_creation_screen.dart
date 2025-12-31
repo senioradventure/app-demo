@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -75,6 +76,8 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                 content: Text(state.errorMessage ?? 'An error occurred'),
               ),
             );
+          } else if (state.status == CreateCircleStatus.success) {
+            Navigator.pop(context);
           }
         },
         builder: (context, state) {
@@ -285,19 +288,52 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
               ),
               Container(height: 1, color: Colors.grey.shade300),
               InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: state.status == CreateCircleStatus.loading
+                    ? null
+                    : () {
+                        if (txtController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter a circle name'),
+                            ),
+                          );
+                          return;
+                        }
+                        context.read<CreateCircleBloc>().add(
+                          CreateCircle(
+                            name: txtController.text.trim(),
+                            image: _pickedImage != null
+                                ? File(_pickedImage!.path)
+                                : null,
+                          ),
+                        );
+                      },
                 child: Container(
                   width: double.infinity,
                   height: 55,
-                  color: const Color(0xFF4A90E2),
+                  color: state.status == CreateCircleStatus.loading
+                      ? Colors.grey
+                      : const Color(0xFF4A90E2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.add, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text(
+                    children: [
+                      if (state.status == CreateCircleStatus.loading)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 8.0),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      else
+                        const Icon(Icons.add, color: Colors.white),
+                      if (state.status != CreateCircleStatus.loading)
+                        const SizedBox(width: 8),
+                      const Text(
                         "CREATE",
                         style: TextStyle(
                           color: Colors.white,
