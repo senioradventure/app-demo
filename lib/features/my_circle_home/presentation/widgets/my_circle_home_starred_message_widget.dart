@@ -12,6 +12,7 @@ class StarredMessageWidget extends StatelessWidget {
         // Handle tap event
       },
       child: Container(
+        color: AppColors.lightGray,
         padding: const EdgeInsets.only(
           left: 16.0,
           right: 16.0,
