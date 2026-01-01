@@ -443,8 +443,9 @@ class Chatroom extends StatelessWidget {
                           radius: 20,
                           backgroundImage: imageUrl != null
                               ? NetworkImage(imageUrl!)
-                              : const AssetImage("assets/image/Frame_24.png")
-                                    as ImageProvider,
+                              : imageFile != null
+                              ? FileImage(imageFile!)
+                              : const AssetImage("assets/images/Frame_24.png"),
                         ),
 
                         const SizedBox(width: 10),
@@ -1098,7 +1099,12 @@ class Chatroom extends StatelessWidget {
               Container(
                 height: 75,
                 color: const Color(0xFFF9F9F7),
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 12,
+                  bottom: 12,
+                ),
                 child: Row(
                   children: [
                     IconButton(
@@ -1114,7 +1120,10 @@ class Chatroom extends StatelessWidget {
 
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
@@ -1135,11 +1144,8 @@ class Chatroom extends StatelessWidget {
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
                             disabledBorder: InputBorder.none,
-                            
                           ),
-                          
                         ),
-                        
                       ),
                     ),
 
