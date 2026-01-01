@@ -146,28 +146,46 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onUpdateVisibility(
-    UpdateProfileVisibility event,
-    Emitter<ProfileState> emit,
-  ) async {
-    final currentState = state;
+  UpdateProfileVisibility event,
+  Emitter<ProfileState> emit,
+) async {
+  if (state is! ProfileLoaded) return;
 
-    if (currentState is! ProfileLoaded) return;
+  final current = state as ProfileLoaded;
 
-    final updatedProfile = currentState.profile.copyWith(
-      settings: currentState.profile.settings!.copyWith(
-        visibility: event.visibility,
-      ),
+  print('🟣 [Bloc] OLD visibility: '
+      '${current.profile.settings?.visibility}');
+
+  // 1️⃣ Optimistically update local state
+  final updatedProfile = current.profile.copyWith(
+    settings: current.profile.settings!.copyWith(
+      visibility: event.visibility,
+    ),
+  );
+
+  emit(
+    current.copyWith(
+      profile: updatedProfile,
+    ),
+  );
+
+  print('🟣 [Bloc] NEW visibility (local): '
+      '${updatedProfile.settings?.visibility}');
+
+  // 2️⃣ Persist to DB
+  try {
+    await repository.updateVisibility(
+      userId: current.profile.id,
+      visibility: event.visibility,
     );
 
-    emit(ProfileLoaded(updatedProfile));
+    print('🟢 [Bloc] Visibility saved to DB');
+  } catch (e) {
+    print('🔴 [Bloc] DB update failed, rolling back');
 
-    try {
-      await repository.updateVisibility(
-        userId: currentState.profile.id,
-        visibility: event.visibility,
-      );
-    } catch (e) {
-      emit(currentState);
-    }
+    // rollback on failure
+    emit(current);
   }
+}
+
 }
