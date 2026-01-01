@@ -25,6 +25,7 @@ class UserCountBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const SizedBox(width: 2),
           Image.asset(
             'assets/icons/user.png',
             width: 14,
@@ -32,7 +33,7 @@ class UserCountBadge extends StatelessWidget {
             color: iconColor,
             filterQuality: FilterQuality.high,
           ),
-          const SizedBox(width: 4),
+          
           Text(
             count.toString(),
             style: TextStyle(
