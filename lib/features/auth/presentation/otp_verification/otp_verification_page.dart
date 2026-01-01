@@ -15,16 +15,7 @@ class OtpVerificationPage extends StatelessWidget {
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        /// ✅ NEW: Route to CreateUserPage
-        if (state is CreateUserState) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const CreateUserPage()),
-          );
-        }
-
-        /// Existing flow (if needed later)
-        if (state is Authenticated) {
+        if (state is AuthExistingUser) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => TabSelectorWidget()),
@@ -32,7 +23,13 @@ class OtpVerificationPage extends StatelessWidget {
           );
         }
 
-        /// Error handling
+        if (state is CreateUserState) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const CreateUserPage()),
+          );
+        }
+
         if (state is AuthError) {
           ScaffoldMessenger.of(
             context,

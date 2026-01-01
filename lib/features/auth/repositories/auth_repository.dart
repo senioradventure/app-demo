@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
+  // ================= OTP =================
+
   Future<void> sendOtp(String phoneNumber) async {
     await _client.auth.signInWithOtp(phone: phoneNumber);
   }
@@ -22,6 +24,21 @@ class AuthRepository {
   bool hasActiveSession() {
     return _client.auth.currentSession != null;
   }
+
+  // ================= PROFILE CHECK =================
+
+  /// 🔹 Check if user profile already exists
+  Future<bool> doesUserProfileExist(String userId) async {
+    final response = await _client
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+    return response != null;
+  }
+
+  // ================= IMAGE UPLOAD =================
 
   /// 🔹 Upload profile image and return public URL
   Future<String?> uploadProfileImage({
@@ -43,6 +60,8 @@ class AuthRepository {
 
     return _client.storage.from('media').getPublicUrl(path);
   }
+
+  // ================= CREATE PROFILE =================
 
   /// 🔹 Insert profile data
   Future<void> createProfile({
