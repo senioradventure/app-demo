@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/utils/location_service/location_service.dart';
 import 'package:senior_circle/features/auth/bloc/auth_bloc.dart';
-import 'package:senior_circle/features/auth/presentation/create_user/create_user_page.dart';
 import 'package:senior_circle/features/auth/presentation/splash_screen/splash_screen.dart';
 import 'package:senior_circle/features/auth/repositories/auth_repository.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';

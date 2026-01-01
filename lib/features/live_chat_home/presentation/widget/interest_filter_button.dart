@@ -37,8 +37,8 @@ class InterestFilterButton extends StatelessWidget {
           ),
           items: [
             const PopupMenuItem(
-              value: "None",
-              child: Text("None", style: TextStyle(color: Colors.black)),
+              value: "All",
+              child: Text("All", style: TextStyle(color: Colors.black)),
             ),
 
             ...interests.map(
@@ -51,7 +51,7 @@ class InterestFilterButton extends StatelessWidget {
         );
 
         if (selected != null) {
-          onInterestSelected(selected == "None" ? null : selected);
+          onInterestSelected(selected == "All" ? null : selected);
         }
       },
       style: OutlinedButton.styleFrom(
