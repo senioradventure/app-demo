@@ -16,8 +16,7 @@ class CreateRoomPreviewPage extends StatefulWidget {
   const CreateRoomPreviewPage({super.key, required this.previewDetails});
 
   @override
-  State<CreateRoomPreviewPage> createState() =>
-      _CreateRoomPreviewPageState();
+  State<CreateRoomPreviewPage> createState() => _CreateRoomPreviewPageState();
 }
 
 class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
@@ -55,9 +54,9 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
     final user = Supabase.instance.client.auth.currentUser;
 
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("User not logged in")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("User not logged in")));
       return;
     }
 
@@ -71,26 +70,24 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
 
       if (!mounted) return;
 
-      Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => Chatroom(
-      title: widget.previewDetails.name,
-      isAdmin: true,
-      isNewRoom: true,
-      imageFile: widget.previewDetails.imageFile,
-    ),
-  ),
-).then((_) {
-  context.read<LiveChatHomeBloc>().add(FetchRoomsEvent());
-});
-
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Chatroom(
+            title: widget.previewDetails.name,
+            isAdmin: true,
+            isNewRoom: true,
+            imageFile: widget.previewDetails.imageFile,
+          ),
+        ),
+        (route) => route.isFirst,
+      );
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed: $e")));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
