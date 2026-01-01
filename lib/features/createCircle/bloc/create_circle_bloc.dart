@@ -14,13 +14,13 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
   CreateCircleBloc({required CreateCircleRepository repository})
     : _repository = repository,
       super(const CreateCircleState()) {
-    on<LoadFriends>(_onLoadFriends);
+    on<LoadCircleFriends>(_onLoadFriends);
     on<ToggleFriendSelection>(_onToggleFriendSelection);
     on<CreateCircle>(_onCreateCircle);
   }
 
   Future<void> _onLoadFriends(
-    LoadFriends event,
+    LoadCircleFriends event,
     Emitter<CreateCircleState> emit,
   ) async {
     emit(state.copyWith(status: CreateCircleStatus.loadingFriends));

@@ -7,7 +7,7 @@ abstract class CreateCircleEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadFriends extends CreateCircleEvent {}
+class LoadCircleFriends extends CreateCircleEvent {}
 
 class ToggleFriendSelection extends CreateCircleEvent {
   final String friendId;

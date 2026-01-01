@@ -20,7 +20,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<CreateCircleBloc>().add(LoadFriends());
+    context.read<CreateCircleBloc>().add(LoadCircleFriends());
   }
 
   Future<void> _pickImage() async {

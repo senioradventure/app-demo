@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:senior_circle/core/common/widgets/individual_profile_icon.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 
@@ -21,22 +22,7 @@ class FriendTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: hasImage
-                    ? Image.network(
-                        friend.profileImage!,
-                        width: 52,
-                        height: 52,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        width: 52,
-                        height: 52,
-                        color: AppColors.borderColor,
-                        child: const Icon(Icons.person),
-                      ),
-              ),
+              individualProfileIcon(hasImage, friend.profileImage!),
               const SizedBox(width: 12),
 
               Expanded(
@@ -87,4 +73,6 @@ class FriendTile extends StatelessWidget {
       ),
     );
   }
+
+
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
-import 'package:senior_circle/core/constants/friends_list.dart';
 import 'package:senior_circle/core/enum/profile_visibility.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/utils/phone_number_masker.dart';
