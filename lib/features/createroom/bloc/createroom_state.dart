@@ -2,6 +2,8 @@ part of 'createroom_bloc.dart';
 
 @immutable
 class CreateroomState {
+  static const _unset = Object();
+
   final File? imageFile;
   final int nameCount;
   final int descriptionCount;
@@ -43,7 +45,7 @@ class CreateroomState {
     List<String>? filtered,
     bool? showDropdown,
     String? query,
-    LocationModel? selectedLocation,
+    Object? selectedLocation = _unset,
     List<LocationModel>? filteredLocation,
     bool? showLocationDropdown,
     String? locationQuery,
@@ -57,7 +59,12 @@ class CreateroomState {
       filtered: filtered ?? this.filtered,
       showDropdown: showDropdown ?? this.showDropdown,
       query: query ?? this.query,
-      selectedLocation: selectedLocation ?? this.selectedLocation,
+
+      // ✅ THIS IS THE FIX
+      selectedLocation: selectedLocation == _unset
+          ? this.selectedLocation
+          : selectedLocation as LocationModel?,
+
       filteredLocation: filteredLocation ?? this.filteredLocation,
       showLocationDropdown: showLocationDropdown ?? this.showLocationDropdown,
       locationQuery: locationQuery ?? this.locationQuery,

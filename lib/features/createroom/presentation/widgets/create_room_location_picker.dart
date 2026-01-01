@@ -67,19 +67,15 @@ class _LocationPickerState extends State<LocationPicker> {
               decoration: InputDecoration(
                 hintText: 'Search location',
                 hintStyle: Theme.of(context).textTheme.labelSmall,
-                suffixIcon:
-                    const Icon(Icons.location_on_outlined, size: 20),
+                suffixIcon: const Icon(Icons.location_on_outlined, size: 20),
               ),
               onChanged: (val) {
-                context
-                    .read<CreateroomBloc>()
-                    .add(SearchLocationEvent(val));
+                context.read<CreateroomBloc>().add(SearchLocationEvent(val));
               },
             ),
 
             /// 🔹 DROPDOWN
-            if (state.showLocationDropdown &&
-                state.filteredLocation.isNotEmpty)
+            if (state.showLocationDropdown && state.filteredLocation.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.symmetric(vertical: 6),
@@ -105,13 +101,12 @@ class _LocationPickerState extends State<LocationPicker> {
                       dense: true,
                       title: Text(
                         location.name,
-                        style:
-                            Theme.of(context).textTheme.labelMedium,
+                        style: Theme.of(context).textTheme.labelMedium,
                       ),
                       onTap: () {
-                        context
-                            .read<CreateroomBloc>()
-                            .add(AddLocationEvent(location));
+                        context.read<CreateroomBloc>().add(
+                          AddLocationEvent(location),
+                        );
                       },
                     );
                   },
@@ -124,14 +119,15 @@ class _LocationPickerState extends State<LocationPicker> {
             if (state.selectedLocation != null)
               Wrap(
                 children: [
-                  InterestChip(
-                    label: state.selectedLocation!.name,
-                    onRemove: () {
-                      context
-                          .read<CreateroomBloc>()
-                          .add(RemoveLocationEvent());
-                    },
-                  ),
+                  if (state.selectedLocation != null)
+                    InterestChip(
+                      label: state.selectedLocation!.name,
+                      onRemove: () {
+                        context.read<CreateroomBloc>().add(
+                          RemoveLocationEvent(),
+                        );
+                      },
+                    ),
                 ],
               ),
           ],
