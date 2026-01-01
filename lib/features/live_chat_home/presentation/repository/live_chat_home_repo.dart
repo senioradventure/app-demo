@@ -17,7 +17,7 @@ class LiveChatHomeRepository {
 
 
   Future<List<Contact>> fetchRooms() async {
-    final response = await supabase.from('live_chat_rooms').select();
+    final response = await supabase.from('live_chat_rooms').select().order('id', ascending: false);
     final rooms= response
         .map<Contact>((json) => Contact.fromJson(json))
         .toList();
