@@ -135,6 +135,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                               },
                               maxLength: 40,
                               decoration: InputDecoration(
+                                counterText: '',
                                 fillColor: Colors.white,
                                 filled: true,
                                 hintText: "Give you circle a name",
