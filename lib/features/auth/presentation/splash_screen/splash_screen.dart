@@ -14,7 +14,7 @@ class SplashPage extends StatelessWidget {
   final AuthRepository _authRepository = AuthRepository();
 
   void _checkSession(BuildContext context) {
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 5), () {
       final hasSession = _authRepository.hasActiveSession();
 
       if (hasSession) {
