@@ -86,12 +86,14 @@ Future<void> updateVisibility({
   required String userId,
   required ProfileVisibility visibility,
 }) async {
-  await supabase
+  final res = await supabase
       .from('user_settings')
       .update({
         'friend_request_privacy': visibility.supabaseValue,
       })
       .eq('user_id', userId);
+
+  print('🟢 [Repo] UPDATE result: $res');
 }
 
 
