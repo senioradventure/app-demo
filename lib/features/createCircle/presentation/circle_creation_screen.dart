@@ -40,6 +40,8 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
+
       backgroundColor: Colors.grey.shade200,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -133,6 +135,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                               },
                               maxLength: 40,
                               decoration: InputDecoration(
+                                counterText: '',
                                 fillColor: Colors.white,
                                 filled: true,
                                 hintText: "Give you circle a name",
@@ -286,70 +289,146 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                   ],
                 ),
               ),
-              Container(height: 1, color: Colors.grey.shade300),
-              InkWell(
-                onTap: state.status == CreateCircleStatus.submitting
-                    ? null
-                    : () {
-                        if (txtController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter a circle name'),
-                            ),
-                          );
-                          return;
-                        }
-                        context.read<CreateCircleBloc>().add(
-                          CreateCircle(
-                            name: txtController.text.trim(),
-                            image: _pickedImage != null
-                                ? File(_pickedImage!.path)
-                                : null,
-                          ),
-                        );
-                      },
-                child: Container(
-                  width: double.infinity,
-                  height: 55,
-                  color: state.status == CreateCircleStatus.submitting
-                      ? Colors.grey
-                      : const Color(0xFF4A90E2),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (state.status == CreateCircleStatus.submitting)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 8.0),
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        )
-                      else
-                        const Icon(Icons.add, color: Colors.white),
-                      if (state.status != CreateCircleStatus.submitting)
-                        const SizedBox(width: 8),
-                      const Text(
-                        "CREATE",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // Container(height: 1, color: Colors.grey.shade300),
+              // InkWell(
+              //   onTap: state.status == CreateCircleStatus.submitting
+              //       ? null
+              //       : () {
+              //           if (txtController.text.trim().isEmpty) {
+              //             ScaffoldMessenger.of(context).showSnackBar(
+              //               const SnackBar(
+              //                 content: Text('Please enter a circle name'),
+              //               ),
+              //             );
+              //             return;
+              //           }
+              //           context.read<CreateCircleBloc>().add(
+              //             CreateCircle(
+              //               name: txtController.text.trim(),
+              //               image: _pickedImage != null
+              //                   ? File(_pickedImage!.path)
+              //                   : null,
+              //             ),
+              //           );
+              //         },
+              //   child: Container(
+              //     width: double.infinity,
+              //     height: 55,
+              //     color: state.status == CreateCircleStatus.submitting
+              //         ? Colors.grey
+              //         : const Color(0xFF4A90E2),
+              //     child: Row(
+              //       mainAxisAlignment: MainAxisAlignment.center,
+              //       children: [
+              //         if (state.status == CreateCircleStatus.submitting)
+              //           const Padding(
+              //             padding: EdgeInsets.only(right: 8.0),
+              //             child: SizedBox(
+              //               width: 20,
+              //               height: 20,
+              //               child: CircularProgressIndicator(
+              //                 color: Colors.white,
+              //                 strokeWidth: 2,
+              //               ),
+              //             ),
+              //           )
+              //         else
+              //           const Icon(Icons.add, color: Colors.white),
+              //         if (state.status != CreateCircleStatus.submitting)
+              //           const SizedBox(width: 8),
+              //         const Text(
+              //           "CREATE",
+              //           style: TextStyle(
+              //             color: Colors.white,
+              //             fontSize: 16,
+              //             fontWeight: FontWeight.bold,
+              //             letterSpacing: 1.0,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
             ],
           );
         },
       ),
+      bottomNavigationBar: BlocBuilder<CreateCircleBloc, CreateCircleState>(
+  builder: (context, state) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(height: 1, color: Colors.grey.shade300),
+
+          InkWell(
+            onTap: state.status == CreateCircleStatus.submitting
+                ? null
+                : () {
+                    if (txtController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please enter a circle name'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    context.read<CreateCircleBloc>().add(
+                      CreateCircle(
+                        name: txtController.text.trim(),
+                        image: _pickedImage != null
+                            ? File(_pickedImage!.path)
+                            : null,
+                      ),
+                    );
+                  },
+            child: Container(
+              width: double.infinity,
+              height: 55,
+              color: state.status == CreateCircleStatus.submitting
+                  ? Colors.grey
+                  : const Color(0xFF4A90E2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (state.status == CreateCircleStatus.submitting)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    )
+                  else
+                    const Icon(Icons.add, color: Colors.white),
+
+                  if (state.status != CreateCircleStatus.submitting)
+                    const SizedBox(width: 8),
+
+                  const Text(
+                    "CREATE",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+),
+
     );
   }
 }
