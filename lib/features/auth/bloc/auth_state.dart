@@ -36,6 +36,8 @@ class AuthError extends AuthState {
 }
 
 class CreateUserState extends AuthState {
+  static const _unset = Object();
+
   final AuthModel authModel;
 
   final String locationQuery;
@@ -69,7 +71,7 @@ class CreateUserState extends AuthState {
     File? profileFile,
     String? locationQuery,
     List<LocationModel>? filteredLocation,
-    LocationModel? selectedLocation,
+    Object? selectedLocation = _unset, // ✅ CHANGE TYPE
     bool? showLocationDropdown,
     bool? isSubmitting,
   }) {
@@ -81,7 +83,12 @@ class CreateUserState extends AuthState {
           ),
       locationQuery: locationQuery ?? this.locationQuery,
       filteredLocation: filteredLocation ?? this.filteredLocation,
-      selectedLocation: selectedLocation ?? this.selectedLocation,
+
+      // ✅ KEY FIX
+      selectedLocation: selectedLocation == _unset
+          ? this.selectedLocation
+          : selectedLocation as LocationModel?,
+
       showLocationDropdown: showLocationDropdown ?? this.showLocationDropdown,
       isSubmitting: isSubmitting ?? this.isSubmitting,
     );

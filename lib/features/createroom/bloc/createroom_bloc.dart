@@ -120,8 +120,6 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
       }
     });
 
-
-
     // ---------- LOCATION SEARCH ----------
     on<SearchLocationEvent>((event, emit) {
       final query = event.query.toLowerCase();
@@ -157,7 +155,14 @@ class CreateroomBloc extends Bloc<CreateroomEvent, CreateroomState> {
 
     // ---------- REMOVE LOCATION ----------
     on<RemoveLocationEvent>((event, emit) {
-      emit(state.copyWith(selectedLocation: null));
+      emit(
+        state.copyWith(
+          selectedLocation: null,
+          locationQuery: '',
+          filteredLocation: [],
+          showLocationDropdown: true,
+        ),
+      );
     });
 
     // ---------- CONFIRM ----------

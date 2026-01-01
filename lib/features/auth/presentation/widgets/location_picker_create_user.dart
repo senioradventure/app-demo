@@ -9,7 +9,11 @@ import 'package:senior_circle/features/createroom/presentation/widgets/create_ro
 class LocationPickerCreateUser extends StatefulWidget {
   final Function(LocationModel?)? onChanged;
 
-  const LocationPickerCreateUser({super.key, this.onChanged, String? initialLocationId});
+  const LocationPickerCreateUser({
+    super.key,
+    this.onChanged,
+    String? initialLocationId,
+  });
 
   @override
   State<LocationPickerCreateUser> createState() =>
@@ -121,12 +125,13 @@ class _LocationPickerCreateUserState extends State<LocationPickerCreateUser> {
             if (selectedLocation != null)
               Wrap(
                 children: [
-                  InterestChip(
-                    label: selectedLocation.name,
-                    onRemove: () {
-                      context.read<AuthBloc>().add(AuthLocationRemoved());
-                    },
-                  ),
+                  if (state.selectedLocation != null)
+                    InterestChip(
+                      label: state.selectedLocation!.name,
+                      onRemove: () {
+                        context.read<AuthBloc>().add(AuthLocationRemoved());
+                      },
+                    ),
                 ],
               ),
           ],
