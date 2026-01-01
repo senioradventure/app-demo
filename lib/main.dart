@@ -53,10 +53,10 @@ class SeniorCircleApp extends StatelessWidget {
           )..add(LoadProfile()),
         ),
         BlocProvider(
-      create: (_) => ViewFriendsBloc(
-        ViewFriendsRepository(Supabase.instance.client),
-      )..add(LoadFriends()),
-    ),
+          create: (_) =>
+              ViewFriendsBloc(ViewFriendsRepository(Supabase.instance.client))
+                ..add(LoadFriends()),
+        ),
 
         BlocProvider(
           create: (_) =>
@@ -88,6 +88,7 @@ class SeniorCircleApp extends StatelessWidget {
         builder: (context, child) {
           return SafeArea(top: false, bottom: true, child: child!);
         },
+        //SplashScreen
         home: SplashPage(),
       ),
     );
