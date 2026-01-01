@@ -36,6 +36,8 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
 
     final rooms = await repo.fetchRooms();
 
+    emit(state.copyWith(rooms: rooms));
+
     final filtered = _applyFilters(
       rooms,
       state.selectedLocation,
@@ -43,7 +45,7 @@ class LiveChatHomeBloc extends Bloc<LiveChatHomeEvent, LiveChatHomeState> {
       state.search,
     );
 
-    emit(state.copyWith(rooms: rooms, filteredRooms: filtered, loading: false));
+    emit(state.copyWith(filteredRooms: filtered, loading: false));
   }
 
   void _onUpdateLocation(
