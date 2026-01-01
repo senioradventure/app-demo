@@ -75,24 +75,39 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         otp: event.otp,
       );
 
-      if (response.session != null && response.user != null) {
-        allLocations = await locationService.fetchLocations();
+      final user = response.user;
 
-        emit(
-          CreateUserState(
-            authModel: AuthModel(
-              phoneNumber: _phoneNumber!,
-              uid: response.user!.id,
-              profileFile: File(''),
-              name: '',
-              locationId: '',
-            ),
-            filteredLocation: allLocations,
-          ),
-        );
-      } else {
+      if (response.session == null || user == null) {
         emit(const AuthError("Invalid OTP"));
+        return;
       }
+
+      /// 🔹 CHECK IF PROFILE EXISTS
+      final bool profileExists = await _authRepository.doesUserProfileExist(
+        user.id,
+      );
+
+      /// 🔹 EXISTING USER → DASHBOARD
+      if (profileExists) {
+        emit(AuthExistingUser());
+        return;
+      }
+
+      /// 🔹 NEW USER → CREATE PROFILE FLOW
+      allLocations = await locationService.fetchLocations();
+
+      emit(
+        CreateUserState(
+          authModel: AuthModel(
+            phoneNumber: _phoneNumber!,
+            uid: user.id,
+            profileFile: File(''),
+            name: '',
+            locationId: '',
+          ),
+          filteredLocation: allLocations,
+        ),
+      );
     } catch (_) {
       emit(const AuthError("OTP verification failed"));
     }
