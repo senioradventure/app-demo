@@ -27,8 +27,8 @@ class UserCountBadge extends StatelessWidget {
         children: [
           Image.asset(
             'assets/icons/user.png',
-            width: 16,
-            height: 16,
+            width: 14,
+            height: 14,
             color: iconColor,
             filterQuality: FilterQuality.high,
           ),
