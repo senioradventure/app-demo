@@ -211,11 +211,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       currentState.copyWith(
         selectedLocation: null,
         locationQuery: '',
-        filteredLocation: [], // ✅ important
-        showLocationDropdown: true, // ✅ MUST be true
-        authModel: currentState.authModel.copyWith(
-          locationId: null, // ✅ use null, not empty string
-        ),
+        filteredLocation: [],
+        showLocationDropdown: true,
+        authModel: currentState.authModel.copyWith(locationId: null),
       ),
     );
   }
