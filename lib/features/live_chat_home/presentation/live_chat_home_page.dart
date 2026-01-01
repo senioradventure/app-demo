@@ -5,7 +5,6 @@ import 'package:senior_circle/core/constants/strings/lists.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createroom/presentation/create_room_screen.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
-import 'package:senior_circle/features/live_chat_home/presentation/widget/common_page_header.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/contact_list.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/floating_button.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/interest_filter_button.dart';

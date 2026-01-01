@@ -47,8 +47,8 @@ class LocationFilterButton extends StatelessWidget {
           ),
           items: [
             const PopupMenuItem(
-              value: "None",
-              child: Text("None", style: TextStyle(color: Colors.black)),
+              value: "All",
+              child: Text("All", style: TextStyle(color: Colors.black)),
             ),
 
             ...locations.map((item) {
@@ -67,7 +67,7 @@ class LocationFilterButton extends StatelessWidget {
         );
 
         if (selected != null) {
-          onLocationSelected(selected == "None" ? null : selected);
+          onLocationSelected(selected == "All" ? null : selected);
         }
       },
       style: OutlinedButton.styleFrom(
