@@ -9,22 +9,16 @@ import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.
 import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class Chatroom extends StatelessWidget {
-  final ImagePicker picker = ImagePicker();
-  final ValueNotifier<String?> pendingImage = ValueNotifier(null);
-
-  final ValueNotifier<bool> isRequestSent = ValueNotifier<bool>(false);
-
-  final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
-  final TextEditingController messageController = TextEditingController();
-  final ValueNotifier<String?> tappedLink = ValueNotifier(null);
-  final String? title; // or final Contact? contact;
+class Chatroom extends StatefulWidget {
+  final String? title;
   final bool isAdmin;
   final String? imageUrl;
   final bool isNewRoom;
   final File? imageFile;
-  Chatroom({
+
+  const Chatroom({
     super.key,
     this.title,
     this.imageUrl,
@@ -32,11 +26,80 @@ class Chatroom extends StatelessWidget {
     this.isNewRoom = false,
     this.imageFile,
   });
-  void _initMessages() {
-    if (isNewRoom) {
-      chatMessages.value = [];
-    } else {
-      chatMessages.value = List.from(defaultChatMessages);
+
+  @override
+  State<Chatroom> createState() => _ChatroomState();
+}
+
+class _ChatroomState extends State<Chatroom> {
+  final ImagePicker picker = ImagePicker();
+  final ValueNotifier<String?> pendingImage = ValueNotifier(null);
+  final ValueNotifier<bool> isRequestSent = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
+  // notifier to trigger FAB rebuild when either typing or pendingImage changes
+  final ValueNotifier<int> fabRebuild = ValueNotifier<int>(0);
+  final TextEditingController messageController = TextEditingController();
+  final ValueNotifier<String?> tappedLink = ValueNotifier(null);
+
+  // Hardcoded room ID as requested
+  final String _liveChatRoomId = '55d0df8c-b4ff-4464-a555-7d6bc5d0bd08';
+  late final Stream<List<Map<String, dynamic>>> _messagesStream;
+  final _supabase = Supabase.instance.client;
+
+  @override
+  void initState() {
+    super.initState();
+    _messagesStream = _supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .eq('live_chat_room_id', _liveChatRoomId)
+        .order('created_at');
+
+    // rebuild FAB whenever pendingImage or isTyping changes
+    pendingImage.addListener(() => fabRebuild.value++);
+    isTyping.addListener(() => fabRebuild.value++);
+  }
+
+  @override
+  void dispose() {
+    pendingImage.dispose();
+    isRequestSent.dispose();
+    isTyping.dispose();
+    fabRebuild.dispose();
+    messageController.dispose();
+    tappedLink.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendMessage() async {
+    final text = messageController.text.trim();
+    final imagePath = pendingImage.value;
+
+    if (text.isEmpty && imagePath == null) return;
+
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be logged in to send messages')),
+      );
+      return;
+    }
+
+    try {
+      await _supabase.from('messages').insert({
+        'live_chat_room_id': _liveChatRoomId,
+        'sender_id': user.id,
+        'content': text,
+        'media_type': 'text',
+      });
+
+      messageController.clear();
+      pendingImage.value = null;
+      isTyping.value = false;
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error sending message: $e')));
     }
   }
 
@@ -106,7 +169,6 @@ class Chatroom extends StatelessWidget {
                                     backgroundImage: avatarImage,
                                   ),
                                 ),
-
                                 const SizedBox(height: 10),
                                 Text(
                                   msg.name ?? '',
@@ -138,7 +200,6 @@ class Chatroom extends StatelessWidget {
                               ],
                             ),
                           ),
-
                           if (msg.isFriend)
                             Container(
                               width: double.infinity,
@@ -289,9 +350,7 @@ class Chatroom extends StatelessWidget {
 
   Future<void> _openLink(String rawUrl) async {
     final String url = rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
-
     final uri = Uri.parse(url);
-
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -319,7 +378,6 @@ class Chatroom extends StatelessWidget {
           }
 
           final matched = text.substring(match.start, match.end);
-
           final bool isPhone = RegExp(r'^[\d\s\-\+]+$').hasMatch(matched);
           final bool isActive = active == matched;
 
@@ -376,7 +434,8 @@ class Chatroom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _initMessages();
+    final currentUserId = _supabase.auth.currentUser?.id ?? '';
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
@@ -397,10 +456,9 @@ class Chatroom extends StatelessWidget {
                 height: MediaQuery.of(context).padding.top,
                 color: Colors.white,
               ),
-
               InkWell(
                 onTap: () {
-                  if (!isAdmin) {
+                  if (!widget.isAdmin) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -428,7 +486,6 @@ class Chatroom extends StatelessWidget {
                           icon: const Icon(Icons.arrow_back),
                           onPressed: () {
                             currentPageIndex.value = 0;
-
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
@@ -438,27 +495,24 @@ class Chatroom extends StatelessWidget {
                             );
                           },
                         ),
-
                         CircleAvatar(
                           radius: 20,
-                          backgroundImage: imageUrl != null
-                              ? NetworkImage(imageUrl!)
+                          backgroundImage: widget.imageUrl != null
+                              ? NetworkImage(widget.imageUrl!)
                               : const AssetImage("assets/image/Frame_24.png")
                                     as ImageProvider,
                         ),
-
                         const SizedBox(width: 10),
                         Text(
-                          (title != null && title!.length > 14)
-                              ? '${title!.substring(0, 14)}...'
-                              : (title ?? 'Chai Talks'),
+                          (widget.title != null && widget.title!.length > 14)
+                              ? '${widget.title!.substring(0, 14)}...'
+                              : (widget.title ?? 'Chai Talks'),
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 19,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
                         const Spacer(),
                         const Text(
                           '10 Active',
@@ -483,12 +537,19 @@ class Chatroom extends StatelessWidget {
                   ),
                 ),
               ),
-
               Expanded(
-                child: ValueListenableBuilder<List<ChatMessage>>(
-                  valueListenable: chatMessages,
-                  builder: (context, list, _) {
-                    if (list.isEmpty) {
+                child: StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: _messagesStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final messagesData = snapshot.data!;
+                    if (messagesData.isEmpty) {
                       return LayoutBuilder(
                         builder: (context, constraints) {
                           return Stack(
@@ -507,7 +568,6 @@ class Chatroom extends StatelessWidget {
                                   ),
                                 ),
                               ),
-
                               Positioned(
                                 bottom: 10,
                                 left: 0,
@@ -561,16 +621,19 @@ class Chatroom extends StatelessWidget {
                       );
                     }
 
+                    final messages = messagesData
+                        .map((data) => ChatMessage.fromMap(data, currentUserId))
+                        .toList();
+
                     return ListView.builder(
                       padding: const EdgeInsets.fromLTRB(12, 14, 12, 0),
-                      itemCount: list.length,
+                      itemCount: messages.length,
                       itemBuilder: (context, index) {
-                        final msg = list[index];
+                        final msg = messages[index];
 
                         if (msg.isSender) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4, right: 4),
-
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: Container(
@@ -587,7 +650,6 @@ class Chatroom extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
-
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
@@ -629,12 +691,10 @@ class Chatroom extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-
                                     if (msg.text.isNotEmpty) ...[
                                       const SizedBox(height: 6),
                                       _buildMessageText(context, msg),
                                     ],
-
                                     const SizedBox(height: 4),
                                     Text(
                                       msg.time,
@@ -672,7 +732,6 @@ class Chatroom extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 8),
                                   ],
-
                                   Flexible(
                                     child: Column(
                                       crossAxisAlignment:
@@ -689,7 +748,6 @@ class Chatroom extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 9),
                                         ],
-
                                         GestureDetector(
                                           onLongPress: () {
                                             FocusScope.of(context).unfocus();
@@ -772,7 +830,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -822,7 +879,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -866,7 +922,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -910,7 +965,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -1046,7 +1100,6 @@ class Chatroom extends StatelessWidget {
           ),
         ),
       ),
-
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -1094,7 +1147,6 @@ class Chatroom extends StatelessWidget {
                   );
                 },
               ),
-
               Container(
                 height: 75,
                 color: const Color(0xFFF9F9F7),
@@ -1116,7 +1168,6 @@ class Chatroom extends StatelessWidget {
                         pendingImage.value = picked.path;
                       },
                     ),
-
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1141,41 +1192,21 @@ class Chatroom extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 8),
-
                     GestureDetector(
                       onTap: () {
-                        if (!isTyping.value && pendingImage.value == null)
-                          return;
-
-                        final now = TimeOfDay.now();
-                        final formatted =
-                            "${now.hourOfPeriod}:${now.minute.toString().padLeft(2, '0')} "
-                            "${now.period == DayPeriod.am ? 'AM' : 'PM'}";
-
-                        chatMessages.value = [
-                          ...chatMessages.value,
-                          ChatMessage(
-                            isSender: true,
-                            text: messageController.text,
-                            time: formatted,
-                            imageFile: pendingImage.value,
-                          ),
-                        ];
-
-                        messageController.clear();
-                        pendingImage.value = null;
-                        isTyping.value = false;
+                        _sendMessage();
                       },
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: isTyping,
-                        builder: (context, typing, _) {
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: fabRebuild,
+                        builder: (context, _, __) {
+                          final showFab2 =
+                              isTyping.value || pendingImage.value != null;
                           return SizedBox(
                             width: 50,
                             height: 50,
                             child: Image.asset(
-                              typing || pendingImage.value != null
+                              showFab2
                                   ? 'assets/icons/fab2.png'
                                   : 'assets/icons/fab.png',
                             ),
