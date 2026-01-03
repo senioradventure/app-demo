@@ -37,7 +37,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.white,
       appBar: MyCircleChatroomAppBar(chat: widget.chat,isAdmin: widget.isAdmin,),
       body: Column(
         children: [

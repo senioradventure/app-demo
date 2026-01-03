@@ -1151,10 +1151,10 @@ class _ChatroomState extends State<Chatroom> {
                 height: 75,
                 color: const Color(0xFFF9F9F7),
                 padding: const EdgeInsets.only(
-                  left: 0,
-                  right: 8,
-                  top: 6,
-                  bottom: 6,
+                  left: 16,
+                  right: 16,
+                  top: 12,
+                  bottom: 12,
                 ),
                 child: Row(
                   children: [
@@ -1170,7 +1170,10 @@ class _ChatroomState extends State<Chatroom> {
                     ),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
@@ -1188,6 +1191,9 @@ class _ChatroomState extends State<Chatroom> {
                           decoration: const InputDecoration(
                             hintText: 'Type a message',
                             border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
                           ),
                         ),
                       ),

@@ -70,7 +70,7 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
 
       if (!mounted) return;
 
-      Navigator.push(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (_) => Chatroom(
@@ -80,9 +80,8 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
             imageFile: widget.previewDetails.imageFile,
           ),
         ),
-      ).then((_) {
-        context.read<LiveChatHomeBloc>().add(FetchRoomsEvent());
-      });
+        (route) => route.isFirst,
+      );
     } catch (e) {
       if (!mounted) return;
 
