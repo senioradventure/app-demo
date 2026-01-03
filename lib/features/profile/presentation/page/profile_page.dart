@@ -4,6 +4,9 @@ import 'package:senior_circle/core/common/widgets/common_app_bar.dart';
 import 'package:senior_circle/core/enum/profile_visibility.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/utils/phone_number_masker.dart';
+import 'package:senior_circle/features/auth/presentation/login/login_page.dart';
+import 'package:senior_circle/features/auth/presentation/widgets/logout_dialog_widget.dart';
+import 'package:senior_circle/features/auth/repositories/auth_repository.dart';
 import 'package:senior_circle/features/profile/bloc/profile_bloc.dart';
 import 'package:senior_circle/features/profile/bloc/profile_event.dart';
 import 'package:senior_circle/features/profile/bloc/profile_state.dart';
@@ -104,10 +107,28 @@ class ProfilePage extends StatelessWidget {
                         Divider(color: AppColors.darkGray, height: 1),
                         supportTile(
                           title: 'Logout',
-                          onTap: () {},
                           textStyle: bodyText,
                           textColor: AppColors.red,
                           iconColor: AppColors.red,
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => LogoutConfirmDialog(
+                                onConfirm: () async {
+                                  final authRepo = AuthRepository();
+
+                                  await authRepo.logout();
+
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (_) => LoginPage(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                },
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
