@@ -18,6 +18,15 @@ class ToggleFriendSelection extends CreateCircleEvent {
   List<Object> get props => [friendId];
 }
 
+class SearchFriends extends CreateCircleEvent {
+  final String query;
+
+  const SearchFriends(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
+
 class CreateCircle extends CreateCircleEvent {
   final String name;
   final File? image;

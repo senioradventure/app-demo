@@ -171,6 +171,11 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                             ),
                             const SizedBox(height: 10),
                             TextField(
+                              onChanged: (value) {
+                                context.read<CreateCircleBloc>().add(
+                                  SearchFriends(value),
+                                );
+                              },
                               decoration: InputDecoration(
                                 fillColor: Colors.white,
                                 filled: true,
@@ -205,7 +210,7 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                     Expanded(
                       child: state.status == CreateCircleStatus.loadingFriends
                           ? const Center(child: CircularProgressIndicator())
-                          : state.friends.isEmpty
+                          : state.filteredFriends.isEmpty
                           ? const Center(child: Text("No friends found"))
                           : ScrollConfiguration(
                               behavior: const ScrollBehavior().copyWith(
@@ -214,9 +219,9 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
                               child: Container(
                                 color: Colors.white,
                                 child: ListView.builder(
-                                  itemCount: state.friends.length,
+                                  itemCount: state.filteredFriends.length,
                                   itemBuilder: (context, index) {
-                                    final friend = state.friends[index];
+                                    final friend = state.filteredFriends[index];
                                     final isSelected = state.selectedFriendIds
                                         .contains(friend.id);
 
@@ -354,81 +359,80 @@ class _CircleCreationScreenState extends State<CircleCreationScreen> {
         },
       ),
       bottomNavigationBar: BlocBuilder<CreateCircleBloc, CreateCircleState>(
-  builder: (context, state) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(height: 1, color: Colors.grey.shade300),
+        builder: (context, state) {
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(height: 1, color: Colors.grey.shade300),
 
-          InkWell(
-            onTap: state.status == CreateCircleStatus.submitting
-                ? null
-                : () {
-                    if (txtController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter a circle name'),
+                InkWell(
+                  onTap: state.status == CreateCircleStatus.submitting
+                      ? null
+                      : () {
+                          if (txtController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please enter a circle name'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          context.read<CreateCircleBloc>().add(
+                            CreateCircle(
+                              name: txtController.text.trim(),
+                              image: _pickedImage != null
+                                  ? File(_pickedImage!.path)
+                                  : null,
+                            ),
+                          );
+                        },
+                  child: Container(
+                    width: double.infinity,
+                    height: 55,
+                    color: state.status == CreateCircleStatus.submitting
+                        ? Colors.grey
+                        : const Color(0xFF4A90E2),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (state.status == CreateCircleStatus.submitting)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 8.0),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          )
+                        else
+                          const Icon(Icons.add, color: Colors.white),
+
+                        if (state.status != CreateCircleStatus.submitting)
+                          const SizedBox(width: 8),
+
+                        const Text(
+                          "CREATE",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
                         ),
-                      );
-                      return;
-                    }
-
-                    context.read<CreateCircleBloc>().add(
-                      CreateCircle(
-                        name: txtController.text.trim(),
-                        image: _pickedImage != null
-                            ? File(_pickedImage!.path)
-                            : null,
-                      ),
-                    );
-                  },
-            child: Container(
-              width: double.infinity,
-              height: 55,
-              color: state.status == CreateCircleStatus.submitting
-                  ? Colors.grey
-                  : const Color(0xFF4A90E2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (state.status == CreateCircleStatus.submitting)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 8.0),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    )
-                  else
-                    const Icon(Icons.add, color: Colors.white),
-
-                  if (state.status != CreateCircleStatus.submitting)
-                    const SizedBox(width: 8),
-
-                  const Text(
-                    "CREATE",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
-    );
-  },
-),
-
     );
   }
 }
