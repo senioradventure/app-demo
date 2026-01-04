@@ -114,7 +114,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                             fit: BoxFit.contain,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        // Push text contents down
+                        const SizedBox(height: 55),
 
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -136,7 +137,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
                               // Subtitle
                               Text(
-                                "6 Digit otp has been sent to $phoneNumber",
+                                "6 Digit otp has been sent to +91 $phoneNumber",
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
@@ -150,8 +151,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: List.generate(6, (index) {
                                   return Container(
-                                    width: 45,
-                                    height: 50,
+                                    width: 50,
+                                    height: 40, // Elongated height
                                     margin: const EdgeInsets.symmetric(
                                       horizontal: 4,
                                     ),
