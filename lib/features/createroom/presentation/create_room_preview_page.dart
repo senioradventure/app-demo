@@ -78,10 +78,13 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
             isAdmin: true,
             isNewRoom: true,
             imageFile: widget.previewDetails.imageFile,
+            roomId: roomId,
           ),
         ),
         (route) => route.isFirst,
-      );
+      ).then((_){
+        context.read<LiveChatHomeBloc>().add(FetchRoomsEvent());
+      });
     } catch (e) {
       if (!mounted) return;
 
