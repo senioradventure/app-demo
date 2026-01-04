@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/gestures.dart';
@@ -10,6 +11,7 @@ import 'package:senior_circle/features/live_chat_home/presentation/widget/main_b
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class Chatroom extends StatefulWidget {
   final String? title;
@@ -17,6 +19,7 @@ class Chatroom extends StatefulWidget {
   final String? imageUrl;
   final bool isNewRoom;
   final File? imageFile;
+  final String? roomId;
 
   const Chatroom({
     super.key,
@@ -25,6 +28,7 @@ class Chatroom extends StatefulWidget {
     this.isAdmin = true,
     this.isNewRoom = false,
     this.imageFile,
+    this.roomId,
   });
 
   @override
@@ -36,26 +40,40 @@ class _ChatroomState extends State<Chatroom> {
   final ValueNotifier<String?> pendingImage = ValueNotifier(null);
   final ValueNotifier<bool> isRequestSent = ValueNotifier<bool>(false);
   final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
-  // notifier to trigger FAB rebuild when either typing or pendingImage changes
   final ValueNotifier<int> fabRebuild = ValueNotifier<int>(0);
   final TextEditingController messageController = TextEditingController();
   final ValueNotifier<String?> tappedLink = ValueNotifier(null);
+  final ScrollController _scrollController = ScrollController();
 
-  // Hardcoded room ID as requested
-  final String _liveChatRoomId = '55d0df8c-b4ff-4464-a555-7d6bc5d0bd08';
+  late final String _liveChatRoomId;
   late final Stream<List<Map<String, dynamic>>> _messagesStream;
   final _supabase = Supabase.instance.client;
+  final _uuid = const Uuid();
+  final List<ChatMessage> _optimisticMessages = [];
+
+  String _formatTime(DateTime dateTime) {
+    final localTime = dateTime.toLocal();
+    final hour = localTime.hour > 12
+        ? localTime.hour - 12
+        : (localTime.hour == 0 ? 12 : localTime.hour);
+    final period = localTime.hour >= 12 ? 'PM' : 'AM';
+    final minute = localTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
+  }
 
   @override
   void initState() {
     super.initState();
+
+    assert(widget.roomId != null, 'Chatroom opened without roomId');
+    _liveChatRoomId = widget.roomId!;
+
     _messagesStream = _supabase
         .from('messages')
         .stream(primaryKey: ['id'])
         .eq('live_chat_room_id', _liveChatRoomId)
-        .order('created_at');
+        .order('created_at', ascending: true);
 
-    // rebuild FAB whenever pendingImage or isTyping changes
     pendingImage.addListener(() => fabRebuild.value++);
     isTyping.addListener(() => fabRebuild.value++);
   }
@@ -66,6 +84,7 @@ class _ChatroomState extends State<Chatroom> {
     isRequestSent.dispose();
     isTyping.dispose();
     fabRebuild.dispose();
+    _scrollController.dispose();
     messageController.dispose();
     tappedLink.dispose();
     super.dispose();
@@ -78,25 +97,62 @@ class _ChatroomState extends State<Chatroom> {
     if (text.isEmpty && imagePath == null) return;
 
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to send messages')),
-      );
-      return;
-    }
+    if (user == null) return;
 
     try {
-      await _supabase.from('messages').insert({
-        'live_chat_room_id': _liveChatRoomId,
-        'sender_id': user.id,
-        'content': text,
-        'media_type': 'text',
+      final tempId = _uuid.v4();
+      final now = DateTime.now();
+      final tempMsg = ChatMessage(
+        id: tempId,
+        isSender: true,
+        text: text,
+        time: _formatTime(now),
+        imageFile: imagePath,
+        name: 'You',
+        profileAsset: null,
+      );
+
+      setState(() {
+        _optimisticMessages.add(tempMsg);
+        messageController.clear();
+        pendingImage.value = null;
+        isTyping.value = false;
       });
 
-      messageController.clear();
-      pendingImage.value = null;
-      isTyping.value = false;
+      String? mediaUrl;
+      String mediaType = 'text';
+
+      if (imagePath != null) {
+        final file = File(imagePath);
+        final fileExt = imagePath.split('.').last;
+        final fileName = 'messages/${_uuid.v4()}.$fileExt';
+
+        await _supabase.storage
+            .from('media')
+            .upload(
+              fileName,
+              file,
+              fileOptions: const FileOptions(upsert: false),
+            );
+
+        mediaUrl = _supabase.storage.from('media').getPublicUrl(fileName);
+        mediaType = 'image';
+      }
+
+      await _supabase.from('messages').insert({
+        'live_chat_room_id': _liveChatRoomId,
+        'id': tempId,
+        'conversation_id': null,
+        'circle_id': null,
+        'sender_id': user.id,
+        'content': text,
+        'media_type': mediaType,
+        'media_url': mediaUrl,
+      });
     } catch (e) {
+      setState(() {
+        if (_optimisticMessages.isNotEmpty) _optimisticMessages.removeLast();
+      });
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error sending message: $e')));
@@ -434,6 +490,8 @@ class _ChatroomState extends State<Chatroom> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('CHATROOM USING ROOM ID = $_liveChatRoomId');
+
     final currentUserId = _supabase.auth.currentUser?.id ?? '';
 
     return Scaffold(
@@ -544,12 +602,21 @@ class _ChatroomState extends State<Chatroom> {
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     }
+
                     if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
+                    final messagesData = List<Map<String, dynamic>>.from(
+                      snapshot.data!,
+                    );
 
-                    final messagesData = snapshot.data!;
-                    if (messagesData.isEmpty) {
+                    messagesData.sort(
+                      (a, b) => DateTime.parse(
+                        a['created_at'],
+                      ).compareTo(DateTime.parse(b['created_at'])),
+                    );
+
+                    if (messagesData.isEmpty && _optimisticMessages.isEmpty) {
                       return LayoutBuilder(
                         builder: (context, constraints) {
                           return Stack(
@@ -624,12 +691,26 @@ class _ChatroomState extends State<Chatroom> {
                     final messages = messagesData
                         .map((data) => ChatMessage.fromMap(data, currentUserId))
                         .toList();
+                    final streamIds = messages.map((m) => m.id).toSet();
+                    final pendingOptimistic = _optimisticMessages
+                        .where((m) => !streamIds.contains(m.id))
+                        .toList();
+
+                    messages.addAll(pendingOptimistic);
+
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scrollController.hasClients) {
+                        _scrollController.jumpTo(0);
+                      }
+                    });
 
                     return ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
                       padding: const EdgeInsets.fromLTRB(12, 14, 12, 0),
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
-                        final msg = messages[index];
+                        final msg = messages[messages.length - 1 - index];
 
                         if (msg.isSender) {
                           return Padding(
@@ -680,10 +761,17 @@ class _ChatroomState extends State<Chatroom> {
                                                   0.45,
                                             ),
                                             child: msg.imageFile != null
-                                                ? Image.file(
-                                                    File(msg.imageFile!),
-                                                    fit: BoxFit.contain,
-                                                  )
+                                                ? (msg.imageFile!.startsWith(
+                                                        'http',
+                                                      )
+                                                      ? Image.network(
+                                                          msg.imageFile!,
+                                                          fit: BoxFit.contain,
+                                                        )
+                                                      : Image.file(
+                                                          File(msg.imageFile!),
+                                                          fit: BoxFit.contain,
+                                                        ))
                                                 : Image.asset(
                                                     msg.imageAsset!,
                                                     fit: BoxFit.cover,
@@ -1011,7 +1099,9 @@ class _ChatroomState extends State<Chatroom> {
                                           },
                                           child: Container(
                                             constraints: BoxConstraints(
-                                              maxWidth: msg.imageAsset != null
+                                              maxWidth:
+                                                  (msg.imageAsset != null ||
+                                                      msg.imageFile != null)
                                                   ? MediaQuery.of(
                                                           context,
                                                         ).size.width *
@@ -1031,7 +1121,8 @@ class _ChatroomState extends State<Chatroom> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                if (msg.imageAsset != null)
+                                                if (msg.imageAsset != null ||
+                                                    msg.imageFile != null)
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.fromLTRB(
@@ -1045,9 +1136,46 @@ class _ChatroomState extends State<Chatroom> {
                                                           BorderRadius.circular(
                                                             12,
                                                           ),
-                                                      child: Image.asset(
-                                                        msg.imageAsset!,
-                                                        fit: BoxFit.cover,
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              maxWidth:
+                                                                  MediaQuery.of(
+                                                                    context,
+                                                                  ).size.width *
+                                                                  0.66,
+                                                              maxHeight:
+                                                                  MediaQuery.of(
+                                                                        context,
+                                                                      )
+                                                                      .size
+                                                                      .height *
+                                                                  0.45,
+                                                            ),
+                                                        child:
+                                                            msg.imageFile !=
+                                                                null
+                                                            ? (msg.imageFile!
+                                                                      .startsWith(
+                                                                        'http',
+                                                                      )
+                                                                  ? Image.network(
+                                                                      msg.imageFile!,
+                                                                      fit: BoxFit
+                                                                          .contain,
+                                                                    )
+                                                                  : Image.file(
+                                                                      File(
+                                                                        msg.imageFile!,
+                                                                      ),
+                                                                      fit: BoxFit
+                                                                          .contain,
+                                                                    ))
+                                                            : Image.asset(
+                                                                msg.imageAsset!,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                              ),
                                                       ),
                                                     ),
                                                   ),
@@ -1226,6 +1354,121 @@ class _ChatroomState extends State<Chatroom> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class LinkedMessageText extends StatefulWidget {
+  final String text;
+  final ChatMessage msg;
+  final Function(String phone, ChatMessage msg) onPhoneTap;
+  final Function(String link) onLinkTap;
+
+  const LinkedMessageText({
+    super.key,
+    required this.text,
+    required this.msg,
+    required this.onPhoneTap,
+    required this.onLinkTap,
+  });
+
+  @override
+  State<LinkedMessageText> createState() => _LinkedMessageTextState();
+}
+
+class _LinkedMessageTextState extends State<LinkedMessageText> {
+  String? _tappedLink;
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  @override
+  void dispose() {
+    for (final recognizer in _recognizers) {
+      recognizer.dispose();
+    }
+    super.dispose();
+  }
+
+  void _handleTap(String value, bool isPhone) {
+    if (isPhone) {
+      widget.onPhoneTap(value, widget.msg);
+    } else {
+      widget.onLinkTap(value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final regex = RegExp(
+      r'(\+?\d[\d\s\-]{6,}\d)|((https?:\/\/|www\.)[^\s]+|[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}(\/\S*)?)',
+    );
+
+    final spans = <TextSpan>[];
+    int currentIndex = 0;
+
+    for (final match in regex.allMatches(widget.text)) {
+      if (match.start > currentIndex) {
+        spans.add(
+          TextSpan(text: widget.text.substring(currentIndex, match.start)),
+        );
+      }
+
+      final matched = widget.text.substring(match.start, match.end);
+      final bool isPhone = RegExp(r'^[\d\s\-\+]+$').hasMatch(matched);
+
+      final recognizer = TapGestureRecognizer()
+        ..onTapDown = (_) {
+          setState(() {
+            _tappedLink = matched;
+          });
+        }
+        ..onTapUp = (_) {
+          Future.delayed(const Duration(milliseconds: 120), () {
+            if (mounted) {
+              setState(() {
+                _tappedLink = null;
+              });
+            }
+          });
+          _handleTap(matched, isPhone);
+        }
+        ..onTapCancel = () {
+          if (mounted) {
+            setState(() {
+              _tappedLink = null;
+            });
+          }
+        };
+
+      _recognizers.add(recognizer);
+
+      final bool isActive = _tappedLink == matched;
+
+      spans.add(
+        TextSpan(
+          text: matched,
+          style: TextStyle(
+            color: isActive
+                ? const Color.fromARGB(255, 2, 100, 181)
+                : Colors.blue,
+            decoration: TextDecoration.none,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: recognizer,
+        ),
+      );
+
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < widget.text.length) {
+      spans.add(TextSpan(text: widget.text.substring(currentIndex)));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 14, color: Colors.black),
+        children: spans,
       ),
     );
   }

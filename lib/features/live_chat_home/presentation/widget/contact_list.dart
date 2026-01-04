@@ -56,8 +56,8 @@ class ContactRoomList extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    Chatroom(title: room.name, imageUrl: room.image_url),
+                  builder: (_) =>
+                    Chatroom(title: room.name, imageUrl: room.image_url, roomId: room.id),
               ),
             );
           },

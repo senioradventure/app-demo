@@ -56,6 +56,7 @@ final ValueNotifier<List<ChatMessage>> chatMessages =
     ]);
 
 class ChatMessage {
+  final String? id;
   final bool isSender;
   final String? profileAsset;
   final String? name;
@@ -66,6 +67,7 @@ class ChatMessage {
   final bool isFriend;
 
   ChatMessage({
+    this.id,
     required this.isSender,
     this.profileAsset,
     this.name,
@@ -81,6 +83,7 @@ class ChatMessage {
     final isSender = senderId == currentUserId;
     final content = map['content'] as String? ?? '';
     final createdAt = map['created_at'] as String?;
+    final id = map['id']?.toString();
 
     String time = '';
     if (createdAt != null) {
@@ -96,16 +99,21 @@ class ChatMessage {
       }
     }
 
+    final mediaUrl = map['media_url'] as String?;
+
     return ChatMessage(
+      id: id,
       isSender: isSender,
       text: content,
       time: time,
       profileAsset: isSender ? null : 'assets/images/Ellipse 1.png',
       name: isSender ? 'You' : 'User',
+      imageFile: mediaUrl,
     );
   }
 
   ChatMessage copyWith({
+    String? id,
     bool? isSender,
     String? profileAsset,
     String? name,
@@ -116,6 +124,7 @@ class ChatMessage {
     bool? isFriend,
   }) {
     return ChatMessage(
+      id: id ?? this.id,
       isSender: isSender ?? this.isSender,
       profileAsset: profileAsset ?? this.profileAsset,
       name: name ?? this.name,
