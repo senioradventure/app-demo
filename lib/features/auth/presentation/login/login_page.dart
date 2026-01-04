@@ -62,7 +62,7 @@ class LoginPage extends StatelessWidget {
                           child: SvgPicture.asset(
                             'assets/images/Welcome.svg',
                             width: double.infinity,
-                            fit: BoxFit.fill,
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(height: 20),
