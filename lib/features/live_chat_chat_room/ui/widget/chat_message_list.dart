@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/live_chat_chat_room_page.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/empty_chat.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/linked_message.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/sender_message_bubble.dart';
@@ -39,8 +38,9 @@ class ChatMessageList extends StatelessWidget {
         final messagesData = List<Map<String, dynamic>>.from(snapshot.data!);
 
         messagesData.sort(
-          (a, b) => DateTime.parse(a['created_at'])
-              .compareTo(DateTime.parse(b['created_at'])),
+          (a, b) => DateTime.parse(
+            a['created_at'],
+          ).compareTo(DateTime.parse(b['created_at'])),
         );
 
         if (messagesData.isEmpty && optimisticMessages.isEmpty) {

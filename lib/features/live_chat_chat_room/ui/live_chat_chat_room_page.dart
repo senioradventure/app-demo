@@ -2,20 +2,10 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/gestures.dart';
-import 'package:senior_circle/features/chat/ui/room_details.dart';
-import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/chat_header.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/chat_message_list.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/widget/empty_chat.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/widget/message_action_dialog.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/message_input_bar.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/widget/receiver_message_bubble.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/widget/sender_message_bubble.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/widget/user_bottom_sheet.dart';
-import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
-import 'package:senior_circle/features/tab/tab.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -224,4 +214,3 @@ class _ChatroomState extends State<Chatroom> {
     );
   }
 }
-

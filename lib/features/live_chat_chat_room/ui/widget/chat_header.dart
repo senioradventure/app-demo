@@ -23,16 +23,12 @@ class ChatHeaderWidget extends StatelessWidget {
         if (!isAdmin) {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const ChatDetailsScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
           );
         } else {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const ChatDetailsScreenadmin(),
-            ),
+            MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
           );
         }
       },
@@ -50,9 +46,7 @@ class ChatHeaderWidget extends StatelessWidget {
                   currentPageIndex.value = 0;
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => TabSelectorWidget(),
-                    ),
+                    MaterialPageRoute(builder: (_) => TabSelectorWidget()),
                     (route) => false,
                   );
                 },
@@ -62,7 +56,7 @@ class ChatHeaderWidget extends StatelessWidget {
                 backgroundImage: imageUrl != null
                     ? NetworkImage(imageUrl!)
                     : const AssetImage("assets/image/Frame_24.png")
-                        as ImageProvider,
+                          as ImageProvider,
               ),
               const SizedBox(width: 10),
               Text(
@@ -86,10 +80,7 @@ class ChatHeaderWidget extends StatelessWidget {
               ),
               const SizedBox(width: 2),
               IconButton(
-                icon: const Icon(
-                  Icons.more_vert,
-                  color: Color(0xFF5C5C5C),
-                ),
+                icon: const Icon(Icons.more_vert, color: Color(0xFF5C5C5C)),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () {},
