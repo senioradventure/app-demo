@@ -141,7 +141,7 @@ class _ChatroomState extends State<Chatroom> {
 
       await _supabase.from('messages').insert({
         'live_chat_room_id': _liveChatRoomId,
-        'id': tempId, 
+        'id': tempId,
         'conversation_id': null,
         'circle_id': null,
         'sender_id': user.id,
@@ -149,7 +149,6 @@ class _ChatroomState extends State<Chatroom> {
         'media_type': mediaType,
         'media_url': mediaUrl,
       });
-
     } catch (e) {
       setState(() {
         if (_optimisticMessages.isNotEmpty) _optimisticMessages.removeLast();
@@ -1355,6 +1354,121 @@ class _ChatroomState extends State<Chatroom> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class LinkedMessageText extends StatefulWidget {
+  final String text;
+  final ChatMessage msg;
+  final Function(String phone, ChatMessage msg) onPhoneTap;
+  final Function(String link) onLinkTap;
+
+  const LinkedMessageText({
+    super.key,
+    required this.text,
+    required this.msg,
+    required this.onPhoneTap,
+    required this.onLinkTap,
+  });
+
+  @override
+  State<LinkedMessageText> createState() => _LinkedMessageTextState();
+}
+
+class _LinkedMessageTextState extends State<LinkedMessageText> {
+  String? _tappedLink;
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  @override
+  void dispose() {
+    for (final recognizer in _recognizers) {
+      recognizer.dispose();
+    }
+    super.dispose();
+  }
+
+  void _handleTap(String value, bool isPhone) {
+    if (isPhone) {
+      widget.onPhoneTap(value, widget.msg);
+    } else {
+      widget.onLinkTap(value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final regex = RegExp(
+      r'(\+?\d[\d\s\-]{6,}\d)|((https?:\/\/|www\.)[^\s]+|[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}(\/\S*)?)',
+    );
+
+    final spans = <TextSpan>[];
+    int currentIndex = 0;
+
+    for (final match in regex.allMatches(widget.text)) {
+      if (match.start > currentIndex) {
+        spans.add(
+          TextSpan(text: widget.text.substring(currentIndex, match.start)),
+        );
+      }
+
+      final matched = widget.text.substring(match.start, match.end);
+      final bool isPhone = RegExp(r'^[\d\s\-\+]+$').hasMatch(matched);
+
+      final recognizer = TapGestureRecognizer()
+        ..onTapDown = (_) {
+          setState(() {
+            _tappedLink = matched;
+          });
+        }
+        ..onTapUp = (_) {
+          Future.delayed(const Duration(milliseconds: 120), () {
+            if (mounted) {
+              setState(() {
+                _tappedLink = null;
+              });
+            }
+          });
+          _handleTap(matched, isPhone);
+        }
+        ..onTapCancel = () {
+          if (mounted) {
+            setState(() {
+              _tappedLink = null;
+            });
+          }
+        };
+
+      _recognizers.add(recognizer);
+
+      final bool isActive = _tappedLink == matched;
+
+      spans.add(
+        TextSpan(
+          text: matched,
+          style: TextStyle(
+            color: isActive
+                ? const Color.fromARGB(255, 2, 100, 181)
+                : Colors.blue,
+            decoration: TextDecoration.none,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: recognizer,
+        ),
+      );
+
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < widget.text.length) {
+      spans.add(TextSpan(text: widget.text.substring(currentIndex)));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 14, color: Colors.black),
+        children: spans,
       ),
     );
   }

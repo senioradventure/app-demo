@@ -10,7 +10,6 @@ import 'package:senior_circle/features/live_chat_home/presentation/widget/floati
 import 'package:senior_circle/features/live_chat_home/presentation/widget/interest_filter_button.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/location_filter_button.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/search_text_field.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LiveChatPage extends StatelessWidget {
   const LiveChatPage({super.key});
@@ -19,13 +18,12 @@ class LiveChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      appBar: ProfileAwareAppBar(title: 'Live Chat',),
+      appBar: ProfileAwareAppBar(title: 'Live Chat'),
       body: SafeArea(
         child: BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
           builder: (context, state) {
             return Column(
               children: [
-               
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -39,9 +37,9 @@ class LiveChatPage extends StatelessWidget {
                     },
                   ),
                 ),
-        
+
                 const SizedBox(height: 8),
-        
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -55,9 +53,9 @@ class LiveChatPage extends StatelessWidget {
                           );
                         },
                       ),
-        
+
                       const SizedBox(width: 15),
-        
+
                       InterestFilterButton(
                         interests: AppLists.interests,
                         selectedInterest: state.selectedInterest,
@@ -70,13 +68,13 @@ class LiveChatPage extends StatelessWidget {
                     ],
                   ),
                 ),
-        
+
                 const SizedBox(height: 16),
-        
+
                 Expanded(
                   child: Container(
                     color: Colors.white,
-        
+
                     child: ContactRoomList(roomList: state.filteredRooms),
                   ),
                 ),
@@ -90,24 +88,10 @@ class LiveChatPage extends StatelessWidget {
         padding: const EdgeInsets.only(right: 23, bottom: 17),
         child: AppFAB(
           onPressed: () async {
-            final result = await Navigator.push<Map<String, dynamic>?>(
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const CreateRoomScreen()),
             );
-
-            if (!context.mounted) return;
-
-            if (result != null) {
-              await Supabase.instance.client.from('live_chat_rooms').insert({
-                'name': result['roomName'],
-                'image_url': result['imageUrl'],
-                'interests': [],
-              });
-
-              if (!context.mounted) return;
-
-              context.read<LiveChatHomeBloc>().add(FetchRoomsEvent());
-            }
           },
         ),
       ),

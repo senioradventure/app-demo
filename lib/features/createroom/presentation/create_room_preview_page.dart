@@ -70,6 +70,8 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
 
       if (!mounted) return;
 
+      final homeBloc = context.read<LiveChatHomeBloc>();
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -82,8 +84,8 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
           ),
         ),
         (route) => route.isFirst,
-      ).then((_){
-        context.read<LiveChatHomeBloc>().add(FetchRoomsEvent());
+      ).then((_) {
+        homeBloc.add(FetchRoomsEvent());
       });
     } catch (e) {
       if (!mounted) return;
