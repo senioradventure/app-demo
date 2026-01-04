@@ -115,7 +115,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                           ),
                         ),
                         // Push text contents down
-                        const SizedBox(height: 55),
+                        const SizedBox(height: 60),
 
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -137,7 +137,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
                               // Subtitle
                               Text(
-                                "6 Digit otp has been sent to +91 $phoneNumber",
+                                "6 Digit otp has been sent to +91 ${phoneNumber.length >= 5 ? "${phoneNumber.substring(0, 5)} ${phoneNumber.substring(5)}" : phoneNumber}",
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
