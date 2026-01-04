@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/features/auth/bloc/auth_bloc.dart';
 import 'package:senior_circle/features/auth/presentation/otp_verification/otp_verification_page.dart';
 
@@ -56,25 +57,15 @@ class LoginPage extends StatelessWidget {
                       children: [
                         // Hero Image (Full Width)
                         const SizedBox(height: 60),
-                        Image.asset(
-                          'assets/images/Welcome.png',
-                          width: double.infinity,
-                          fit: BoxFit.fitWidth,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 300,
-                              width: double.infinity,
-                              alignment: Alignment.center,
-                              color: Colors.grey[200],
-                              child: const Text(
-                                "Image Asset Missing\nassets/images/Welcome.png",
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          },
+                        Container(
+                          height: 400,
+                          child: SvgPicture.asset(
+                            'assets/images/Welcome.svg',
+                            width: double.infinity,
+                            fit: BoxFit.fill,
+                          ),
                         ),
                         const SizedBox(height: 20),
-
                         // Form Content
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
