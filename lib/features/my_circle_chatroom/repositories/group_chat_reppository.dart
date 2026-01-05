@@ -135,22 +135,37 @@ class GroupChatRepository {
     }
   }
 
-  Future<void> sendGroupMessage({
+  Future<GroupMessage> sendGroupMessage({
     required String circleId,
     required String content,
     String? mediaUrl,
     String mediaType = 'text',
     String? replyToMessageId,
   }) async {
-    await _client.from('messages').insert({
-      'circle_id': circleId,
-      'sender_id': _client.auth.currentUser!.id,
-      'content': content,
-      'media_url': mediaUrl,
-      'media_type': mediaType,
-      'reply_to_message_id': replyToMessageId,
-    });
-    debugPrint('🟩 [GroupChatRepo] Group message inserted');
+    final senderId = _client.auth.currentUser!.id;
+
+    // 1. Insert and select with profile data
+    final response = await _client
+        .from('messages')
+        .insert({
+          'circle_id': circleId,
+          'sender_id': senderId,
+          'content': content,
+          'media_url': mediaUrl,
+          'media_type': mediaType,
+          'reply_to_message_id': replyToMessageId,
+        })
+        .select('*, profiles!messages_sender_id_fkey(full_name, avatar_url)')
+        .single();
+
+    debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
+
+    // 2. Convert to GroupMessage
+    return GroupMessage.fromSupabase(
+      messageRow: response,
+      reactions: const [],
+      replies: const [],
+    );
   }
 
   Future<void> toggleGroupReaction({

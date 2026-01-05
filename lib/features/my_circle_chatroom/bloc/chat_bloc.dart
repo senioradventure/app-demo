@@ -77,13 +77,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       if (event.imagePath != null) {
         debugPrint('🟨 [ChatBloc] Uploading image...');
         imageUrl = await repository.uploadCircleImage(File(event.imagePath!));
-        debugPrint('🟩 [ChatBloc] Image uploaded');
-        debugPrint('🟩 [ChatBloc] Image URL: $imageUrl');
+        debugPrint('🟩 [ChatBloc] Image uploaded: $imageUrl');
       }
 
       debugPrint('🟨 [ChatBloc] Sending message to database');
 
-      await repository.sendGroupMessage(
+      final newMessage = await repository.sendGroupMessage(
         circleId: circleId,
         content: event.text ?? '',
         mediaUrl: imageUrl,
@@ -93,13 +92,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
       debugPrint('🟩 [ChatBloc] Message sent successfully');
 
-      debugPrint('🟨 [ChatBloc] Reloading group messages');
-
-      final messages = await repository.fetchGroupMessages(circleId: circleId);
-
-      debugPrint('🟩 [ChatBloc] Messages reloaded: ${messages.length}');
-
-      emit(state.copyWith(groupMessages: messages));
+      // ✅ Optimistically update UI (Realtime will skip duplicate due to ID check)
+      add(GroupMessageInserted(newMessage));
+      
     } catch (e, st) {
       debugPrint('🟥 [ChatBloc] Error sending message: $e');
       debugPrintStack(stackTrace: st);
