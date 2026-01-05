@@ -4,6 +4,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path/path.dart' as path;
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
+import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'individual_chat_event.dart';
@@ -12,17 +14,19 @@ part 'individual_chat_state.dart';
 class IndividualChatBloc
     extends Bloc<IndividualChatEvent, IndividualChatState> {
   final SupabaseClient _client = Supabase.instance.client;
+  final IndividualChatRepository _repository;
 
   late String _conversationId;
   RealtimeChannel? _channel;
 
-  IndividualChatBloc() : super(IndividualChatInitial()) {
+  IndividualChatBloc(this._repository) : super(IndividualChatInitial()) {
     on<LoadConversationMessages>(_onLoadMessages);
     on<PickMessageImage>(_onPickImage);
     on<RemovePickedImage>(_onRemoveImage);
     on<PickReplyMessage>(_onPickReply);
     on<ClearReplyMessage>(_onClearReply);
     on<SendConversationMessage>(_onSendMessage);
+    on<AddReactionToMessage>(_onAddReaction);
   }
 
   // ---------------------------------------------------------------------------
@@ -36,16 +40,7 @@ class IndividualChatBloc
     emit(IndividualChatLoading());
 
     try {
-      final response = await _client
-          .from('messages')
-          .select()
-          .eq('conversation_id', _conversationId)
-          .isFilter('deleted_at', null)
-          .order('created_at', ascending: true);
-
-      final messages = (response as List)
-          .map((e) => IndividualChatMessageModel.fromSupabase(e))
-          .toList();
+      final messages = await _repository.loadMessages(_conversationId);
 
       emit(
         IndividualChatLoaded(
@@ -89,7 +84,7 @@ class IndividualChatBloc
   }
 
   // ---------------------------------------------------------------------------
-  // SEND MESSAGE (OPTIMISTIC → REMOVE TEMP → REALTIME ADDS REAL)
+  // SEND MESSAGE (OPTIMISTIC)
   // ---------------------------------------------------------------------------
   Future<void> _onSendMessage(
     SendConversationMessage event,
@@ -102,9 +97,9 @@ class IndividualChatBloc
     String? uploadedImageUrl;
 
     try {
-      emit((state as IndividualChatLoaded).copyWith(isSending: true));
+      emit(current.copyWith(isSending: true));
 
-      /// ---------------- IMAGE UPLOAD ----------------
+      // IMAGE UPLOAD
       if (current.imagePath != null) {
         final file = File(current.imagePath!);
         final fileName =
@@ -114,7 +109,7 @@ class IndividualChatBloc
         uploadedImageUrl = _client.storage.from('media').getPublicUrl(fileName);
       }
 
-      /// ---------------- OPTIMISTIC MESSAGE ----------------
+      // OPTIMISTIC MESSAGE
       final optimisticMessage = IndividualChatMessageModel(
         id: tempId,
         senderId: _client.auth.currentUser!.id,
@@ -128,20 +123,15 @@ class IndividualChatBloc
             : null,
       );
 
-      final optimisticMessages = [
-        ...(state as IndividualChatLoaded).messages,
-        optimisticMessage,
-      ];
-
       emit(
-        (state as IndividualChatLoaded).copyWith(
-          messages: optimisticMessages,
+        current.copyWith(
+          messages: [...current.messages, optimisticMessage],
           clearImagePath: true,
           clearReplyTo: true,
         ),
       );
 
-      /// ---------------- INSERT INTO DB & GET REAL DATA ----------------
+      // INSERT REAL MESSAGE
       final response = await _client
           .from('messages')
           .insert({
@@ -150,24 +140,24 @@ class IndividualChatBloc
             'content': event.text,
             'media_url': uploadedImageUrl,
             'media_type': uploadedImageUrl == null ? 'text' : 'image',
-            'reply_to_message_id':
-                optimisticMessage.replyToMessageId, // already safe
+            'reply_to_message_id': optimisticMessage.replyToMessageId,
           })
           .select()
           .single();
 
       final realMessage = IndividualChatMessageModel.fromSupabase(response);
 
-      /// ---------------- REPLACE OPTIMISTIC WITH REAL ----------------
       if (state is IndividualChatLoaded) {
         final live = state as IndividualChatLoaded;
 
-        // Replace the temp message with real message
-        final updatedMessages = live.messages
-            .map((m) => m.id == tempId ? realMessage : m)
-            .toList();
-
-        emit(live.copyWith(messages: updatedMessages, isSending: false));
+        emit(
+          live.copyWith(
+            messages: live.messages
+                .map((m) => m.id == tempId ? realMessage : m)
+                .toList(),
+            isSending: false,
+          ),
+        );
       }
     } catch (e) {
       emit(IndividualChatError(e.toString()));
@@ -175,7 +165,55 @@ class IndividualChatBloc
   }
 
   // ---------------------------------------------------------------------------
-  // REALTIME (ONLY REAL DB MESSAGES ENTER UI)
+  // ADD REACTION
+  // ---------------------------------------------------------------------------
+  Future<void> _onAddReaction(
+    AddReactionToMessage event,
+    Emitter<IndividualChatState> emit,
+  ) async {
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    final userId = _client.auth.currentUser!.id;
+
+    /// 🔥 UPDATE UI IMMEDIATELY
+    final updatedMessages = current.messages.map((m) {
+      if (m.id != event.messageId) return m;
+
+      final existingIndex = m.reactions.indexWhere((r) => r.userId == userId);
+
+      List<MessageReaction> updatedReactions = List.from(m.reactions);
+
+      if (existingIndex != -1) {
+        if (updatedReactions[existingIndex].reaction == event.reaction) {
+          updatedReactions.removeAt(existingIndex); // toggle off
+        } else {
+          updatedReactions[existingIndex] = MessageReaction(
+            id: 'temp',
+            userId: userId,
+            reaction: event.reaction,
+          );
+        }
+      } else {
+        updatedReactions.add(
+          MessageReaction(id: 'temp', userId: userId, reaction: event.reaction),
+        );
+      }
+
+      return m.copyWith(reactions: updatedReactions);
+    }).toList();
+
+    emit(current.copyWith(messages: updatedMessages));
+
+    /// 🔥 THEN UPDATE DATABASE
+    await _repository.addReaction(
+      messageId: event.messageId,
+      reaction: event.reaction,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // REALTIME MESSAGES
   // ---------------------------------------------------------------------------
   void _subscribeToRealtime() {
     _channel?.unsubscribe();
@@ -200,10 +238,7 @@ class IndividualChatBloc
 
             final live = state as IndividualChatLoaded;
 
-            /// Prevent duplicates
-            final exists = live.messages.any((m) => m.id == newMessage.id);
-
-            if (exists) return;
+            if (live.messages.any((m) => m.id == newMessage.id)) return;
 
             emit(live.copyWith(messages: [...live.messages, newMessage]));
           },

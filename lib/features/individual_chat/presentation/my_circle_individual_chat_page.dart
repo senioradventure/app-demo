@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_chat_room_appbar.dart';
-import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_card2.dart';
+import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_card.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_input_field.dart';
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 
@@ -24,7 +24,6 @@ class _MyCircleIndividualChatPageState
   @override
   void initState() {
     super.initState();
-
     /// Load messages ONCE
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<IndividualChatBloc>().add(
@@ -133,7 +132,7 @@ class _MyCircleIndividualChatPageState
                             padding: const EdgeInsets.only(left: 20),
                             child: const Icon(Icons.reply, color: Colors.grey),
                           ),
-                          child: IndividualMessageCard2(message: message),
+                          child: IndividualMessageCard(message: message),
                         );
                       },
                     );

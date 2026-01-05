@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/chat/ui/room_details.dart';
-import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
-import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:senior_circle/features/individual_chat/presentation/widgets/profile_bottom_sheet.dart';
 
 class MyCircleIndividualAppBar extends StatelessWidget
     implements PreferredSizeWidget {
@@ -25,10 +23,7 @@ class MyCircleIndividualAppBar extends StatelessWidget
       titleSpacing: 0,
       title: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
-          );
+          showUserProfileBottomSheet(context, userName, profileUrl);
         },
         child: Row(
           children: [

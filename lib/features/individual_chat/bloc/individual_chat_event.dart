@@ -35,3 +35,13 @@ class SendConversationMessage extends IndividualChatEvent {
   @override
   List<Object?> get props => [text];
 }
+
+class AddReactionToMessage extends IndividualChatEvent {
+  final String messageId;
+  final String reaction;
+
+  const AddReactionToMessage({required this.messageId, required this.reaction});
+
+  @override
+  List<Object?> get props => [messageId, reaction];
+}

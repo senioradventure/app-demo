@@ -9,7 +9,7 @@ class IndividualChatRepository {
   ) async {
     final response = await _client
         .from('messages')
-        .select()
+        .select('*, message_reactions(*)')
         .eq('conversation_id', conversationId)
         .filter('deleted_at', 'is', null)
         .or('expires_at.is.null,expires_at.gt.${DateTime.now().toUtc()}')
@@ -31,6 +31,38 @@ class IndividualChatRepository {
       'content': text,
       'media_url': imagePath,
       'media_type': imagePath == null ? 'text' : 'image',
+    });
+  }
+
+  Future<void> addReaction({
+    required String messageId,
+    required String reaction,
+  }) async {
+    final userId = _client.auth.currentUser!.id;
+
+    final existingResponse = await _client
+        .from('message_reactions')
+        .select()
+        .eq('message_id', messageId)
+        .eq('user_id', userId);
+
+    final existing = (existingResponse as List);
+
+    if (existing.isNotEmpty) {
+      await _client
+          .from('message_reactions')
+          .delete()
+          .eq('id', existing.first['id']);
+
+      if (existing.first['reaction'] == reaction) {
+        return; // toggle off
+      }
+    }
+
+    await _client.from('message_reactions').insert({
+      'message_id': messageId,
+      'user_id': userId,
+      'reaction': reaction,
     });
   }
 }

@@ -8,6 +8,7 @@ import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
@@ -80,7 +81,7 @@ class SeniorCircleApp extends StatelessWidget {
           ),
         ),
         BlocProvider(
-          create: (_) => IndividualChatBloc(),
+          create: (_) => IndividualChatBloc(IndividualChatRepository()),
         ),
       ],
       child: MaterialApp(

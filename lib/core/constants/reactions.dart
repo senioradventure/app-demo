@@ -1,8 +1,1 @@
-
-const List<String> defaultReactions = [
-  '👍',
-  '❤️',
-  '😂',
-  '😮',
-  '😢',
-];
+const List<String> defaultReactions = ['👍', '❤️', '😂', '😮', '😢', '💯'];
