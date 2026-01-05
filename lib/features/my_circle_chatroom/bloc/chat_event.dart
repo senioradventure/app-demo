@@ -69,7 +69,7 @@ class GroupReactionChanged extends ChatEvent {
   final String userId;
   final bool isAdded;
 
-  GroupReactionChanged({
+  const GroupReactionChanged({
     required this.messageId,
     required this.emoji,
     required this.userId,

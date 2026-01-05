@@ -44,7 +44,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
+        0.0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
@@ -92,18 +92,16 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                     itemBuilder: (context, index) {
                       final currentMsg = messages[index];
 
-                    final isContinuation =
-    index < messages.length - 1 &&
-    currentMsg.replyToMessageId == null &&
-    currentMsg.replies.isEmpty && 
-    messages[index + 1].replyToMessageId == null &&
-    messages[index + 1].senderId == currentMsg.senderId;
+                      final isContinuation =
+                          index < messages.length - 1 &&
+                          currentMsg.replyToMessageId == null &&
+                          currentMsg.replies.isEmpty &&
+                          messages[index + 1].replyToMessageId == null &&
+                          messages[index + 1].senderId == currentMsg.senderId;
 
-
-
-                     final isLastInGroup =
-    index == messages.length - 1 ||
-    messages[index + 1].senderId != currentMsg.senderId;
+                      final isLastInGroup =
+                          index == messages.length - 1 ||
+                          messages[index + 1].senderId != currentMsg.senderId;
 
                       return GroupMessageCard(
                         key: ValueKey(currentMsg.id),

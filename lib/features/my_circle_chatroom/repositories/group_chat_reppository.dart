@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'dart:io';
 import '../models/group_message_model.dart';
 import '../mappers/reaction_mapper.dart';
 
@@ -15,22 +15,22 @@ class GroupChatRepository {
     debugPrint('🟦 [GroupChatRepo] Fetching messages for circleId: $circleId');
 
     try {
-      /// 1️⃣ Fetch all messages
       final messageRows = await _client
           .from('messages')
           .select('''
-            id,
-            sender_id,
-            content,
-            media_url,
-            reply_to_message_id,
-            created_at,
-            profiles!messages_sender_id_fkey (
-              id,
-              full_name,
-              avatar_url
-            )
-          ''')
+      id,
+      sender_id,
+      content,
+      media_url,
+      media_type,
+      reply_to_message_id,
+      created_at,
+      profiles!messages_sender_id_fkey (
+        id,
+        full_name,
+        avatar_url
+      )
+    ''')
           .eq('circle_id', circleId)
           .filter('deleted_at', 'is', null)
           .order('created_at');
@@ -61,7 +61,6 @@ class GroupChatRepository {
         '🟩 [GroupChatRepo] Reaction rows fetched: ${reactionRows.length}',
       );
 
-      /// 4️⃣ Group reactions
       final Map<String, List<Map<String, dynamic>>> reactionsByMessage = {};
 
       for (final row in reactionRows) {
@@ -74,11 +73,9 @@ class GroupChatRepository {
         '🟩 [GroupChatRepo] Reactions grouped for ${reactionsByMessage.keys.length} messages',
       );
 
-      /// 5️⃣ Build replies map
       final Map<String, List<GroupMessage>> repliesByParent = {};
       final Map<String, GroupMessage> allMessages = {};
 
-      /// 6️⃣ Create message objects
       for (final row in messageRows) {
         final id = row['id'] as String;
         final replyTo = row['reply_to_message_id'] as String?;
@@ -92,9 +89,7 @@ class GroupChatRepository {
           senderId: row['sender_id'] ?? '',
           senderName: row['profiles']?['full_name'] ?? 'Unknown',
           avatar: row['profiles']?['avatar_url'],
-          text: mediaType == 'text'
-              ? row['content']
-              : row['content'], 
+          text: mediaType == 'text' ? row['content'] : row['content'],
           imagePath: mediaType == 'image' ? row['media_url'] : null,
           time: row['created_at'] as String,
           reactions: reactions,
@@ -114,12 +109,11 @@ class GroupChatRepository {
         'Replies: ${repliesByParent.values.fold<int>(0, (sum, l) => sum + l.length)}',
       );
 
-      /// 7️⃣ Attach replies
       final List<GroupMessage> parentMessages = [];
 
       for (final message in allMessages.values) {
         final updated = message.copyWith(
-          replies: repliesByParent[message.id] ?? const [],
+          replies: (repliesByParent[message.id] ?? []).reversed.toList(),
         );
 
         if (!repliesByParent.values.any(
@@ -142,62 +136,99 @@ class GroupChatRepository {
   }
 
   Future<void> sendGroupMessage({
-  required String circleId,
-  required String content,
-  String? mediaUrl,
-  String mediaType = 'text',
-  String? replyToMessageId,
-}) async {
-  await _client.from('messages').insert({
-    'circle_id': circleId,
-    'sender_id': _client.auth.currentUser!.id,
-    'content': content,
-    'media_url': mediaUrl,
-    'media_type': mediaType,
-    'reply_to_message_id': replyToMessageId,
-  });
-  debugPrint('🟩 [GroupChatRepo] Group message inserted');
-}
+    required String circleId,
+    required String content,
+    String? mediaUrl,
+    String mediaType = 'text',
+    String? replyToMessageId,
+  }) async {
+    await _client.from('messages').insert({
+      'circle_id': circleId,
+      'sender_id': _client.auth.currentUser!.id,
+      'content': content,
+      'media_url': mediaUrl,
+      'media_type': mediaType,
+      'reply_to_message_id': replyToMessageId,
+    });
+    debugPrint('🟩 [GroupChatRepo] Group message inserted');
+  }
 
   Future<void> toggleGroupReaction({
-  required String messageId,
-  required String emoji,
-  required String userId,
-}) async {
-  final existing = await _client
-      .from('message_reactions')
-      .select()
-      .eq('message_id', messageId)
-      .eq('user_id', userId)
-      .eq('reaction', emoji)
-      .maybeSingle();
-
-  if (existing != null) {
-    await _client
+    required String messageId,
+    required String emoji,
+    required String userId,
+  }) async {
+    final existing = await _client
         .from('message_reactions')
-        .delete()
-        .eq('id', existing['id']);
-  } else {
-    await _client.from('message_reactions').insert({
-      'message_id': messageId,
-      'user_id': userId,
-      'reaction': emoji,
+        .select()
+        .eq('message_id', messageId)
+        .eq('user_id', userId)
+        .eq('reaction', emoji)
+        .maybeSingle();
+
+    if (existing != null) {
+      await _client.from('message_reactions').delete().eq('id', existing['id']);
+    } else {
+      await _client.from('message_reactions').insert({
+        'message_id': messageId,
+        'user_id': userId,
+        'reaction': emoji,
+      });
+    }
+  }
+
+  Future<void> sendGroupReply({
+    required String circleId,
+    required String parentMessageId,
+    required String content,
+  }) async {
+    await Supabase.instance.client.from('messages').insert({
+      'circle_id': circleId,
+      'reply_to_message_id': parentMessageId,
+      'content': content,
+      'media_type': 'text',
     });
   }
-}
 
-Future<void> sendGroupReply({
-  required String circleId,
-  required String parentMessageId,
-  required String content,
-}) async {
-  await Supabase.instance.client.from('messages').insert({
-    'circle_id': circleId,
-    'reply_to_message_id': parentMessageId,
-    'content': content,
-    'media_type': 'text',
-  });
-}
+  Future<String> uploadCircleImage(File file) async {
+    debugPrint('🟦 [Upload] Method entered');
+    debugPrint('🟦 [Upload] File path: ${file.path}');
+    debugPrint('🟦 [Upload] File exists: ${file.existsSync()}');
+    debugPrint('🟦 [Upload] File size: ${file.lengthSync()} bytes');
 
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
 
+    final storagePath = 'circle_images/$fileName';
+
+    debugPrint('🟦 [Upload] Storage path: $storagePath');
+    debugPrint('🟦 [Upload] Bucket: media');
+
+    try {
+      debugPrint('🟨 [Upload] Starting Supabase upload...');
+
+      final response = await _client.storage
+          .from('media')
+          .upload(
+            storagePath,
+            file,
+            fileOptions: const FileOptions(upsert: false),
+          );
+
+      debugPrint('🟩 [Upload] Upload completed');
+      debugPrint('🟩 [Upload] Response: $response');
+
+      final publicUrl = _client.storage.from('media').getPublicUrl(storagePath);
+
+      debugPrint('🟩 [Upload] Public URL generated');
+      debugPrint('🟩 [Upload] URL: $publicUrl');
+
+      return publicUrl;
+    } catch (e, st) {
+      debugPrint('🟥 [Upload] FAILED');
+      debugPrint('🟥 Error: $e');
+      debugPrintStack(stackTrace: st);
+      rethrow;
+    }
+  }
 }
