@@ -3,28 +3,6 @@ import 'package:senior_circle/core/common/widgets/individual_profile_icon.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/notification/models/sent_request_model.dart';
 
-final List<SentRequestModel> sentSampleData = [
-  SentRequestModel(
-    name: 'Ramcy',
-    imageUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-    status: RequestStatus.waiting,
-    time: 'Yesterday', id: '6',
-  ),
-  SentRequestModel(
-    name: 'Akhil Menon',
-    imageUrl: 'https://randomuser.me/api/portraits/men/45.jpg',
-    status: RequestStatus.accepted,
-    time: '3d ago', id: '7',
-  ),
-  SentRequestModel(
-    name: 'Priya Sharma',
-    imageUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
-    status: RequestStatus.waiting,
-    time: '5d ago', id: '8',
-  ),
-];
-
-
 class SentRequestTile extends StatelessWidget {
   final String name;
   final RequestStatus status;
@@ -47,27 +25,23 @@ class SentRequestTile extends StatelessWidget {
     return Material(
       color: AppColors.white,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12,horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-      
             individualProfileIcon(hasImage, imageUrl),
-            const SizedBox(width: 12,),
-      
+            const SizedBox(width: 12),
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-               
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       Text(
@@ -80,24 +54,16 @@ class SentRequestTile extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
-      
-      
                   Row(
                     children: [
                       Icon(
-                        isAccepted
-                            ? Icons.circle
-                            : Icons.access_time,
+                        isAccepted ? Icons.circle : Icons.access_time,
                         size: 10,
-                        color: isAccepted
-                            ? Colors.green
-                            : Colors.grey,
+                        color: isAccepted ? Colors.green : Colors.grey,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        isAccepted
-                            ? 'ACCEPTED'
-                            : 'WAITING FOR APPROVAL',
+                        isAccepted ? 'ACCEPTED' : 'WAITING FOR APPROVAL',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
