@@ -10,7 +10,8 @@ import 'package:senior_circle/core/enum/chat_message_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/core/utils/time_utils.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_header.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_reply_input.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -65,7 +66,10 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
   void _handleStar() {
     context.read<ChatBloc>().add(
-      ToggleStar(messageId: widget.grpmessage.id, userId: Supabase.instance.client.auth.currentUser!.id),
+      ToggleStar(
+        messageId: widget.grpmessage.id,
+        userId: Supabase.instance.client.auth.currentUser!.id,
+      ),
     );
   }
 
@@ -79,66 +83,86 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
   void _handleDeleteForMe() {
     context.read<ChatBloc>().add(
-          DeleteGroupMessage(
-            messageId: widget.grpmessage.id,
-            forEveryone: false,
-          ),
-        );
+      DeleteGroupMessage(messageId: widget.grpmessage.id, forEveryone: false),
+    );
   }
 
   void _handleDeleteForEveryone() {
     context.read<ChatBloc>().add(
-          DeleteGroupMessage(
-            messageId: widget.grpmessage.id,
-            forEveryone: true,
-          ),
-        );
+      DeleteGroupMessage(messageId: widget.grpmessage.id, forEveryone: true),
+    );
   }
 
-  Future<void> _showContextMenu(BuildContext context, GroupMessage msg, bool isMe) async {
+  Future<void> _showContextMenu(
+    BuildContext context,
+    GroupMessage msg,
+    bool isMe,
+  ) async {
     final box = context.findRenderObject() as RenderBox;
     final offset = box.localToGlobal(Offset.zero);
     final menuWidth = MediaQuery.of(context).size.width * 0.7;
     final screenWidth = MediaQuery.of(context).size.width;
 
     await showGeneralDialog(
-        context: context,
-        barrierDismissible: true,
-        barrierLabel: "menu",
-        transitionDuration: const Duration(milliseconds: 150),
-        pageBuilder: (_, __, ___) {
-          return Stack(
-            children: [
-              Positioned(
-                top: offset.dy + box.size.height - 60,
-                left: isMe ? (screenWidth - menuWidth) - 16 : 16,
-                width: menuWidth,
-                child: Material(
-                  color: Colors.white,
-                  elevation: 8,
-                  borderRadius: BorderRadius.circular(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                       _buildMenuItem(context, msg.isStarred ? 'UNSTAR' : 'STAR', iconPath: 'assets/icons/star_icon.svg', action: _handleStar),
-                       const PopupMenuDivider(),
-                       _buildMenuItem(context, 'FORWARD', iconPath: 'assets/icons/forward_icon.svg', action: _handleForward),
-                       const PopupMenuDivider(),
-                       _buildMenuItem(context, 'SHARE', iconPath: 'assets/icons/share_icon.svg', action: _handleShare),
-                       const PopupMenuDivider(),
-                       _buildMenuItem(context, 'DELETE FOR ME', action: _handleDeleteForMe),
-                       if (isMe) ...[
-                         const PopupMenuDivider(),
-                         _buildMenuItem(context, 'DELETE FOR EVERYONE', action: _handleDeleteForEveryone),
-                       ],
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "menu",
+      transitionDuration: const Duration(milliseconds: 150),
+      pageBuilder: (_, __, ___) {
+        return Stack(
+          children: [
+            Positioned(
+              top: offset.dy + box.size.height - 60,
+              left: isMe ? (screenWidth - menuWidth) - 16 : 16,
+              width: menuWidth,
+              child: Material(
+                color: Colors.white,
+                elevation: 8,
+                borderRadius: BorderRadius.circular(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      msg.isStarred ? 'UNSTAR' : 'STAR',
+                      iconPath: 'assets/icons/star_icon.svg',
+                      action: _handleStar,
+                    ),
+                    const PopupMenuDivider(),
+                    _buildMenuItem(
+                      context,
+                      'FORWARD',
+                      iconPath: 'assets/icons/forward_icon.svg',
+                      action: _handleForward,
+                    ),
+                    const PopupMenuDivider(),
+                    _buildMenuItem(
+                      context,
+                      'SHARE',
+                      iconPath: 'assets/icons/share_icon.svg',
+                      action: _handleShare,
+                    ),
+                    const PopupMenuDivider(),
+                    _buildMenuItem(
+                      context,
+                      'DELETE FOR ME',
+                      action: _handleDeleteForMe,
+                    ),
+                    if (isMe) ...[
+                      const PopupMenuDivider(),
+                      _buildMenuItem(
+                        context,
+                        'DELETE FOR EVERYONE',
+                        action: _handleDeleteForEveryone,
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          );
-        },
-      
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -155,10 +179,10 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (iconPath != null)
-             Padding(
-               padding: const EdgeInsets.only(right: 4.0),
-               child: SvgPicture.asset(iconPath),
-             ),
+            Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: SvgPicture.asset(iconPath),
+            ),
           Text(title, style: AppTextTheme.lightTextTheme.labelMedium),
         ],
       ),
@@ -208,7 +232,9 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
               bottom: widget.isLastInGroup && !widget.isReply ? 6 : 0,
             ),
             decoration: BoxDecoration(
-              border: widget.isContinuation || widget.isReply ? null : customBorder,
+              border: widget.isContinuation || widget.isReply
+                  ? null
+                  : customBorder,
             ),
             child: Column(
               children: [
@@ -239,11 +265,17 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildHeader(grpmessage, isMe),
+                              GroupMessageHeader(
+                                grpmessage: grpmessage,
+                                isMe: isMe,
+                              ),
 
                               if (grpmessage.imagePath != null)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 4, bottom: 4),
+                                  padding: const EdgeInsets.only(
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
                                   child: ImageMessageBubble(
                                     imagePath: grpmessage.imagePath!,
                                     isMe: isMe,
@@ -255,10 +287,14 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                               if (grpmessage.text != null &&
                                   grpmessage.text!.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 4, bottom: 4),
+                                  padding: const EdgeInsets.only(
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
                                   child: Text(
                                     grpmessage.text!,
-                                    style: AppTextTheme.lightTextTheme.bodyMedium,
+                                    style:
+                                        AppTextTheme.lightTextTheme.bodyMedium,
                                   ),
                                 ),
 
@@ -268,7 +304,8 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                                 reactions: grpmessage.reactions,
                                 onReactionTap: (emoji) =>
                                     _onReactionTap(context, emoji),
-                                isReplyInputVisible: grpmessage.isReplyInputOpen,
+                                isReplyInputVisible:
+                                    grpmessage.isReplyInputOpen,
 
                                 onAddReactionTap: _showEmojiPicker,
                                 onLikeTap: () => _onReactionTap(context, '👍'),
@@ -296,7 +333,11 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
                 if (grpmessage.isReplyInputOpen)
                   Padding(
-                    padding: const EdgeInsets.only(left: 33, right: 12, bottom: 12),
+                    padding: const EdgeInsets.only(
+                      left: 33,
+                      right: 12,
+                      bottom: 12,
+                    ),
                     child: BuildReplyInputField(
                       replyController: _replyController,
                       grpmessage: grpmessage,
@@ -306,39 +347,9 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
             ),
           ),
         );
-      }
+      },
     );
   }
-
-  Widget _buildHeader(GroupMessage grpmessage, bool isMe) => Row(
-    children: [
-      Text(
-        isMe ? 'You' : grpmessage.senderName,
-        style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      const SizedBox(width: 12),
-      Text(
-        TimeUtils.formatTimeString(grpmessage.time),
-        style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      if (grpmessage.isStarred) ...[
-        const SizedBox(width: 8),
-        SvgPicture.asset(
-          'assets/icons/star_icon.svg',
-          height: 12,
-          width: 12,
-          colorFilter: const ColorFilter.mode(
-            Color(0xFFFFC107), // Amber/Gold
-            BlendMode.srcIn,
-          ),
-        ),
-      ],
-    ],
-  );
 
   Widget _buildReplyButton(GroupMessage grpmessage) => Center(
     child: TextButton.icon(
@@ -369,54 +380,4 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
       iconAlignment: IconAlignment.end,
     ),
   );
-}
-
-class BuildReplyInputField extends StatelessWidget {
-  const BuildReplyInputField({
-    super.key,
-    required TextEditingController replyController,
-    required this.grpmessage,
-  }) : _replyController = replyController;
-
-  final TextEditingController _replyController;
-  final GroupMessage grpmessage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: TextField(
-        controller: _replyController,
-        autofocus: true,
-        decoration: InputDecoration(
-          hintText: "Write a reply...",
-          hintStyle: AppTextTheme.lightTextTheme.labelMedium,
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.send, color: AppColors.buttonBlue),
-            onPressed: () {
-              if (_replyController.text.trim().isEmpty) return;
-
-              context.read<ChatBloc>().add(
-                SendGroupMessage(
-                  text: _replyController.text.trim(),
-                  replyToMessageId: grpmessage.id,
-                ),
-              );
-
-              _replyController.clear();
-
-              context.read<ChatBloc>().add(
-                ToggleReplyInput(messageId: grpmessage.id),
-              );
-            },
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide(color: AppColors.borderColor),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-        ),
-      ),
-    );
-  }
 }

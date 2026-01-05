@@ -102,17 +102,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     DeleteGroupMessage event,
     Emitter<ChatState> emit,
   ) async {
-    final updatedMessages = state.groupMessages.where((m) {
-      return m.id != event.messageId; 
-    }).map((m) {
-       if (m.replies.any((r) => r.id == event.messageId)) {
-         return m.copyWith(
-           replies: m.replies.where((r) => r.id != event.messageId).toList(),
-         );
-       }
-       return m;
-    }).toList();
-
+    final updatedMessages = _removeMessageRecursive(state.groupMessages, event.messageId);
     emit(state.copyWith(groupMessages: updatedMessages));
 
     if (event.forEveryone) {
@@ -215,6 +205,20 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       }
     }
     return null;
+  }
+
+  List<GroupMessage> _removeMessageRecursive(
+    List<GroupMessage> messages,
+    String targetId,
+  ) {
+    return messages.where((m) => m.id != targetId).map((m) {
+      if (m.replies.isNotEmpty) {
+        return m.copyWith(
+          replies: _removeMessageRecursive(m.replies, targetId),
+        );
+      }
+      return m;
+    }).toList();
   }
 
   void _onGroupMessageInserted(

@@ -1,4 +1,5 @@
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
+import 'package:flutter/foundation.dart';
 
 class GroupMessage {
   final String id;
@@ -71,10 +72,10 @@ class GroupMessage {
     bool isStarred = false,
   }) {
     if (messageRow['sender_id'] == null) {
-      print('⚠️ Message ${messageRow['id']} has NULL sender_id');
+      debugPrint('⚠️ Message ${messageRow['id']} has NULL sender_id');
     }
 
-    print(
+    debugPrint(
       'GroupMessage.fromSupabase → id=${messageRow['id']} '
       'replyTo=${messageRow['reply_to_message_id']} '
       'reactions=${reactions.length}',
