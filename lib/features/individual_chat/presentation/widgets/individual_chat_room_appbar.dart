@@ -4,16 +4,15 @@ import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 
-class MyCircleChatroomAppBar extends StatelessWidget
+class MyCircleIndividualAppBar extends StatelessWidget
     implements PreferredSizeWidget {
-  const MyCircleChatroomAppBar({
+  const MyCircleIndividualAppBar({
     super.key,
-    required this.chat,
-    this.isAdmin = false,
+    required this.userName,
+    required this.profileUrl,
   });
-
-  final CircleChat chat;
-  final bool isAdmin;
+  final String userName;
+  final String profileUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -26,25 +25,18 @@ class MyCircleChatroomAppBar extends StatelessWidget
       titleSpacing: 0,
       title: InkWell(
         onTap: () {
-          if (isAdmin) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
-            );
-          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
+          );
         },
         child: Row(
           children: [
-            _buildAvatar(),
+            CircleAvatar(backgroundImage: NetworkImage(profileUrl), radius: 16),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                chat.name,
+                userName,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
@@ -60,20 +52,4 @@ class MyCircleChatroomAppBar extends StatelessWidget
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  Widget _buildAvatar() {
-    final hasImage = chat.imageUrl != null && chat.imageUrl!.isNotEmpty;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(chat.isGroup ? 999 : 10),
-      child: Container(
-        width: 32,
-        height: 32,
-        color: AppColors.borderColor,
-        child: hasImage
-            ? Image.network(chat.imageUrl!, fit: BoxFit.cover)
-            : Icon(chat.isGroup ? Icons.group : Icons.person, size: 18),
-      ),
-    );
-  }
 }

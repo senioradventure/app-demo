@@ -35,4 +35,19 @@ class CircleChat {
           : null,
     );
   }
+
+  factory CircleChat.fromConversationRpc(Map<String, dynamic> json) {
+    final otherUser = json['other_user'] as Map<String, dynamic>;
+
+    return CircleChat(
+      id: json['conversation_id'] as String,
+      name: otherUser['full_name'] ?? otherUser['username'] ?? 'Unknown',
+      imageUrl: otherUser['avatar_url'] as String?,
+      adminId: null, // individual chat
+      inviteCode: null,
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+      deletedAt: null,
+    );
+  }
 }
