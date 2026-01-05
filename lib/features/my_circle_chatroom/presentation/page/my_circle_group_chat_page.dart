@@ -11,7 +11,11 @@ import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/m
 import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
 
 class MyCircleGroupChatPage extends StatefulWidget {
-  const MyCircleGroupChatPage({super.key, required this.chat,required this.isAdmin });
+  const MyCircleGroupChatPage({
+    super.key,
+    required this.chat,
+    required this.isAdmin,
+  });
   final CircleChat chat;
   final bool isAdmin;
 
@@ -21,6 +25,7 @@ class MyCircleGroupChatPage extends StatefulWidget {
 
 class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
   final ScrollController _scrollController = ScrollController();
+  bool _initialScrollDone = false;
 
   @override
   void initState() {
@@ -34,49 +39,92 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
     super.dispose();
   }
 
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: MyCircleChatroomAppBar(chat: widget.chat,isAdmin: widget.isAdmin,),
+      appBar: MyCircleChatroomAppBar(
+        chat: widget.chat,
+        isAdmin: widget.isAdmin,
+      ),
       body: Column(
         children: [
-          Expanded(
-            child: BlocSelector<ChatBloc, ChatState, List<GroupMessage>>(
-              selector: (state) => state.groupMessages,
-              builder: (context, messages) {
-                if (messages.isEmpty) {
-                  return const Center(child: Text('No messages yet'));
-                }
-                return ListView.builder(
-                  padding: EdgeInsets.zero,
-                  controller: _scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final currentMsg = messages[index];
+          BlocListener<ChatBloc, ChatState>(
+            listenWhen: (previous, current) =>
+                previous.groupMessages.length != current.groupMessages.length,
+            listener: (context, state) {
+              if (state.groupMessages.isEmpty) return;
+
+              // ✅ Scroll once when page opens
+              if (!_initialScrollDone) {
+                _initialScrollDone = true;
+                _scrollToBottom();
+                return;
+              }
+
+              // ✅ Scroll on new messages
+              _scrollToBottom();
+            },
+            child: Expanded(
+              child: BlocSelector<ChatBloc, ChatState, List<GroupMessage>>(
+                selector: (state) => state.groupMessages,
+                builder: (context, messages) {
+                  if (messages.isEmpty) {
+                    return const Center(child: Text('No messages yet'));
+                  }
+                  return ListView.builder(
+                    reverse: true,
+                    padding: EdgeInsets.zero,
+                    controller: _scrollController,
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final currentMsg = messages[index];
+
                     final isContinuation =
-                        index > 0 &&
-                        messages[index - 1].senderName == currentMsg.senderName;
+    index < messages.length - 1 &&
+    currentMsg.replyToMessageId == null &&
+    currentMsg.replies.isEmpty && 
+    messages[index + 1].replyToMessageId == null &&
+    messages[index + 1].senderId == currentMsg.senderId;
 
-                    final isLastInGroup =
-                        index == messages.length - 1 ||
-                        messages[index + 1].senderName != currentMsg.senderName;
 
-                    return GroupMessageCard(
-                      key: ValueKey(currentMsg.id),
-                      grpmessage: currentMsg,
-                      isContinuation: isContinuation,
-                      isLastInGroup: isLastInGroup,
-                    );
-                  },
-                );
-              },
+
+                     final isLastInGroup =
+    index == messages.length - 1 ||
+    messages[index + 1].senderId != currentMsg.senderId;
+
+                      return GroupMessageCard(
+                        key: ValueKey(currentMsg.id),
+                        grpmessage: currentMsg,
+                        isContinuation: isContinuation,
+                        isLastInGroup: isLastInGroup,
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
           MessageInputField(
             onSend: (text, imagePath) {
               context.read<ChatBloc>().add(
-                SendGroupMessage(text: text, imagePath: imagePath),
+                SendGroupMessage(
+                  text: text,
+                  imagePath: imagePath,
+                  circleId: widget.chat.id,
+                ),
               );
             },
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_card.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MessageReplies extends StatelessWidget {
   final List<GroupMessage> replies;
@@ -23,17 +24,22 @@ class MessageReplies extends StatelessWidget {
           ),
           child: Column(
             children: List.generate(replies.length, (index) {
+              final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+              final isMe = currentUserId != null && replies[index].senderId == currentUserId;
               final currentReply = replies[index];
-              bool isContinuation = false;
-              if (index > 0) {
-                isContinuation =
-                    replies[index - 1].senderName == currentReply.senderName;
-              }
-              return GroupMessageCard(
-                key: ValueKey(currentReply.id),
-                grpmessage: currentReply,
-                isReply: true,
-                isContinuation: isContinuation,
+            final bool isContinuation =
+    index > 0 &&
+    replies[index - 1].senderId == currentReply.senderId;
+              return Container(
+                 color: isMe
+      ? const Color(0xFFF9EFDB) // 🟡 ONLY parent
+      : AppColors.white,
+                child: GroupMessageCard(
+                  key: ValueKey(currentReply.id),
+                  grpmessage: currentReply,
+                  isReply: true,
+                  isContinuation: isContinuation,
+                ),
               );
             }),
           ),

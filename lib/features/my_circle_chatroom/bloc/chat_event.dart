@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import '../../../core/enum/chat_message_type.dart';
 
 abstract class ChatEvent extends Equatable {
@@ -8,7 +9,11 @@ abstract class ChatEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadMessages extends ChatEvent {}
+class GroupMessageInserted extends ChatEvent {
+  final GroupMessage message;
+ const GroupMessageInserted(this.message);
+}
+
 
 class LoadGroupMessages extends ChatEvent {
   final String chatId;
@@ -28,6 +33,7 @@ class SendMessage extends ChatEvent {
 
 class SendImageMessage extends ChatEvent {
   final String imagePath;
+  
 
   const SendImageMessage({required this.imagePath});
 }
@@ -42,11 +48,21 @@ class DeleteMessage extends ChatEvent {
 }
 
 class SendGroupMessage extends ChatEvent {
+  final String? circleId;
   final String? text;
   final String? imagePath;
+  final String? mediaType;
+  final String? replyToMessageId;
 
-  const SendGroupMessage({this.text, this.imagePath});
+  const SendGroupMessage({
+    this.circleId,
+    this.text,
+    this.imagePath,
+    this.mediaType,
+    this.replyToMessageId,
+  });
 }
+
 
 class ToggleReaction extends ChatEvent {
   final String messageId;

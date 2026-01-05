@@ -25,8 +25,8 @@ class _MyCircleIndividualChatPageState
 
   @override
   void initState() {
-    super.initState();
-    context.read<ChatBloc>().add(LoadMessages());
+     super.initState();
+    // context.read<ChatBloc>().add(LoadMessages());
   }
 
   @override

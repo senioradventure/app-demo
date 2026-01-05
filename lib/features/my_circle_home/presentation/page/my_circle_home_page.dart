@@ -7,6 +7,7 @@ import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
+import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_state.dart';
@@ -39,10 +40,10 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider(
-          create: (_) => ChatBloc()..add(LoadMessages()),
-          child: chat.isGroup
-              ? MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin)
-              : MyCircleIndividualChatPage(chat: chat),
+          create: (_) => ChatBloc(
+            repository: GroupChatRepository(Supabase.instance.client),
+          )..add(LoadGroupMessages(chatId: chat.id)),
+          child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
         ),
       ),
     );

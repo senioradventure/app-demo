@@ -11,6 +11,7 @@ import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/m
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/core/utils/time_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
@@ -34,11 +35,13 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   final TextEditingController _replyController = TextEditingController();
 
   void _onReactionTap(BuildContext context, String emoji) {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+
     context.read<ChatBloc>().add(
       ToggleReaction(
         messageId: widget.grpmessage.id,
         emoji: emoji,
-        userId: 'you',
+        userId: userId,
         type: ChatMessageType.group,
       ),
     );
@@ -68,7 +71,8 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   @override
   Widget build(BuildContext context) {
     final grpmessage = widget.grpmessage;
-    final isMe = grpmessage.senderName.toLowerCase() == 'you';
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isMe = currentUserId != null && grpmessage.senderId == currentUserId;
     final likeReaction = grpmessage.reactions
         .where((r) => r.emoji == '👍')
         .toList();
@@ -76,7 +80,9 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
     final likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
 
     final isLiked =
-        likeReaction.isNotEmpty && likeReaction.first.userIds.contains('you');
+        likeReaction.isNotEmpty &&
+        likeReaction.first.userIds.contains(currentUserId);
+
     final BoxBorder? customBorder = widget.isReply
         ? null
         : Border(
@@ -92,79 +98,90 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
     return Container(
       margin: EdgeInsets.only(
-        bottom: widget.isLastInGroup && !widget.isReply ? 8 : 0,
+        bottom: widget.isLastInGroup && !widget.isReply ? 6 : 0,
       ),
 
       decoration: BoxDecoration(
-        color: isMe ? const Color(0xFFF9EFDB) : AppColors.white,
         border: widget.isContinuation || widget.isReply ? null : customBorder,
       ),
       child: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.only(
-              top: widget.isContinuation ? 2 : 12,
-              bottom: widget.isLastInGroup ? 12 : 2,
-              left: 12,
-              right: 12,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundImage: NetworkImage(grpmessage.avatar ?? ''),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(grpmessage),
-
-                      if (grpmessage.imagePath != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ImageMessageBubble(
-                            imagePath: grpmessage.imagePath!,
-                            isMe: grpmessage.senderName.toLowerCase() == 'you',
-                            isGroup: true,
-                          ),
-                        ),
-
-                      if (grpmessage.text != null &&
-                          grpmessage.text!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: Text(
-                            grpmessage.text!,
-                            style: AppTextTheme.lightTextTheme.bodyMedium,
-                          ),
-                        ),
-
-                      MessageActions(
-                        isLiked: isLiked,
-                        likeCount: likeCount,
-                        reactions: grpmessage.reactions,
-                        onReactionTap: (emoji) =>
-                            _onReactionTap(context, emoji),
-                        onAddReactionTap: _showEmojiPicker,
-                        onLikeTap: () => _onReactionTap(context, '👍'),
-                        onReplyTap: () {
-                          context.read<ChatBloc>().add(
-                            ToggleReplyInput(messageId: grpmessage.id),
-                          );
-                        },
-
-                        isReply: widget.isReply,
-                      ),
-
-                      if (grpmessage.replies.isNotEmpty)
-                        _buildReplyButton(grpmessage),
-                    ],
+          Container(
+            color: isMe ? const Color(0xFFF9EFDB) : AppColors.white,
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: widget.isContinuation ? 2 : 12,
+                bottom: widget.isLastInGroup ? 8 : 2,
+                left: 12,
+                right: 12,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundImage: grpmessage.avatar != null
+                        ? NetworkImage(grpmessage.avatar!)
+                        : null,
+                    backgroundColor: AppColors.borderColor,
+                    child: grpmessage.avatar == null
+                        ? const Icon(Icons.person)
+                        : null,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(grpmessage),
+
+                        if (grpmessage.imagePath != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4, bottom: 4),
+                            child: ImageMessageBubble(
+                              imagePath: grpmessage.imagePath!,
+                              isMe: isMe,
+
+                              isGroup: true,
+                            ),
+                          ),
+
+                        if (grpmessage.text != null &&
+                            grpmessage.text!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4, bottom: 4),
+                            child: Text(
+                              grpmessage.text!,
+                              style: AppTextTheme.lightTextTheme.bodyMedium,
+                            ),
+                          ),
+
+                        MessageActions(
+                          isLiked: isLiked,
+                          likeCount: likeCount,
+                          reactions: grpmessage.reactions,
+                          onReactionTap: (emoji) =>
+                              _onReactionTap(context, emoji),
+                          isReplyInputVisible: grpmessage.isReplyInputOpen,
+
+                          onAddReactionTap: _showEmojiPicker,
+                          onLikeTap: () => _onReactionTap(context, '👍'),
+                          onReplyTap: () {
+                            context.read<ChatBloc>().add(
+                              ToggleReplyInput(messageId: grpmessage.id),
+                            );
+                          },
+
+                          isReply: widget.isReply,
+                        ),
+
+                        if (grpmessage.replies.isNotEmpty)
+                          _buildReplyButton(grpmessage),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -173,7 +190,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
 
           if (grpmessage.isReplyInputOpen)
             Padding(
-              padding: const EdgeInsets.only(left: 33,right: 12,bottom: 12),
+              padding: const EdgeInsets.only(left: 33, right: 12, bottom: 12),
               child: BuildReplyInputField(
                 replyController: _replyController,
                 grpmessage: grpmessage,
@@ -192,7 +209,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
           fontWeight: FontWeight.w600,
         ),
       ),
-      const SizedBox(width: 14),
+      const SizedBox(width: 12),
       Text(
         TimeUtils.formatTimeString(grpmessage.time),
         style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
@@ -213,6 +230,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
       label: Text(
         "${grpmessage.replies.length} Replies",
         style: TextStyle(
+          fontSize: 12,
           color: grpmessage.isThreadOpen
               ? AppColors.textDarkGray
               : AppColors.buttonBlue,
@@ -225,7 +243,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
         color: grpmessage.isThreadOpen
             ? AppColors.textDarkGray
             : AppColors.buttonBlue,
-        size: 24,
+        size: 20,
       ),
       iconAlignment: IconAlignment.end,
     ),
@@ -258,9 +276,9 @@ class BuildReplyInputField extends StatelessWidget {
               if (_replyController.text.trim().isEmpty) return;
 
               context.read<ChatBloc>().add(
-                AddGroupReply(
-                  parentMessageId: grpmessage.id,
+                SendGroupMessage(
                   text: _replyController.text.trim(),
+                  replyToMessageId: grpmessage.id,
                 ),
               );
 
