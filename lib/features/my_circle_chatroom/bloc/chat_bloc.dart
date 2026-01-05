@@ -22,6 +22,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   on<GroupMessageInserted>(_onGroupMessageInserted);
     on<SendGroupMessage>(_onSendGroupMessage);
     on<DeleteMessage>(_onDeleteMessage);
+    on<GroupReactionChanged>(_onGroupReactionChanged);
     on<ToggleReaction>(_onToggleReaction);
     on<ToggleGroupThread>(_onToggleGroupThread);
     on<ToggleReplyInput>(_onToggleReplyInput);
@@ -92,37 +93,30 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(state.copyWith(messages: updatedMessages));
   }
 
-  void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
-    if (event.type == ChatMessageType.individual) {
-      final updatedMessages = state.messages.map((message) {
-        if (message.id != event.messageId) return message;
+ void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
+  if (event.type == ChatMessageType.individual) return;
 
-        return toggleReaction(
-          message: message,
-          emoji: event.emoji,
-          userId: event.userId,
-        );
-      }).toList();
+  
 
-      emit(state.copyWith(messages: updatedMessages));
-    } else {
-      debugPrint(
-        "🟦 [ChatBloc] ToggleReaction (GROUP) → "
-        "messageId=${event.messageId}, emoji=${event.emoji}",
-      );
+   final updatedMessages = state.groupMessages.map((message) {
+    return _applyReactionRecursive(
+      message,
+      event.messageId,
+      event.emoji,
+      event.userId,
+      true, // optimistic add/remove handled inside util
+    );
+  }).toList();
 
-      final updatedGroupMessages = state.groupMessages.map((message) {
-        return _toggleGroupReactionRecursive(
-          message,
-          event.messageId,
-          event.emoji,
-          event.userId,
-        );
-      }).toList();
+  emit(state.copyWith(groupMessages: updatedMessages));
+  // 🔁 Persist to DB (fire & forget)
+  repository.toggleGroupReaction(
+    messageId: event.messageId,
+    emoji: event.emoji,
+    userId: event.userId,
+  );
+}
 
-      emit(state.copyWith(groupMessages: updatedGroupMessages));
-    }
-  }
 
   void _onToggleGroupThread(ToggleGroupThread event, Emitter<ChatState> emit) {
     final updatedGroupMessages = state.groupMessages.map((message) {
@@ -230,33 +224,60 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   emit(state.copyWith(groupMessages: updatedMessages));
 }
 
+void _onGroupReactionChanged(
+  GroupReactionChanged event,
+  Emitter<ChatState> emit,
+) {
+  final updated = state.groupMessages.map((message) {
+    return _applyReactionRecursive(
+      message,
+      event.messageId,
+      event.emoji,
+      event.userId,
+      event.isAdded,
+    );
+  }).toList();
+
+  emit(state.copyWith(groupMessages: updated));
 }
 
-GroupMessage _toggleGroupReactionRecursive(
+
+}
+
+
+GroupMessage _applyReactionRecursive(
   GroupMessage message,
   String targetMessageId,
   String emoji,
   String userId,
+  bool isAdded,
 ) {
-
+  // 🎯 Match found
   if (message.id == targetMessageId) {
-    debugPrint("🟩 [Reaction] Updating message ${message.id}");
-
-    return toggleGroupReaction(message: message, emoji: emoji, userId: userId);
+    return applyReaction(
+      message: message,
+      targetMessageId: targetMessageId,
+      emoji: emoji,
+      userId: userId,
+    );
   }
 
-  if (message.replies.isEmpty) return message;
+  // 🔁 Recurse into replies
+  if (message.replies.isNotEmpty) {
+    return message.copyWith(
+      replies: message.replies
+          .map(
+            (reply) => _applyReactionRecursive(
+              reply,
+              targetMessageId,
+              emoji,
+              userId,
+              isAdded,
+            ),
+          )
+          .toList(),
+    );
+  }
 
-  return message.copyWith(
-    replies: message.replies
-        .map(
-          (reply) => _toggleGroupReactionRecursive(
-            reply,
-            targetMessageId,
-            emoji,
-            userId,
-          ),
-        )
-        .toList(),
-  );
+  return message;
 }

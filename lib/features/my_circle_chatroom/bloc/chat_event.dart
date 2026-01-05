@@ -63,6 +63,20 @@ class SendGroupMessage extends ChatEvent {
   });
 }
 
+class GroupReactionChanged extends ChatEvent {
+  final String messageId;
+  final String emoji;
+  final String userId;
+  final bool isAdded;
+
+  GroupReactionChanged({
+    required this.messageId,
+    required this.emoji,
+    required this.userId,
+    required this.isAdded,
+  });
+}
+
 
 class ToggleReaction extends ChatEvent {
   final String messageId;

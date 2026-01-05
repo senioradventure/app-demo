@@ -169,7 +169,7 @@ class GroupChatRepository {
       .select()
       .eq('message_id', messageId)
       .eq('user_id', userId)
-      .eq('emoji', emoji)
+      .eq('reaction', emoji)
       .maybeSingle();
 
   if (existing != null) {
@@ -181,7 +181,7 @@ class GroupChatRepository {
     await _client.from('message_reactions').insert({
       'message_id': messageId,
       'user_id': userId,
-      'emoji': emoji,
+      'reaction': emoji,
     });
   }
 }
