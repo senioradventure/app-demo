@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/gestures.dart';
@@ -9,34 +10,152 @@ import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.
 import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
-class Chatroom extends StatelessWidget {
-  final ImagePicker picker = ImagePicker();
-  final ValueNotifier<String?> pendingImage = ValueNotifier(null);
-
-  final ValueNotifier<bool> isRequestSent = ValueNotifier<bool>(false);
-
-  final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
-  final TextEditingController messageController = TextEditingController();
-  final ValueNotifier<String?> tappedLink = ValueNotifier(null);
-  final String? title; // or final Contact? contact;
+class Chatroom extends StatefulWidget {
+  final String? title;
   final bool isAdmin;
   final String? imageUrl;
   final bool isNewRoom;
   final File? imageFile;
-  Chatroom({
+  final String? roomId;
+
+  const Chatroom({
     super.key,
     this.title,
     this.imageUrl,
     this.isAdmin = true,
     this.isNewRoom = false,
     this.imageFile,
+    this.roomId,
   });
-  void _initMessages() {
-    if (isNewRoom) {
-      chatMessages.value = [];
-    } else {
-      chatMessages.value = List.from(defaultChatMessages);
+
+  @override
+  State<Chatroom> createState() => _ChatroomState();
+}
+
+class _ChatroomState extends State<Chatroom> {
+  final ImagePicker picker = ImagePicker();
+  final ValueNotifier<String?> pendingImage = ValueNotifier(null);
+  final ValueNotifier<bool> isRequestSent = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
+  final ValueNotifier<int> fabRebuild = ValueNotifier<int>(0);
+  final TextEditingController messageController = TextEditingController();
+  final ValueNotifier<String?> tappedLink = ValueNotifier(null);
+  final ScrollController _scrollController = ScrollController();
+
+  late final String _liveChatRoomId;
+  late final Stream<List<Map<String, dynamic>>> _messagesStream;
+  final _supabase = Supabase.instance.client;
+  final _uuid = const Uuid();
+  final List<ChatMessage> _optimisticMessages = [];
+
+  String _formatTime(DateTime dateTime) {
+    final localTime = dateTime.toLocal();
+    final hour = localTime.hour > 12
+        ? localTime.hour - 12
+        : (localTime.hour == 0 ? 12 : localTime.hour);
+    final period = localTime.hour >= 12 ? 'PM' : 'AM';
+    final minute = localTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    assert(widget.roomId != null, 'Chatroom opened without roomId');
+    _liveChatRoomId = widget.roomId!;
+
+    _messagesStream = _supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .eq('live_chat_room_id', _liveChatRoomId)
+        .order('created_at', ascending: true);
+
+    pendingImage.addListener(() => fabRebuild.value++);
+    isTyping.addListener(() => fabRebuild.value++);
+  }
+
+  @override
+  void dispose() {
+    pendingImage.dispose();
+    isRequestSent.dispose();
+    isTyping.dispose();
+    fabRebuild.dispose();
+    _scrollController.dispose();
+    messageController.dispose();
+    tappedLink.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendMessage() async {
+    final text = messageController.text.trim();
+    final imagePath = pendingImage.value;
+
+    if (text.isEmpty && imagePath == null) return;
+
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final tempId = _uuid.v4();
+      final now = DateTime.now();
+      final tempMsg = ChatMessage(
+        id: tempId,
+        isSender: true,
+        text: text,
+        time: _formatTime(now),
+        imageFile: imagePath,
+        name: 'You',
+        profileAsset: null,
+      );
+
+      setState(() {
+        _optimisticMessages.add(tempMsg);
+        messageController.clear();
+        pendingImage.value = null;
+        isTyping.value = false;
+      });
+
+      String? mediaUrl;
+      String mediaType = 'text';
+
+      if (imagePath != null) {
+        final file = File(imagePath);
+        final fileExt = imagePath.split('.').last;
+        final fileName = 'messages/${_uuid.v4()}.$fileExt';
+
+        await _supabase.storage
+            .from('media')
+            .upload(
+              fileName,
+              file,
+              fileOptions: const FileOptions(upsert: false),
+            );
+
+        mediaUrl = _supabase.storage.from('media').getPublicUrl(fileName);
+        mediaType = 'image';
+      }
+
+      await _supabase.from('messages').insert({
+        'live_chat_room_id': _liveChatRoomId,
+        'id': tempId,
+        'conversation_id': null,
+        'circle_id': null,
+        'sender_id': user.id,
+        'content': text,
+        'media_type': mediaType,
+        'media_url': mediaUrl,
+      });
+    } catch (e) {
+      setState(() {
+        if (_optimisticMessages.isNotEmpty) _optimisticMessages.removeLast();
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error sending message: $e')));
     }
   }
 
@@ -106,7 +225,6 @@ class Chatroom extends StatelessWidget {
                                     backgroundImage: avatarImage,
                                   ),
                                 ),
-
                                 const SizedBox(height: 10),
                                 Text(
                                   msg.name ?? '',
@@ -138,7 +256,6 @@ class Chatroom extends StatelessWidget {
                               ],
                             ),
                           ),
-
                           if (msg.isFriend)
                             Container(
                               width: double.infinity,
@@ -289,9 +406,7 @@ class Chatroom extends StatelessWidget {
 
   Future<void> _openLink(String rawUrl) async {
     final String url = rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
-
     final uri = Uri.parse(url);
-
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -319,7 +434,6 @@ class Chatroom extends StatelessWidget {
           }
 
           final matched = text.substring(match.start, match.end);
-
           final bool isPhone = RegExp(r'^[\d\s\-\+]+$').hasMatch(matched);
           final bool isActive = active == matched;
 
@@ -376,7 +490,10 @@ class Chatroom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _initMessages();
+    debugPrint('CHATROOM USING ROOM ID = $_liveChatRoomId');
+
+    final currentUserId = _supabase.auth.currentUser?.id ?? '';
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
@@ -397,10 +514,9 @@ class Chatroom extends StatelessWidget {
                 height: MediaQuery.of(context).padding.top,
                 color: Colors.white,
               ),
-
               InkWell(
                 onTap: () {
-                  if (!isAdmin) {
+                  if (!widget.isAdmin) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -428,7 +544,6 @@ class Chatroom extends StatelessWidget {
                           icon: const Icon(Icons.arrow_back),
                           onPressed: () {
                             currentPageIndex.value = 0;
-
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
@@ -438,28 +553,24 @@ class Chatroom extends StatelessWidget {
                             );
                           },
                         ),
-
                         CircleAvatar(
                           radius: 20,
-                          backgroundImage: imageUrl != null
-                              ? NetworkImage(imageUrl!)
-                              : imageFile != null
-                              ? FileImage(imageFile!)
-                              : const AssetImage("assets/images/Frame_24.png"),
+                          backgroundImage: widget.imageUrl != null
+                              ? NetworkImage(widget.imageUrl!)
+                              : const AssetImage("assets/image/Frame_24.png")
+                                    as ImageProvider,
                         ),
-
                         const SizedBox(width: 10),
                         Text(
-                          (title != null && title!.length > 14)
-                              ? '${title!.substring(0, 14)}...'
-                              : (title ?? 'Chai Talks'),
+                          (widget.title != null && widget.title!.length > 14)
+                              ? '${widget.title!.substring(0, 14)}...'
+                              : (widget.title ?? 'Chai Talks'),
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 19,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
                         const Spacer(),
                         const Text(
                           '10 Active',
@@ -484,12 +595,28 @@ class Chatroom extends StatelessWidget {
                   ),
                 ),
               ),
-
               Expanded(
-                child: ValueListenableBuilder<List<ChatMessage>>(
-                  valueListenable: chatMessages,
-                  builder: (context, list, _) {
-                    if (list.isEmpty) {
+                child: StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: _messagesStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final messagesData = List<Map<String, dynamic>>.from(
+                      snapshot.data!,
+                    );
+
+                    messagesData.sort(
+                      (a, b) => DateTime.parse(
+                        a['created_at'],
+                      ).compareTo(DateTime.parse(b['created_at'])),
+                    );
+
+                    if (messagesData.isEmpty && _optimisticMessages.isEmpty) {
                       return LayoutBuilder(
                         builder: (context, constraints) {
                           return Stack(
@@ -508,7 +635,6 @@ class Chatroom extends StatelessWidget {
                                   ),
                                 ),
                               ),
-
                               Positioned(
                                 bottom: 10,
                                 left: 0,
@@ -562,16 +688,33 @@ class Chatroom extends StatelessWidget {
                       );
                     }
 
+                    final messages = messagesData
+                        .map((data) => ChatMessage.fromMap(data, currentUserId))
+                        .toList();
+                    final streamIds = messages.map((m) => m.id).toSet();
+                    final pendingOptimistic = _optimisticMessages
+                        .where((m) => !streamIds.contains(m.id))
+                        .toList();
+
+                    messages.addAll(pendingOptimistic);
+
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scrollController.hasClients) {
+                        _scrollController.jumpTo(0);
+                      }
+                    });
+
                     return ListView.builder(
+                      controller: _scrollController,
+                      reverse: true,
                       padding: const EdgeInsets.fromLTRB(12, 14, 12, 0),
-                      itemCount: list.length,
+                      itemCount: messages.length,
                       itemBuilder: (context, index) {
-                        final msg = list[index];
+                        final msg = messages[messages.length - 1 - index];
 
                         if (msg.isSender) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4, right: 4),
-
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: Container(
@@ -588,7 +731,6 @@ class Chatroom extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
-
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
@@ -619,10 +761,17 @@ class Chatroom extends StatelessWidget {
                                                   0.45,
                                             ),
                                             child: msg.imageFile != null
-                                                ? Image.file(
-                                                    File(msg.imageFile!),
-                                                    fit: BoxFit.contain,
-                                                  )
+                                                ? (msg.imageFile!.startsWith(
+                                                        'http',
+                                                      )
+                                                      ? Image.network(
+                                                          msg.imageFile!,
+                                                          fit: BoxFit.contain,
+                                                        )
+                                                      : Image.file(
+                                                          File(msg.imageFile!),
+                                                          fit: BoxFit.contain,
+                                                        ))
                                                 : Image.asset(
                                                     msg.imageAsset!,
                                                     fit: BoxFit.cover,
@@ -630,12 +779,10 @@ class Chatroom extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-
                                     if (msg.text.isNotEmpty) ...[
                                       const SizedBox(height: 6),
                                       _buildMessageText(context, msg),
                                     ],
-
                                     const SizedBox(height: 4),
                                     Text(
                                       msg.time,
@@ -673,7 +820,6 @@ class Chatroom extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 8),
                                   ],
-
                                   Flexible(
                                     child: Column(
                                       crossAxisAlignment:
@@ -690,7 +836,6 @@ class Chatroom extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 9),
                                         ],
-
                                         GestureDetector(
                                           onLongPress: () {
                                             FocusScope.of(context).unfocus();
@@ -773,7 +918,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -823,7 +967,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -867,7 +1010,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -911,7 +1053,6 @@ class Chatroom extends StatelessWidget {
                                                               0xFFE3E3E3,
                                                             ),
                                                           ),
-
                                                           InkWell(
                                                             onTap: () {
                                                               Navigator.pop(
@@ -958,7 +1099,9 @@ class Chatroom extends StatelessWidget {
                                           },
                                           child: Container(
                                             constraints: BoxConstraints(
-                                              maxWidth: msg.imageAsset != null
+                                              maxWidth:
+                                                  (msg.imageAsset != null ||
+                                                      msg.imageFile != null)
                                                   ? MediaQuery.of(
                                                           context,
                                                         ).size.width *
@@ -978,7 +1121,8 @@ class Chatroom extends StatelessWidget {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                if (msg.imageAsset != null)
+                                                if (msg.imageAsset != null ||
+                                                    msg.imageFile != null)
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.fromLTRB(
@@ -992,9 +1136,46 @@ class Chatroom extends StatelessWidget {
                                                           BorderRadius.circular(
                                                             12,
                                                           ),
-                                                      child: Image.asset(
-                                                        msg.imageAsset!,
-                                                        fit: BoxFit.cover,
+                                                      child: ConstrainedBox(
+                                                        constraints:
+                                                            BoxConstraints(
+                                                              maxWidth:
+                                                                  MediaQuery.of(
+                                                                    context,
+                                                                  ).size.width *
+                                                                  0.66,
+                                                              maxHeight:
+                                                                  MediaQuery.of(
+                                                                        context,
+                                                                      )
+                                                                      .size
+                                                                      .height *
+                                                                  0.45,
+                                                            ),
+                                                        child:
+                                                            msg.imageFile !=
+                                                                null
+                                                            ? (msg.imageFile!
+                                                                      .startsWith(
+                                                                        'http',
+                                                                      )
+                                                                  ? Image.network(
+                                                                      msg.imageFile!,
+                                                                      fit: BoxFit
+                                                                          .contain,
+                                                                    )
+                                                                  : Image.file(
+                                                                      File(
+                                                                        msg.imageFile!,
+                                                                      ),
+                                                                      fit: BoxFit
+                                                                          .contain,
+                                                                    ))
+                                                            : Image.asset(
+                                                                msg.imageAsset!,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                              ),
                                                       ),
                                                     ),
                                                   ),
@@ -1047,7 +1228,6 @@ class Chatroom extends StatelessWidget {
           ),
         ),
       ),
-
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -1095,7 +1275,6 @@ class Chatroom extends StatelessWidget {
                   );
                 },
               ),
-
               Container(
                 height: 75,
                 color: const Color(0xFFF9F9F7),
@@ -1117,7 +1296,6 @@ class Chatroom extends StatelessWidget {
                         pendingImage.value = picked.path;
                       },
                     ),
-
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -1148,41 +1326,21 @@ class Chatroom extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 8),
-
                     GestureDetector(
                       onTap: () {
-                        if (!isTyping.value && pendingImage.value == null)
-                          return;
-
-                        final now = TimeOfDay.now();
-                        final formatted =
-                            "${now.hourOfPeriod}:${now.minute.toString().padLeft(2, '0')} "
-                            "${now.period == DayPeriod.am ? 'AM' : 'PM'}";
-
-                        chatMessages.value = [
-                          ...chatMessages.value,
-                          ChatMessage(
-                            isSender: true,
-                            text: messageController.text,
-                            time: formatted,
-                            imageFile: pendingImage.value,
-                          ),
-                        ];
-
-                        messageController.clear();
-                        pendingImage.value = null;
-                        isTyping.value = false;
+                        _sendMessage();
                       },
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: isTyping,
-                        builder: (context, typing, _) {
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: fabRebuild,
+                        builder: (context, _, __) {
+                          final showFab2 =
+                              isTyping.value || pendingImage.value != null;
                           return SizedBox(
                             width: 50,
                             height: 50,
                             child: Image.asset(
-                              typing || pendingImage.value != null
+                              showFab2
                                   ? 'assets/icons/fab2.png'
                                   : 'assets/icons/fab.png',
                             ),
@@ -1196,6 +1354,121 @@ class Chatroom extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class LinkedMessageText extends StatefulWidget {
+  final String text;
+  final ChatMessage msg;
+  final Function(String phone, ChatMessage msg) onPhoneTap;
+  final Function(String link) onLinkTap;
+
+  const LinkedMessageText({
+    super.key,
+    required this.text,
+    required this.msg,
+    required this.onPhoneTap,
+    required this.onLinkTap,
+  });
+
+  @override
+  State<LinkedMessageText> createState() => _LinkedMessageTextState();
+}
+
+class _LinkedMessageTextState extends State<LinkedMessageText> {
+  String? _tappedLink;
+  final List<TapGestureRecognizer> _recognizers = [];
+
+  @override
+  void dispose() {
+    for (final recognizer in _recognizers) {
+      recognizer.dispose();
+    }
+    super.dispose();
+  }
+
+  void _handleTap(String value, bool isPhone) {
+    if (isPhone) {
+      widget.onPhoneTap(value, widget.msg);
+    } else {
+      widget.onLinkTap(value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final regex = RegExp(
+      r'(\+?\d[\d\s\-]{6,}\d)|((https?:\/\/|www\.)[^\s]+|[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}(\/\S*)?)',
+    );
+
+    final spans = <TextSpan>[];
+    int currentIndex = 0;
+
+    for (final match in regex.allMatches(widget.text)) {
+      if (match.start > currentIndex) {
+        spans.add(
+          TextSpan(text: widget.text.substring(currentIndex, match.start)),
+        );
+      }
+
+      final matched = widget.text.substring(match.start, match.end);
+      final bool isPhone = RegExp(r'^[\d\s\-\+]+$').hasMatch(matched);
+
+      final recognizer = TapGestureRecognizer()
+        ..onTapDown = (_) {
+          setState(() {
+            _tappedLink = matched;
+          });
+        }
+        ..onTapUp = (_) {
+          Future.delayed(const Duration(milliseconds: 120), () {
+            if (mounted) {
+              setState(() {
+                _tappedLink = null;
+              });
+            }
+          });
+          _handleTap(matched, isPhone);
+        }
+        ..onTapCancel = () {
+          if (mounted) {
+            setState(() {
+              _tappedLink = null;
+            });
+          }
+        };
+
+      _recognizers.add(recognizer);
+
+      final bool isActive = _tappedLink == matched;
+
+      spans.add(
+        TextSpan(
+          text: matched,
+          style: TextStyle(
+            color: isActive
+                ? const Color.fromARGB(255, 2, 100, 181)
+                : Colors.blue,
+            decoration: TextDecoration.none,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: recognizer,
+        ),
+      );
+
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < widget.text.length) {
+      spans.add(TextSpan(text: widget.text.substring(currentIndex)));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 14, color: Colors.black),
+        children: spans,
       ),
     );
   }

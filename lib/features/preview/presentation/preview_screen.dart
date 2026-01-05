@@ -10,8 +10,7 @@ import 'package:senior_circle/features/preview/models/preview_details_model.dart
 import 'package:senior_circle/features/preview/presentation/widgets/preview_screen_caution_container.dart';
 
 class PreviewScreen extends StatelessWidget {
-  const PreviewScreen({super.key});
-
+  PreviewScreen({super.key});
   @override
   Widget build(BuildContext context) {
     final List<MemberModel> members = membersdata
@@ -52,25 +51,21 @@ class PreviewScreen extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: BottomButton(
-  onTap: () {
-    // 🔹 Clear previous messages
-    chatMessages.value = [];
+        onTap: () {
+          // 🔹 Clear previous messages
+          chatMessages.value = [];
 
-    // 🔹 Navigate to chat page
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => Chatroom(
-          title: details.name,
-          isAdmin: true,
-          isNewRoom: true, 
-        ),
+          // 🔹 Navigate to chat page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  Chatroom(title: details.name, isAdmin: true, isNewRoom: true),
+            ),
+          );
+        },
+        buttonText: "CREATE ROOM",
       ),
-    );
-  },
-  buttonText: "CREATE ROOM",
-),
-
     );
   }
 }
