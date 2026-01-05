@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/notification/bloc/notification_bloc.dart';
 import 'package:senior_circle/features/notification/bloc/notification_event.dart';
-import 'package:senior_circle/features/notification/notification_repository.dart';
+import 'package:senior_circle/features/notification/repository/notification_repository.dart';
 import 'package:senior_circle/features/notification/presentation/page/notification_page.dart';
 import 'package:senior_circle/features/profile/presentation/page/profile_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

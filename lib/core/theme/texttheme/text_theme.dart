@@ -52,6 +52,7 @@ class AppTextTheme {
       fontSize: 24,
       fontWeight: FontWeight.w800,
       color: AppColors.textBlack,
+      letterSpacing: -0.04,
       fontStyle: FontStyle.normal,
     ),
     bodyLarge: TextStyle(
