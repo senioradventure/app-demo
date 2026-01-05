@@ -65,4 +65,26 @@ class IndividualChatRepository {
       'reaction': reaction,
     });
   }
+
+  Future<void> starMessage({
+    required IndividualChatMessageModel message,
+  }) async {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+
+    await Supabase.instance.client.from('saved_messages').insert({
+      'user_id': userId,
+      'message_id': message.id,
+      'sender_id': message.senderId,
+      'content': message.content,
+      'media_url': message.mediaUrl,
+      'media_type': message.mediaType,
+    });
+  }
+
+  Future<void> deleteMessageForEveryone(String messageId) async {
+    await _client
+        .from('messages')
+        .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
+        .eq('id', messageId);
+  }
 }

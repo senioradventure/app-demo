@@ -27,6 +27,8 @@ class IndividualChatBloc
     on<ClearReplyMessage>(_onClearReply);
     on<SendConversationMessage>(_onSendMessage);
     on<AddReactionToMessage>(_onAddReaction);
+    on<StarMessage>(_onStarMessage);
+    on<DeleteMessageForEveryone>(_onDeleteMessageForEveryone);
   }
 
   // ---------------------------------------------------------------------------
@@ -210,6 +212,61 @@ class IndividualChatBloc
       messageId: event.messageId,
       reaction: event.reaction,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // SAVE MESSAGES
+  // ---------------------------------------------------------------------------
+  Future<void> _onStarMessage(
+    StarMessage event,
+    Emitter<IndividualChatState> emit,
+  ) async {
+    if (state is! IndividualChatLoaded) return; // Ensure we have chat loaded
+    final current = state as IndividualChatLoaded;
+
+    try {
+      await _repository.starMessage(message: event.message);
+
+      // Emit ONE-TIME snackbar without replacing the chat state
+      emit(StarMessageSuccess('Message starred ⭐'));
+
+      // Immediately restore chat state so UI doesn't break
+      emit(current.copyWith());
+    } catch (e) {
+      emit(StarMessageFailure('Failed to star message'));
+      emit(current.copyWith());
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // DELETE FOR EVERY ONE MESSAGES
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onDeleteMessageForEveryone(
+    DeleteMessageForEveryone event,
+    Emitter<IndividualChatState> emit,
+  ) async {
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    final updatedMessages = current.messages
+        .where((m) => m.id != event.message.id)
+        .toList();
+
+    emit(current.copyWith(messages: updatedMessages));
+
+    try {
+      await _client
+          .from('messages')
+          .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
+          .eq('id', event.message.id);
+
+      emit(DeleteMessageSuccess('Message deleted'));
+      emit(current.copyWith(messages: updatedMessages));
+    } catch (e) {
+      emit(DeleteMessageFailure('Failed to delete message'));
+      emit(current);
+    }
   }
 
   // ---------------------------------------------------------------------------

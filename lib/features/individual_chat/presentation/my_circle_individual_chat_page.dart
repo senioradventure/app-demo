@@ -24,6 +24,7 @@ class _MyCircleIndividualChatPageState
   @override
   void initState() {
     super.initState();
+
     /// Load messages ONCE
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<IndividualChatBloc>().add(
@@ -54,111 +55,163 @@ class _MyCircleIndividualChatPageState
         userName: widget.chat.name,
         profileUrl: widget.chat.imageUrl!,
       ),
-      body: Container(
-        decoration: BoxDecoration(gradient: AppColors.chatGradient),
-        child: Column(
-          children: [
-            /// ================= CHAT LIST =================
-            Expanded(
-              child: BlocConsumer<IndividualChatBloc, IndividualChatState>(
-                /// ✅ REBUILD WHEN MESSAGE LIST CHANGES
-                buildWhen: (previous, current) {
-                  if (previous is IndividualChatLoaded &&
-                      current is IndividualChatLoaded) {
-                    return previous.messages != current.messages;
-                  }
-                  return true;
-                },
 
-                /// ✅ SCROLL WHEN MESSAGE LIST CHANGES
-                listenWhen: (previous, current) {
-                  if (previous is IndividualChatLoaded &&
-                      current is IndividualChatLoaded) {
-                    return previous.messages != current.messages;
-                  }
-                  return false;
-                },
-                listener: (context, state) {
-                  _scrollToBottom();
-                },
-                builder: (context, state) {
-                  if (state is IndividualChatLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+      /// 🔥 GLOBAL LISTENER FOR SNACKBARS
+      body: BlocListener<IndividualChatBloc, IndividualChatState>(
+        listenWhen: (_, state) =>
+            state is StarMessageSuccess ||
+            state is StarMessageFailure ||
+            state is DeleteMessageSuccess ||
+            state is DeleteMessageFailure,
+        listener: (context, state) {
+          if (state is StarMessageSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
 
-                  if (state is IndividualChatError) {
-                    return Center(
-                      child: Text(
-                        state.message,
-                        style: const TextStyle(color: Colors.redAccent),
-                      ),
-                    );
-                  }
+          if (state is StarMessageFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
 
-                  if (state is IndividualChatLoaded) {
-                    if (state.messages.isEmpty) {
-                      return const Center(
+          if (state is DeleteMessageSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+
+          if (state is DeleteMessageFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+
+        /// 🔽 CHAT UI
+        child: Container(
+          decoration: BoxDecoration(gradient: AppColors.chatGradient),
+          child: Column(
+            children: [
+              /// ================= CHAT LIST =================
+              Expanded(
+                child: BlocConsumer<IndividualChatBloc, IndividualChatState>(
+                  /// ✅ REBUILD WHEN MESSAGE LIST CHANGES
+                  buildWhen: (previous, current) {
+                    if (previous is IndividualChatLoaded &&
+                        current is IndividualChatLoaded) {
+                      return previous.messages != current.messages;
+                    }
+                    return true;
+                  },
+
+                  /// ✅ SCROLL WHEN MESSAGE LIST CHANGES
+                  listenWhen: (previous, current) {
+                    if (previous is IndividualChatLoaded &&
+                        current is IndividualChatLoaded) {
+                      return previous.messages != current.messages;
+                    }
+                    return false;
+                  },
+                  listener: (context, state) {
+                    _scrollToBottom();
+                  },
+                  builder: (context, state) {
+                    if (state is IndividualChatLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (state is IndividualChatError) {
+                      return Center(
                         child: Text(
-                          "No messages yet",
-                          style: TextStyle(color: Colors.white70),
+                          state.message,
+                          style: const TextStyle(color: Colors.redAccent),
                         ),
                       );
                     }
 
-                    return ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: state.messages.length,
-
-                      /// Performance optimizations
-                      addAutomaticKeepAlives: false,
-                      addRepaintBoundaries: true,
-                      cacheExtent: 500,
-
-                      itemBuilder: (context, index) {
-                        final message = state.messages[index];
-
-                        return Dismissible(
-                          key: ValueKey(message.id),
-                          direction: DismissDirection.startToEnd,
-                          confirmDismiss: (_) async {
-                            context.read<IndividualChatBloc>().add(
-                              PickReplyMessage(message),
-                            );
-                            return false;
-                          },
-                          background: Container(
-                            alignment: Alignment.centerLeft,
-                            padding: const EdgeInsets.only(left: 20),
-                            child: const Icon(Icons.reply, color: Colors.grey),
+                    if (state is IndividualChatLoaded) {
+                      if (state.messages.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "No messages yet",
+                            style: TextStyle(color: Colors.white70),
                           ),
-                          child: IndividualMessageCard(message: message),
                         );
-                      },
-                    );
-                  }
+                      }
 
-                  return const SizedBox.shrink();
+                      return ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: state.messages.length,
+
+                        /// Performance optimizations
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
+                        cacheExtent: 500,
+
+                        itemBuilder: (context, index) {
+                          final message = state.messages[index];
+
+                          return Dismissible(
+                            key: ValueKey(message.id),
+                            direction: DismissDirection.startToEnd,
+                            confirmDismiss: (_) async {
+                              context.read<IndividualChatBloc>().add(
+                                PickReplyMessage(message),
+                              );
+                              return false;
+                            },
+                            background: Container(
+                              alignment: Alignment.centerLeft,
+                              padding: const EdgeInsets.only(left: 20),
+                              child: const Icon(
+                                Icons.reply,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            child: IndividualMessageCard(message: message),
+                          );
+                        },
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+
+              /// ================= INPUT FIELD =================
+              BlocBuilder<IndividualChatBloc, IndividualChatState>(
+                buildWhen: (previous, current) {
+                  if (previous is IndividualChatLoaded &&
+                      current is IndividualChatLoaded) {
+                    return previous.isSending != current.isSending ||
+                        previous.replyTo != current.replyTo;
+                  }
+                  return false;
+                },
+                builder: (context, state) {
+                  return IndividualMessageInputField();
                 },
               ),
-            ),
-
-            /// ================= INPUT FIELD =================
-            /// Isolated so typing / sending DOES NOT rebuild chat list
-            BlocBuilder<IndividualChatBloc, IndividualChatState>(
-              buildWhen: (previous, current) {
-                if (previous is IndividualChatLoaded &&
-                    current is IndividualChatLoaded) {
-                  return previous.isSending != current.isSending ||
-                      previous.replyTo != current.replyTo;
-                }
-                return false;
-              },
-              builder: (context, state) {
-                return IndividualMessageInputField();
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

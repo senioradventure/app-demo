@@ -19,7 +19,9 @@ class IndividualMessageCard extends StatelessWidget {
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: GestureDetector(
-          onLongPress: () => showReactionPopup(context, message.id),
+          onLongPress: () =>
+              showReactionPopup(context: context, message: message, isMe: isMe),
+
           child: MessageBubbleIndividual(message: message, isMe: isMe),
         ),
       ),

@@ -17,7 +17,7 @@ class IndividualChatLoaded extends IndividualChatState {
   final bool isSending;
   final IndividualChatMessageModel? replyTo;
 
-  /// 🔥 ADD THIS
+  /// 🔥 VERSION FOR FORCING UI REBUILD
   final int version;
 
   const IndividualChatLoaded({
@@ -44,19 +44,39 @@ class IndividualChatLoaded extends IndividualChatState {
       isSending: isSending ?? this.isSending,
       replyTo: clearReplyTo ? null : (replyTo ?? this.replyTo),
 
-      /// 🔥 INCREMENT VERSION ON EVERY EMIT
+      /// 🔥 FORCE REBUILD
       version: version + 1,
     );
   }
 
   @override
   List<Object?> get props => [
-    version, // 🔥 FIRST
+    version, // 🔥 MUST BE FIRST
     messages,
     imagePath,
     isSending,
     replyTo,
   ];
+}
+
+/// ─────────────────────────────────────────
+/// 🔔 ONE-TIME UI STATES (Snackbars)
+/// ─────────────────────────────────────────
+
+class StarMessageSuccess extends IndividualChatState {
+  final String message;
+  const StarMessageSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class StarMessageFailure extends IndividualChatState {
+  final String error;
+  const StarMessageFailure(this.error);
+
+  @override
+  List<Object?> get props => [error];
 }
 
 class IndividualChatError extends IndividualChatState {
@@ -65,4 +85,19 @@ class IndividualChatError extends IndividualChatState {
 
   @override
   List<Object?> get props => [message];
+}
+class DeleteMessageSuccess extends IndividualChatState {
+  final String message;
+  const DeleteMessageSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class DeleteMessageFailure extends IndividualChatState {
+  final String error;
+  const DeleteMessageFailure(this.error);
+
+  @override
+  List<Object?> get props => [error];
 }

@@ -45,3 +45,22 @@ class AddReactionToMessage extends IndividualChatEvent {
   @override
   List<Object?> get props => [messageId, reaction];
 }
+
+class StarMessage extends IndividualChatEvent {
+  final IndividualChatMessageModel message;
+
+  const StarMessage({required this.message});
+
+  @override
+  List<Object?> get props => [message.id];
+}
+
+class DeleteMessageForEveryone extends IndividualChatEvent {
+  final IndividualChatMessageModel message;
+
+  const DeleteMessageForEveryone({required this.message});
+
+  @override
+  List<Object?> get props => [message.id];
+}
+
