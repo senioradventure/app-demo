@@ -46,7 +46,7 @@ class ImageMessageBubble extends StatelessWidget {
                   height: isGroup
                       ? 201
                       : MediaQuery.of(context).size.height * 0.2,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return const SizedBox(

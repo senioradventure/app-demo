@@ -27,7 +27,10 @@ class GroupMessage {
     this.isThreadOpen = false,
     this.isReplyInputOpen = false,
     this.replyToMessageId,
+    this.isStarred = false,
   });
+
+  final bool isStarred;
 
   GroupMessage copyWith({
     String? id,
@@ -42,6 +45,7 @@ class GroupMessage {
     bool? isThreadOpen,
     bool? isReplyInputOpen,
     String? replyToMessageId,
+    bool? isStarred,
   }) {
     return GroupMessage(
       id: id ?? this.id,
@@ -56,6 +60,7 @@ class GroupMessage {
       isThreadOpen: isThreadOpen ?? this.isThreadOpen,
       isReplyInputOpen: isReplyInputOpen ?? this.isReplyInputOpen,
       replyToMessageId: replyToMessageId ?? this.replyToMessageId,
+      isStarred: isStarred ?? this.isStarred,
     );
   }
 
@@ -63,6 +68,7 @@ class GroupMessage {
     required Map<String, dynamic> messageRow,
     required List<Reaction> reactions,
     List<GroupMessage> replies = const [],
+    bool isStarred = false,
   }) {
     if (messageRow['sender_id'] == null) {
       print('⚠️ Message ${messageRow['id']} has NULL sender_id');
@@ -87,6 +93,7 @@ class GroupMessage {
       reactions: reactions,
       replies: replies,
       replyToMessageId: messageRow['reply_to_message_id'],
+      isStarred: isStarred,
     );
   }
 
@@ -103,6 +110,7 @@ class GroupMessage {
       imagePath: map['imagePath'],
       isThreadOpen: map['isThreadOpen'] ?? false,
       isReplyInputOpen: map['isReplyInputOpen'] ?? false,
+      isStarred: map['isStarred'] ?? false,
       replies: (map['replies'] as List? ?? [])
           .map((e) => GroupMessage.fromMap(Map<String, dynamic>.from(e)))
           .toList(),
@@ -130,6 +138,73 @@ class GroupMessage {
         for (final reaction in reactions) reaction.emoji: reaction.userIds,
       },
       'replies': replies.map((reply) => reply.toMap()).toList(),
+      'isStarred': isStarred,
     };
+  }
+  GroupMessage addReply(GroupMessage reply) {
+
+    if (id == reply.replyToMessageId) {
+      return copyWith(replies: [reply, ...replies]);
+    }
+
+    if (replies.isNotEmpty) {
+      return copyWith(
+        replies: replies.map((r) => r.addReply(reply)).toList(),
+      );
+    }
+
+    return this;
+  }
+
+  GroupMessage toggleStar(String targetMessageId) {
+    if (id == targetMessageId) {
+      return copyWith(isStarred: !isStarred);
+    }
+
+    if (replies.isNotEmpty) {
+      return copyWith(
+        replies: replies.map((r) => r.toggleStar(targetMessageId)).toList(),
+      );
+    }
+
+    return this;
+  }
+
+  GroupMessage updateReaction({
+    required String messageId,
+    required String emoji,
+    required String userId,
+    required GroupMessage Function({
+      required GroupMessage message,
+      required String targetMessageId,
+      required String emoji,
+      required String userId,
+    }) applyReactionFn,
+  }) {
+    // 1. Target found
+    if (id == messageId) {
+      return applyReactionFn(
+        message: this,
+        targetMessageId: messageId,
+        emoji: emoji,
+        userId: userId,
+      );
+    }
+
+    // 2. Recursive search
+    if (replies.isNotEmpty) {
+      return copyWith(
+        replies: replies
+            .map((r) => r.updateReaction(
+                  messageId: messageId,
+                  emoji: emoji,
+                  userId: userId,
+                  applyReactionFn: applyReactionFn,
+                ))
+            .toList(),
+      );
+    }
+
+    return this;
   }
 }

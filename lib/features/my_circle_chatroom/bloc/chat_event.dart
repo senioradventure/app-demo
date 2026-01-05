@@ -47,6 +47,19 @@ class DeleteMessage extends ChatEvent {
   List<Object?> get props => [messageId];
 }
 
+class DeleteGroupMessage extends ChatEvent {
+  final String messageId;
+  final bool forEveryone;
+
+  const DeleteGroupMessage({
+    required this.messageId,
+    required this.forEveryone,
+  });
+
+  @override
+  List<Object?> get props => [messageId, forEveryone];
+}
+
 class SendGroupMessage extends ChatEvent {
   final String? circleId;
   final String? text;

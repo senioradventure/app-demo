@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/enum/chat_message_type.dart';
@@ -20,7 +19,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<LoadGroupMessages>(_onLoadGroupMessages);
     on<GroupMessageInserted>(_onGroupMessageInserted);
     on<SendGroupMessage>(_onSendGroupMessage);
-    on<DeleteMessage>(_onDeleteMessage);
+    on<DeleteGroupMessage>(_onDeleteGroupMessage);
     on<GroupReactionChanged>(_onGroupReactionChanged);
     on<ToggleReaction>(_onToggleReaction);
     on<ToggleGroupThread>(_onToggleGroupThread);
@@ -91,8 +90,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
 
       debugPrint('🟩 [ChatBloc] Message sent successfully');
-
-      // ✅ Optimistically update UI (Realtime will skip duplicate due to ID check)
       add(GroupMessageInserted(newMessage));
       
     } catch (e, st) {
@@ -101,24 +98,42 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
-  void _onDeleteMessage(DeleteMessage event, Emitter<ChatState> emit) {
-    final updatedMessages = state.messages
-        .where((m) => m.id != event.messageId)
-        .toList();
+  Future<void> _onDeleteGroupMessage(
+    DeleteGroupMessage event,
+    Emitter<ChatState> emit,
+  ) async {
+    final updatedMessages = state.groupMessages.where((m) {
+      return m.id != event.messageId; 
+    }).map((m) {
+       if (m.replies.any((r) => r.id == event.messageId)) {
+         return m.copyWith(
+           replies: m.replies.where((r) => r.id != event.messageId).toList(),
+         );
+       }
+       return m;
+    }).toList();
 
-    emit(state.copyWith(messages: updatedMessages));
+    emit(state.copyWith(groupMessages: updatedMessages));
+
+    if (event.forEveryone) {
+      try {
+        await repository.deleteGroupMessage(event.messageId);
+        debugPrint('🗑️ [ChatBloc] Deleted message ${event.messageId} for everyone');
+      } catch (e) {
+        debugPrint('🟥 [ChatBloc] Delete failed: $e');
+      }
+    }
   }
 
   void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
     if (event.type == ChatMessageType.individual) return;
 
     final updatedMessages = state.groupMessages.map((message) {
-      return _applyReactionRecursive(
-        message,
-        event.messageId,
-        event.emoji,
-        event.userId,
-        true,
+      return message.updateReaction(
+        messageId: event.messageId,
+        emoji: event.emoji,
+        userId: event.userId,
+        applyReactionFn: applyReaction,
       );
     }).toList();
 
@@ -169,25 +184,53 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     debugPrint("💬 [ChatBloc] Reply input toggled: ${event.messageId}");
   }
 
-  void _onToggleStar(ToggleStar event, Emitter<ChatState> emit) {}
+  Future<void> _onToggleStar(ToggleStar event, Emitter<ChatState> emit) async {
+    final targetMessage =
+        _findMessageRecursive(state.groupMessages, event.messageId);
+
+    if (targetMessage == null) return;
+
+
+    final updatedMessages = state.groupMessages.map((msg) {
+      return msg.toggleStar(event.messageId);
+    }).toList();
+
+    emit(state.copyWith(groupMessages: updatedMessages));
+
+
+    try {
+      await repository.toggleSaveMessage(message: targetMessage);
+    } catch (e) {
+      debugPrint('🟥 Failed to toggle star: $e');
+    }
+  }
+
+  GroupMessage? _findMessageRecursive(List<GroupMessage> messages, String id) {
+    for (final msg in messages) {
+      if (msg.id == id) return msg;
+
+      if (msg.replies.isNotEmpty) {
+        final found = _findMessageRecursive(msg.replies, id);
+        if (found != null) return found;
+      }
+    }
+    return null;
+  }
 
   void _onGroupMessageInserted(
     GroupMessageInserted event,
     Emitter<ChatState> emit,
   ) {
-    final msg = event.message;
-
-
-    if (msg.replyToMessageId == null) {
-      emit(state.copyWith(groupMessages: [msg, ...state.groupMessages]));
+    // 🟦 Parent message (optimization)
+    if (event.message.replyToMessageId == null) {
+      emit(state.copyWith(
+          groupMessages: [event.message, ...state.groupMessages]));
       return;
     }
 
-    final updatedMessages = state.groupMessages.map((parent) {
-      if (parent.id == msg.replyToMessageId) {
-        return parent.copyWith(replies: [...parent.replies, msg]);
-      }
-      return parent;
+    // 🌳 Update recursively for replies
+    final updatedMessages = state.groupMessages.map((msg) {
+      return msg.addReply(event.message);
     }).toList();
 
     emit(state.copyWith(groupMessages: updatedMessages));
@@ -198,12 +241,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     Emitter<ChatState> emit,
   ) {
     final updated = state.groupMessages.map((message) {
-      return _applyReactionRecursive(
-        message,
-        event.messageId,
-        event.emoji,
-        event.userId,
-        event.isAdded,
+      return message.updateReaction(
+        messageId: event.messageId,
+        emoji: event.emoji,
+        userId: event.userId,
+        applyReactionFn: applyReaction,
       );
     }).toList();
 
@@ -253,39 +295,4 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 }
 
-GroupMessage _applyReactionRecursive(
-  GroupMessage message,
-  String targetMessageId,
-  String emoji,
-  String userId,
-  bool isAdded,
-) {
-  // 🎯 Match found
-  if (message.id == targetMessageId) {
-    return applyReaction(
-      message: message,
-      targetMessageId: targetMessageId,
-      emoji: emoji,
-      userId: userId,
-    );
-  }
 
-  // 🔁 Recurse into replies
-  if (message.replies.isNotEmpty) {
-    return message.copyWith(
-      replies: message.replies
-          .map(
-            (reply) => _applyReactionRecursive(
-              reply,
-              targetMessageId,
-              emoji,
-              userId,
-              isAdded,
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  return message;
-}
