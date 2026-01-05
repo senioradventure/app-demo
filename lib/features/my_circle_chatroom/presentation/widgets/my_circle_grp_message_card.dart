@@ -110,7 +110,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
             color: isMe ? const Color(0xFFF9EFDB) : AppColors.white,
             child: Padding(
               padding: EdgeInsets.only(
-                top: widget.isContinuation ? 2 : 12,
+                top: widget.isContinuation ? 8 : 12,
                 bottom: widget.isLastInGroup ? 8 : 2,
                 left: 12,
                 right: 12,
@@ -133,7 +133,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildHeader(grpmessage),
+                        _buildHeader(grpmessage, isMe),
 
                         if (grpmessage.imagePath != null)
                           Padding(
@@ -201,10 +201,10 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
     );
   }
 
-  Widget _buildHeader(GroupMessage grpmessage) => Row(
+  Widget _buildHeader(GroupMessage grpmessage, bool isMe) => Row(
     children: [
       Text(
-        grpmessage.senderName,
+        isMe ? 'You' : grpmessage.senderName,
         style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),

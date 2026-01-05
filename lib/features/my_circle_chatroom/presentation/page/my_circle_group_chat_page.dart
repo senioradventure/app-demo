@@ -91,17 +91,12 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final currentMsg = messages[index];
+                      final prevMsg = index < messages.length - 1 ? messages[index + 1] : null;
+                      final nextMsg = index > 0 ? messages[index - 1] : null;
 
-                      final isContinuation =
-                          index < messages.length - 1 &&
-                          currentMsg.replyToMessageId == null &&
-                          currentMsg.replies.isEmpty &&
-                          messages[index + 1].replyToMessageId == null &&
-                          messages[index + 1].senderId == currentMsg.senderId;
+                      final isContinuation = prevMsg != null && prevMsg.senderId == currentMsg.senderId;
 
-                      final isLastInGroup =
-                          index == messages.length - 1 ||
-                          messages[index + 1].senderId != currentMsg.senderId;
+                      final isLastInGroup = nextMsg == null || nextMsg.senderId != currentMsg.senderId;
 
                       return GroupMessageCard(
                         key: ValueKey(currentMsg.id),

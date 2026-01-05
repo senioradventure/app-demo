@@ -177,7 +177,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) {
     final msg = event.message;
 
-    // 🟦 Parent message
+
     if (msg.replyToMessageId == null) {
       emit(state.copyWith(groupMessages: [msg, ...state.groupMessages]));
       return;

@@ -17,8 +17,7 @@ class MessageReplies extends StatelessWidget {
         const Divider(color: AppColors.borderColor, thickness: 1, height: 0),
         Padding(
           padding: EdgeInsetsGeometry.only(
-            left: 33,
-            right: 12,
+            left: 36,
             bottom: 8,
             top: 8,
           ),
@@ -32,6 +31,7 @@ class MessageReplies extends StatelessWidget {
                 color: isMe
                     ? const Color(0xFFF9EFDB)
                     : AppColors.white,
+                padding: const EdgeInsets.only(right: 12),
                 child: GroupMessageCard(
                   key: ValueKey(currentReply.id),
                   grpmessage: currentReply,
