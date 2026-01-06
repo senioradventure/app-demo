@@ -16,6 +16,7 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
       super(const CreateCircleState()) {
     on<LoadCircleFriends>(_onLoadFriends);
     on<ToggleFriendSelection>(_onToggleFriendSelection);
+    on<SearchFriends>(_onSearchFriends);
     on<CreateCircle>(_onCreateCircle);
   }
 
@@ -40,6 +41,7 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
         state.copyWith(
           status: CreateCircleStatus.friendsLoaded,
           friends: friends,
+          filteredFriends: friends,
         ),
       );
     } catch (e) {
@@ -63,6 +65,21 @@ class CreateCircleBloc extends Bloc<CreateCircleEvent, CreateCircleState> {
       updatedSelection.add(event.friendId);
     }
     emit(state.copyWith(selectedFriendIds: updatedSelection));
+  }
+
+  void _onSearchFriends(SearchFriends event, Emitter<CreateCircleState> emit) {
+    if (event.query.isEmpty) {
+      emit(state.copyWith(filteredFriends: state.friends));
+    } else {
+      final filtered = state.friends
+          .where(
+            (friend) => friend.fullName.toLowerCase().contains(
+              event.query.toLowerCase(),
+            ),
+          )
+          .toList();
+      emit(state.copyWith(filteredFriends: filtered));
+    }
   }
 
   Future<void> _onCreateCircle(
