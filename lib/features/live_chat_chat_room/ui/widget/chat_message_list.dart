@@ -84,7 +84,7 @@ class ChatMessageList extends StatelessWidget {
                         context: context,
                         backgroundColor: Colors.transparent,
                         isScrollControlled: true,
-                        builder: (_) => UserProfileBottomSheet(msg: msg),
+                        builder: (_) => UserProfileBottomSheet(msg: msg,otherUserId: msg.senderId!,),
                       );
                     },
                     onLinkTap: onOpenLink,
@@ -104,7 +104,7 @@ class ChatMessageList extends StatelessWidget {
                       context: context,
                       backgroundColor: Colors.transparent,
                       isScrollControlled: true,
-                      builder: (_) => UserProfileBottomSheet(msg: msg),
+                      builder: (_) => UserProfileBottomSheet(msg: msg,otherUserId: msg.senderId!,),
                     );
                   },
                   onLinkTap: onOpenLink,
