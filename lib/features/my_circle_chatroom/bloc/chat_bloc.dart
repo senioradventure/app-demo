@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/enum/chat_message_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/my_circle_chatroom/models/group_message_extensions.dart';
 import 'package:senior_circle/core/utils/reaction_utils.dart';
 import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

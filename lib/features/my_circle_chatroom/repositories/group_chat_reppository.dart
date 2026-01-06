@@ -111,7 +111,6 @@ class GroupChatRepository {
     final Map<String, List<GroupMessage>> repliesByParent = {};
     final Map<String, GroupMessage> allMessages = {};
 
-    // 1. Create all message objects
     for (final row in messageRows) {
       final id = row['id'] as String;
       final replyTo = row['reply_to_message_id'] as String?;
@@ -124,7 +123,7 @@ class GroupChatRepository {
         senderId: row['sender_id'] ?? '',
         senderName: row['profiles']?['full_name'] ?? 'Unknown',
         avatar: row['profiles']?['avatar_url'],
-        text: mediaType == 'text' ? row['content'] : row['content'],
+        text: row['content'],
         imagePath: mediaType == 'image' ? row['media_url'] : null,
         time: row['created_at'] as String,
         reactions: reactions,
@@ -146,10 +145,8 @@ class GroupChatRepository {
       'Replies: ${repliesByParent.values.fold<int>(0, (sum, l) => sum + l.length)}',
     );
 
-    // 2. Attach replies and return parents
     final List<GroupMessage> parentMessages = [];
 
-    // allMessages is ordered because messageRows was ordered
     for (final message in allMessages.values) {
       final replies = repliesByParent[message.id] ?? [];
       final updated = message.copyWith(
@@ -175,7 +172,6 @@ class GroupChatRepository {
   }) async {
     final senderId = _client.auth.currentUser!.id;
 
-    // 1. Insert and select with profile data
     final response = await _client
         .from('messages')
         .insert({
@@ -191,7 +187,6 @@ class GroupChatRepository {
 
     debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
 
-    // 2. Convert to GroupMessage
     return GroupMessage.fromSupabase(
       messageRow: response,
       reactions: const [],
@@ -204,37 +199,31 @@ class GroupChatRepository {
     required String emoji,
     required String userId,
   }) async {
-    final existing = await _client
-        .from('message_reactions')
-        .select()
-        .eq('message_id', messageId)
-        .eq('user_id', userId)
-        .eq('reaction', emoji)
-        .maybeSingle();
+    try {
+      final existing = await _client
+          .from('message_reactions')
+          .select()
+          .eq('message_id', messageId)
+          .eq('user_id', userId)
+          .eq('reaction', emoji)
+          .maybeSingle();
 
-    if (existing != null) {
-      await _client.from('message_reactions').delete().eq('id', existing['id']);
-    } else {
-      await _client.from('message_reactions').insert({
-        'message_id': messageId,
-        'user_id': userId,
-        'reaction': emoji,
-      });
+      if (existing != null) {
+        await _client.from('message_reactions').delete().eq('id', existing['id']);
+      } else {
+        await _client.from('message_reactions').insert({
+          'message_id': messageId,
+          'user_id': userId,
+          'reaction': emoji,
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('🟥 [GroupChatRepo] toggleGroupReaction ERROR: $e');
+      debugPrint('🟥 [GroupChatRepo] STACKTRACE:\n$stack');
+      rethrow;
     }
   }
 
-  Future<void> sendGroupReply({
-    required String circleId,
-    required String parentMessageId,
-    required String content,
-  }) async {
-    await Supabase.instance.client.from('messages').insert({
-      'circle_id': circleId,
-      'reply_to_message_id': parentMessageId,
-      'content': content,
-      'media_type': 'text',
-    });
-  }
 
   Future<String> uploadCircleImage(File file) async {
     debugPrint('🟦 [Upload] Method entered');
@@ -279,37 +268,49 @@ class GroupChatRepository {
   }
 
   Future<void> deleteGroupMessage(String messageId) async {
-    await _client
-        .from('messages')
-        .update({'deleted_at': DateTime.now().toIso8601String()})
-        .eq('id', messageId);
+    try {
+      await _client
+          .from('messages')
+          .update({'deleted_at': DateTime.now().toIso8601String()})
+          .eq('id', messageId);
+    } catch (e, stack) {
+      debugPrint('🟥 [GroupChatRepo] deleteGroupMessage ERROR: $e');
+      debugPrint('🟥 [GroupChatRepo] STACKTRACE:\n$stack');
+      rethrow;
+    }
   }
 
   Future<void> toggleSaveMessage({
     required GroupMessage message,
   }) async {
-    final userId = _client.auth.currentUser!.id;
+    try {
+      final userId = _client.auth.currentUser!.id;
 
-    final existing = await _client
-        .from('saved_messages')
-        .select()
-        .eq('user_id', userId)
-        .eq('message_id', message.id)
-        .maybeSingle();
+      final existing = await _client
+          .from('saved_messages')
+          .select()
+          .eq('user_id', userId)
+          .eq('message_id', message.id)
+          .maybeSingle();
 
-    if (existing != null) {
-      await _client.from('saved_messages').delete().eq('id', existing['id']);
-      debugPrint('⭐ Unsaved message: ${message.id}');
-    } else {
-      await _client.from('saved_messages').insert({
-        'user_id': userId,
-        'message_id': message.id,
-        'sender_id': message.senderId,
-        'content': message.text,
-        'media_url': message.imagePath,
-        'saved_at': DateTime.now().toIso8601String(),
-      });
-      debugPrint('⭐ Saved message: ${message.id}');
+      if (existing != null) {
+        await _client.from('saved_messages').delete().eq('id', existing['id']);
+        debugPrint('⭐ Unsaved message: ${message.id}');
+      } else {
+        await _client.from('saved_messages').insert({
+          'user_id': userId,
+          'message_id': message.id,
+          'sender_id': message.senderId,
+          'content': message.text,
+          'media_url': message.imagePath,
+          'saved_at': DateTime.now().toIso8601String(),
+        });
+        debugPrint('⭐ Saved message: ${message.id}');
+      }
+    } catch (e, stack) {
+      debugPrint('🟥 [GroupChatRepo] toggleSaveMessage ERROR: $e');
+      debugPrint('🟥 [GroupChatRepo] STACKTRACE:\n$stack');
+      rethrow;
     }
   }
 }
