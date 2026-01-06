@@ -8,9 +8,11 @@ class MyCircleIndividualAppBar extends StatelessWidget
     super.key,
     required this.userName,
     required this.profileUrl,
+    required this.userId,
   });
   final String userName;
   final String profileUrl;
+  final String userId;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,7 @@ class MyCircleIndividualAppBar extends StatelessWidget
       titleSpacing: 0,
       title: InkWell(
         onTap: () {
-          showUserProfileBottomSheet(context, userName, profileUrl);
+          showUserProfileBottomSheet(context, userId);
         },
         child: Row(
           children: [

@@ -1,4 +1,5 @@
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
+import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class IndividualChatRepository {
@@ -86,5 +87,15 @@ class IndividualChatRepository {
         .from('messages')
         .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
         .eq('id', messageId);
+  }
+
+  Future<UserProfile> getUserProfile(String userId) async {
+    final response = await _client
+        .from('profiles')
+        .select('id, full_name, avatar_url, locations(name)')
+        .eq('id', userId)
+        .single();
+
+    return UserProfile.fromSupabase(response);
   }
 }
