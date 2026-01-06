@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -14,10 +13,9 @@ class SplashPage extends StatelessWidget {
   final AuthRepository _authRepository = AuthRepository();
 
   void _checkSession(BuildContext context) {
-    Timer(const Duration(seconds: 5), () {
-      final hasSession = _authRepository.hasActiveSession();
-
-      if (hasSession) {
+    Timer(const Duration(seconds: 5), () async {
+      final hasActivated = await _authRepository.hasActivated();
+      if (hasActivated) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => TabSelectorWidget()),
@@ -26,7 +24,7 @@ class SplashPage extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => LoginPage()),
-        );  
+        );
       }
     });
   }
