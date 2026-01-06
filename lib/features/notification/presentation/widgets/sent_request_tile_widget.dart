@@ -20,6 +20,7 @@ class SentRequestTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isAccepted = status == RequestStatus.accepted;
+    final bool isRejected = status == RequestStatus.rejected;
     final bool hasImage = imageUrl != null && imageUrl!.isNotEmpty;
 
     return Material(
@@ -57,19 +58,33 @@ class SentRequestTile extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        isAccepted ? Icons.circle : Icons.access_time,
+                        isAccepted
+                            ? Icons.circle
+                            : isRejected
+                                ? Icons.cancel
+                                : Icons.access_time,
                         size: 10,
-                        color: isAccepted ? Colors.green : Colors.grey,
+                        color: isAccepted
+                            ? Colors.green
+                            : isRejected
+                                ? Colors.red
+                                : Colors.grey,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        isAccepted ? 'ACCEPTED' : 'WAITING FOR APPROVAL',
+                        isAccepted
+                            ? 'ACCEPTED'
+                            : isRejected
+                                ? 'REJECTED'
+                                : 'WAITING FOR APPROVAL',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: isAccepted
                               ? Colors.green
-                              : Colors.grey.shade700,
+                              : isRejected
+                                  ? Colors.red
+                                  : Colors.grey.shade700,
                         ),
                       ),
                     ],

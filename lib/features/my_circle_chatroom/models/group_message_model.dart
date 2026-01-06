@@ -182,7 +182,7 @@ class GroupMessage {
       required String userId,
     }) applyReactionFn,
   }) {
-    // 1. Target found
+
     if (id == messageId) {
       return applyReactionFn(
         message: this,
@@ -192,7 +192,6 @@ class GroupMessage {
       );
     }
 
-    // 2. Recursive search
     if (replies.isNotEmpty) {
       return copyWith(
         replies: replies
