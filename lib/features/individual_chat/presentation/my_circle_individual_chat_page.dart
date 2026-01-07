@@ -116,7 +116,7 @@ class _MyCircleIndividualChatPageState
                   buildWhen: (previous, current) {
                     if (previous is IndividualChatLoaded &&
                         current is IndividualChatLoaded) {
-                      return previous.messages != current.messages;
+                      return previous.version != current.version;
                     }
                     return true;
                   },

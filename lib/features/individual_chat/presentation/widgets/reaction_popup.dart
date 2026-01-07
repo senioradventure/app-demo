@@ -82,6 +82,8 @@ void showReactionPopup({
                     context.read<IndividualChatBloc>().add(
                       StarMessage(message: message),
                     );
+
+                    _showSnack(context, 'Message starred');
                   }),
 
                   const Divider(height: 1),
@@ -94,14 +96,25 @@ void showReactionPopup({
 
                   const Divider(height: 1),
 
-                  _menuItem(context, 'DELETE FOR ME', () {}),
+                  /// ✅ DELETE FOR ME
+                  _menuItem(context, 'DELETE FOR ME', () {
+                    context.read<IndividualChatBloc>().add(
+                      DeleteMessageForMe(message.id),
+                    );
+
+                    _showSnack(context, 'Message deleted for you');
+                  }),
 
                   if (isMe) ...[
                     const Divider(height: 1),
+
+                    /// DELETE FOR EVERYONE
                     _menuItem(context, 'DELETE FOR EVERYONE', () {
                       context.read<IndividualChatBloc>().add(
                         DeleteMessageForEveryone(message: message),
                       );
+
+                      _showSnack(context, 'Message deleted for everyone');
                     }),
                   ],
                 ],
@@ -168,4 +181,13 @@ void _openEmojiPicker({
       );
     },
   );
+}
+
+/// ---------------- SNACKBAR HELPER ----------------
+void _showSnack(BuildContext context, String text) {
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(content: Text(text), duration: const Duration(seconds: 2)),
+    );
 }

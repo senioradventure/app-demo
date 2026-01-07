@@ -3,6 +3,7 @@ import 'package:senior_circle/features/individual_chat/model/individual_message_
 class IndividualChatMessageModel {
   final String id;
   final String senderId;
+  final String? receiverId;
   final String content;
   final String? mediaUrl;
   final String mediaType;
@@ -15,6 +16,7 @@ class IndividualChatMessageModel {
   IndividualChatMessageModel({
     required this.id,
     required this.senderId,
+    this.receiverId,
     required this.content,
     this.mediaUrl,
     required this.mediaType,
@@ -27,6 +29,7 @@ class IndividualChatMessageModel {
     return IndividualChatMessageModel(
       id: json['id'],
       senderId: json['sender_id'],
+      receiverId: json['receiver_id'], // 👈 added
       content: json['content'] ?? '',
       mediaUrl: json['media_url'],
       mediaType: json['media_type'],
@@ -38,10 +41,14 @@ class IndividualChatMessageModel {
     );
   }
 
-  IndividualChatMessageModel copyWith({List<MessageReaction>? reactions}) {
+  IndividualChatMessageModel copyWith({
+    List<MessageReaction>? reactions,
+    String? receiverId,
+  }) {
     return IndividualChatMessageModel(
       id: id,
       senderId: senderId,
+      receiverId: receiverId ?? this.receiverId,
       content: content,
       mediaUrl: mediaUrl,
       mediaType: mediaType,

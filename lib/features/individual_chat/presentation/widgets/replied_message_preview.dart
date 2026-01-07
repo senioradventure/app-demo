@@ -27,6 +27,7 @@ class RepliedMessagePreview extends StatelessWidget {
           orElse: () => IndividualChatMessageModel(
             id: '',
             senderId: '',
+            receiverId: '',
             content: 'Message deleted',
             mediaUrl: null,
             mediaType: 'text',

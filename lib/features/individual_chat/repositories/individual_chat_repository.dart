@@ -8,15 +8,30 @@ class IndividualChatRepository {
   Future<List<IndividualChatMessageModel>> loadMessages(
     String conversationId,
   ) async {
+    final userId = _client.auth.currentUser!.id;
+
     final response = await _client
         .from('messages')
-        .select('*, message_reactions(*)')
+        .select('''
+        *,
+        message_reactions(*),
+        hidden_messages!left(
+          message_id,
+          user_id
+        )
+      ''')
         .eq('conversation_id', conversationId)
-        .filter('deleted_at', 'is', null)
+        .isFilter('deleted_at', null)
         .or('expires_at.is.null,expires_at.gt.${DateTime.now().toUtc()}')
+        .eq('hidden_messages.user_id', userId)
         .order('created_at', ascending: true);
 
     return (response as List)
+        .where(
+          (e) =>
+              e['hidden_messages'] == null ||
+              (e['hidden_messages'] as List).isEmpty,
+        )
         .map((e) => IndividualChatMessageModel.fromSupabase(e))
         .toList();
   }
@@ -56,7 +71,7 @@ class IndividualChatRepository {
           .eq('id', existing.first['id']);
 
       if (existing.first['reaction'] == reaction) {
-        return; // toggle off
+        return;
       }
     }
 
@@ -87,6 +102,13 @@ class IndividualChatRepository {
         .from('messages')
         .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
         .eq('id', messageId);
+  }
+
+  Future<void> deleteMessageForMe(String messageId) async {
+    await _client.rpc(
+      'delete_message_for_me',
+      params: {'p_message_id': messageId},
+    );
   }
 
   Future<UserProfile> getUserProfile(String userId) async {

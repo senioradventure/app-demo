@@ -64,3 +64,11 @@ class DeleteMessageForEveryone extends IndividualChatEvent {
   List<Object?> get props => [message.id];
 }
 
+class DeleteMessageForMe extends IndividualChatEvent {
+  final String messageId;
+
+  const DeleteMessageForMe(this.messageId);
+
+  @override
+  List<Object> get props => [messageId];
+}

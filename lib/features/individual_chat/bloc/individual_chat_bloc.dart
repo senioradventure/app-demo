@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path/path.dart' as path;
+import 'package:senior_circle/features/individual_chat/model/individual_chat_delete_enum.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
 import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
@@ -29,6 +30,7 @@ class IndividualChatBloc
     on<AddReactionToMessage>(_onAddReaction);
     on<StarMessage>(_onStarMessage);
     on<DeleteMessageForEveryone>(_onDeleteMessageForEveryone);
+    on<DeleteMessageForMe>(_onDeleteMessageForMe);
   }
 
   // ---------------------------------------------------------------------------
@@ -55,6 +57,7 @@ class IndividualChatBloc
 
       _subscribeToRealtime();
     } catch (e) {
+      print(e.toString());
       emit(IndividualChatError(e.toString()));
     }
   }
@@ -266,6 +269,37 @@ class IndividualChatBloc
     } catch (e) {
       emit(DeleteMessageFailure('Failed to delete message'));
       emit(current);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // DELETE FOR ME MESSAGES
+  // ---------------------------------------------------------------------------
+  Future<void> _onDeleteMessageForMe(
+    DeleteMessageForMe event,
+    Emitter<IndividualChatState> emit,
+  ) async {
+    if (state is! IndividualChatLoaded) return;
+
+    final current = state as IndividualChatLoaded;
+
+    // Optimistically remove from UI
+    final updatedMessages = current.messages
+        .where((m) => m.id != event.messageId)
+        .toList();
+
+    emit(current.copyWith(messages: updatedMessages));
+
+    try {
+      await _repository.deleteMessageForMe(event.messageId);
+      // Success - no need to emit again since UI already updated
+    } catch (e) {
+      print('Delete error: $e'); // Debug logging
+      // Rollback on failure
+      emit(DeleteMessageFailure('Failed to delete message: ${e.toString()}'));
+      emit(
+        current.copyWith(),
+      ); // Restore original messages with version increment
     }
   }
 
