@@ -21,8 +21,21 @@ class AuthRepository {
     );
   }
 
-  bool hasActiveSession() {
-    return _client.auth.currentSession != null;
+  /// 🔹 Check if there is an active session AND user profile exists
+  Future<bool> hasActivated() async {
+    final session = _client.auth.currentSession;
+
+    // No session → false
+    if (session == null) {
+      return false;
+    }
+
+    final userId = session.user.id;
+
+    // Check if profile exists for this user
+    final bool userExists = await doesUserProfileExist(userId);
+
+    return userExists;
   }
 
   // ================= PROFILE CHECK =================
@@ -78,5 +91,11 @@ class AuthRepository {
       'avatar_url': avatarUrl,
       'location_id': locationId,
     });
+  }
+  // ================= LOGOUT =================
+
+  /// 🔹 Logout user and clear session
+  Future<void> logout() async {
+    await _client.auth.signOut();
   }
 }
