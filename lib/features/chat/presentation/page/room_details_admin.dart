@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'members_list_fullscreen.dart';
-import '../bloc/admin_reports_bloc.dart';
-import '../bloc/admin_reports_event.dart';
-import '../bloc/admin_reports_state.dart';
-import '../repositories/admin_reports_repository.dart';
+import '../../bloc/admin_reports_bloc.dart';
+import '../../bloc/admin_reports_event.dart';
+import '../../bloc/admin_reports_state.dart';
+import '../../repositories/admin_reports_repository.dart';
 
 class ChatDetailsScreenadmin extends StatefulWidget {
   final String liveChatRoomId;

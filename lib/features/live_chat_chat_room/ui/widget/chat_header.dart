@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/chat/ui/room_details.dart';
-import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
+import 'package:senior_circle/features/chat/presentation/page/room_details.dart';
+import 'package:senior_circle/features/chat/presentation/page/room_details_admin.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 
