@@ -12,7 +12,7 @@ class GroupChatRepository {
   Future<List<GroupMessage>> fetchGroupMessages({
     required String circleId,
   }) async {
-    debugPrint('🟦 [GroupChatRepo] Fetching messages for circleId: $circleId');
+    
 
     try {
       final messageRows = await _fetchMessageRows(circleId);
@@ -32,29 +32,45 @@ class GroupChatRepository {
   }
 
   Future<List<Map<String, dynamic>>> _fetchMessageRows(String circleId) async {
-    final rows = await _client
-        .from('messages')
-        .select('''
-          id,
-          sender_id,
-          content,
-          media_url,
-          media_type,
-          reply_to_message_id,
-          created_at,
-          profiles!messages_sender_id_fkey (
-            id,
-            full_name,
-            avatar_url
-          )
-        ''')
-        .eq('circle_id', circleId)
-        .filter('deleted_at', 'is', null)
-        .order('created_at', ascending: false);
+  final userId = _client.auth.currentUser!.id;
 
-    debugPrint('🟩 [GroupChatRepo] Messages fetched: ${rows.length}');
-    return List<Map<String, dynamic>>.from(rows);
-  }
+  final rows = await _client
+      .from('messages')
+      .select('''
+        id,
+        sender_id,
+        content,
+        media_url,
+        media_type,
+        reply_to_message_id,
+        created_at,
+        profiles!messages_sender_id_fkey (
+          id,
+          full_name,
+          avatar_url
+        ),
+        hidden_messages!left(
+          message_id,
+          user_id
+        )
+      ''')
+      .eq('circle_id', circleId)
+      .isFilter('deleted_at', null)
+      .eq('hidden_messages.user_id', userId)
+      .order('created_at', ascending: false);
+
+  debugPrint('🟩 [GroupChatRepo] Raw rows fetched: ${rows.length}');
+
+  return (rows as List)
+      .where(
+        (e) =>
+            e['hidden_messages'] == null ||
+            (e['hidden_messages'] as List).isEmpty,
+      )
+      .cast<Map<String, dynamic>>()
+      .toList();
+}
+
 
   Future<Map<String, List<Map<String, dynamic>>>> _fetchReactions(
     List<Map<String, dynamic>> messageRows,
@@ -279,6 +295,14 @@ class GroupChatRepository {
       rethrow;
     }
   }
+
+  Future<void> deleteGroupMessageForMe(String messageId) async {
+  await _client.rpc(
+    'delete_message_for_me',
+    params: {'p_message_id': messageId},
+  );
+}
+
 
   Future<void> toggleSaveMessage({
     required GroupMessage message,

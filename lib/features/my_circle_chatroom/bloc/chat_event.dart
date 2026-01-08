@@ -38,14 +38,6 @@ class SendImageMessage extends ChatEvent {
   const SendImageMessage({required this.imagePath});
 }
 
-class DeleteMessage extends ChatEvent {
-  final String messageId;
-
-  const DeleteMessage(this.messageId);
-
-  @override
-  List<Object?> get props => [messageId];
-}
 
 class DeleteGroupMessage extends ChatEvent {
   final String messageId;
