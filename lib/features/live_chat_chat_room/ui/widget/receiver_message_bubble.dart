@@ -33,7 +33,7 @@ class ReceiverMessageBubble extends StatelessWidget {
                       context: context,
                       backgroundColor: Colors.transparent,
                       isScrollControlled: true,
-                      builder: (_) => UserProfileBottomSheet(msg: msg),
+                      builder: (_) => UserProfileBottomSheet(msg: msg,otherUserId: msg.senderId!,),
                     );
                   },
                   child: CircleAvatar(
