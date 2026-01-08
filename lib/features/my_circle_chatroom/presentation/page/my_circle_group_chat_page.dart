@@ -5,10 +5,10 @@ import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_state.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/message_input_field.dart';
+import 'package:senior_circle/core/common/widgets/message_input_field.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_app_bar.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_card.dart';
-import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
 class MyCircleGroupChatPage extends StatefulWidget {
   const MyCircleGroupChatPage({
@@ -16,7 +16,7 @@ class MyCircleGroupChatPage extends StatefulWidget {
     required this.chat,
     required this.isAdmin,
   });
-  final CircleChat chat;
+  final MyCircle chat;
   final bool isAdmin;
 
   @override

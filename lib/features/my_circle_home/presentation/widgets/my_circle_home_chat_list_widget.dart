@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/utils/date_time_formatter.dart';
-import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
 class ChatListWidget extends StatelessWidget {
-  final List<CircleChat> foundResults;
-  final void Function(CircleChat) onChatTap;
+  final List<MyCircle> foundResults;
+  final void Function(MyCircle) onChatTap;
 
   const ChatListWidget({
     super.key,

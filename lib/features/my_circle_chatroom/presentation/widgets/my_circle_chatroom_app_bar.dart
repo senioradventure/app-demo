@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
-import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
 class MyCircleChatroomAppBar extends StatelessWidget
     implements PreferredSizeWidget {
@@ -12,7 +12,7 @@ class MyCircleChatroomAppBar extends StatelessWidget
     this.isAdmin = false,
   });
 
-  final CircleChat chat;
+  final MyCircle chat;
   final bool isAdmin;
 
   @override
