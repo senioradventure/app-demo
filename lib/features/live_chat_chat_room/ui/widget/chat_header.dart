@@ -8,9 +8,11 @@ class ChatHeaderWidget extends StatelessWidget {
   final String? title;
   final String? imageUrl;
   final bool isAdmin;
+  final String liveChatRoomId;
 
   const ChatHeaderWidget({
     super.key,
+    required this.liveChatRoomId,
     required this.title,
     required this.imageUrl,
     required this.isAdmin,
@@ -18,6 +20,7 @@ class ChatHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return InkWell(
       onTap: () {
         if (!isAdmin) {
@@ -28,7 +31,7 @@ class ChatHeaderWidget extends StatelessWidget {
         } else {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
+            MaterialPageRoute(builder: (_) => ChatDetailsScreenadmin(liveChatRoomId: liveChatRoomId,)),
           );
         }
       },

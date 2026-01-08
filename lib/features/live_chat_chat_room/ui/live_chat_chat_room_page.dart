@@ -185,6 +185,7 @@ class _ChatroomState extends State<Chatroom> {
                 color: Colors.white,
               ),
               ChatHeaderWidget(
+                liveChatRoomId: _liveChatRoomId,
                 title: widget.title,
                 imageUrl: widget.imageUrl,
                 isAdmin: widget.isAdmin,

@@ -29,7 +29,7 @@ class MyCircleChatroomAppBar extends StatelessWidget
           if (isAdmin) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
+              MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin(liveChatRoomId: '',)),
             );
           } else {
             Navigator.push(
