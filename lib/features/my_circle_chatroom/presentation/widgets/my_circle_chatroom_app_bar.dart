@@ -6,7 +6,11 @@ import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.d
 
 class MyCircleChatroomAppBar extends StatelessWidget
     implements PreferredSizeWidget {
-  const MyCircleChatroomAppBar({super.key, required this.chat,required this.isAdmin,});
+  const MyCircleChatroomAppBar({
+    super.key,
+    required this.chat,
+    this.isAdmin = false,
+  });
 
   final CircleChat chat;
   final bool isAdmin;
@@ -21,41 +25,33 @@ class MyCircleChatroomAppBar extends StatelessWidget
       leadingWidth: 48,
       titleSpacing: 0,
       title: InkWell(
-  onTap: () {
-    if (isAdmin) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const ChatDetailsScreenadmin(),
+        onTap: () {
+          if (isAdmin) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
+            );
+          }
+        },
+        child: Row(
+          children: [
+            _buildAvatar(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                chat.name,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ),
+          ],
         ),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const ChatDetailsScreen(),
-        ),
-      );
-    }
-  },
-
-  child: Row(
-    children: [
-      _buildAvatar(),
-
-      const SizedBox(width: 12),
-
-      Expanded(
-        child: Text(
-          chat.name,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-      ),  ],
-  ),
-),
-
-
+      ),
       actions: [
         IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
       ],

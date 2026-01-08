@@ -1,18 +1,18 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-class ImagePreviewBar extends StatelessWidget {
-  final ValueNotifier<String?> imagePath;
+class SelectedImagePreview extends StatelessWidget {
+  final ValueNotifier<String?> imageNotifier;
 
-  const ImagePreviewBar({
+  const SelectedImagePreview({
     super.key,
-    required this.imagePath,
+    required this.imageNotifier,
   });
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String?>(
-      valueListenable: imagePath,
+      valueListenable: imageNotifier,
       builder: (context, path, _) {
         if (path == null) return const SizedBox.shrink();
 
@@ -33,7 +33,7 @@ class ImagePreviewBar extends StatelessWidget {
                 top: 6,
                 right: 6,
                 child: GestureDetector(
-                  onTap: () => imagePath.value = null,
+                  onTap: () => imageNotifier.value = null,
                   child: const CircleAvatar(
                     radius: 12,
                     backgroundColor: Colors.black54,
