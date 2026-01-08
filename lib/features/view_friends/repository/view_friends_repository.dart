@@ -1,4 +1,4 @@
-import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,9 +22,7 @@ class ViewFriendsRepository {
     return data.map((e) => Friend.fromJson(e)).toList();
   }
 
-  Future<CircleChat> getOrCreateIndividualChatWithFriend(
-    String friendId,
-  ) async {
+  Future<MyCircle> getOrCreateIndividualChatWithFriend(String friendId) async {
     final userId = _client.auth.currentUser!.id;
     final response = await _client.rpc(
       'get_all_conversations',
@@ -38,7 +36,7 @@ class ViewFriendsRepository {
       orElse: () => null,
     );
     if (matchingConversation != null) {
-      return CircleChat.fromConversationRpc(
+      return MyCircle.fromConversationRpc(
         matchingConversation as Map<String, dynamic>,
       );
     }
@@ -57,7 +55,7 @@ class ViewFriendsRepository {
       (c) => c['other_user']?['id'] == friendId,
       orElse: () => throw Exception('Conversation creation failed'),
     );
-    return CircleChat.fromConversationRpc(
+    return MyCircle.fromConversationRpc(
       newConversation as Map<String, dynamic>,
     );
   }
