@@ -1,0 +1,1 @@
+enum MessageDeleteType { forMe, forEveryone }
