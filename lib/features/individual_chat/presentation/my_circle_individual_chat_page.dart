@@ -5,12 +5,12 @@ import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_chat_room_appbar.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_card.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_input_field.dart';
-import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
 class MyCircleIndividualChatPage extends StatefulWidget {
   const MyCircleIndividualChatPage({super.key, required this.chat});
 
-  final CircleChat chat;
+  final MyCircle chat;
 
   @override
   State<MyCircleIndividualChatPage> createState() =>

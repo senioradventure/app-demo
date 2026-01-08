@@ -38,18 +38,20 @@ Message toggleReaction({
   return message.copyWith(reactions: newReactions);
 }
 
-GroupMessage toggleGroupReaction({
+GroupMessage applyReaction({
   required GroupMessage message,
+  required String targetMessageId,
   required String emoji,
   required String userId,
 }) {
+  if (message.id != targetMessageId) return message;
+
   final reactions = [...message.reactions];
 
   final index = reactions.indexWhere((r) => r.emoji == emoji);
 
   if (index != -1) {
     final reaction = reactions[index];
-
     final updatedUserIds = [...reaction.userIds];
 
     if (updatedUserIds.contains(userId)) {
@@ -61,7 +63,8 @@ GroupMessage toggleGroupReaction({
     if (updatedUserIds.isEmpty) {
       reactions.removeAt(index);
     } else {
-      reactions[index] = reaction.copyWith(userIds: updatedUserIds);
+      reactions[index] =
+          reaction.copyWith(userIds: updatedUserIds);
     }
   } else {
     reactions.add(

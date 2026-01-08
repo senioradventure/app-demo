@@ -10,7 +10,10 @@ import 'package:senior_circle/core/enum/chat_message_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/core/utils/time_utils.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_header.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_reply_input.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
@@ -34,11 +37,13 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   final TextEditingController _replyController = TextEditingController();
 
   void _onReactionTap(BuildContext context, String emoji) {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+
     context.read<ChatBloc>().add(
       ToggleReaction(
         messageId: widget.grpmessage.id,
         emoji: emoji,
-        userId: 'you',
+        userId: userId,
         type: ChatMessageType.group,
       ),
     );
@@ -59,6 +64,131 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
     );
   }
 
+  void _handleStar() {
+    context.read<ChatBloc>().add(
+      ToggleStar(
+        messageId: widget.grpmessage.id,
+        userId: Supabase.instance.client.auth.currentUser!.id,
+      ),
+    );
+  }
+
+  void _handleForward() {
+    debugPrint('Forward message: ${widget.grpmessage.id}');
+  }
+
+  void _handleShare() {
+    debugPrint('Share message: ${widget.grpmessage.id}');
+  }
+
+  void _handleDeleteForMe() {
+    context.read<ChatBloc>().add(
+      DeleteGroupMessage(messageId: widget.grpmessage.id, forEveryone: false),
+    );
+  }
+
+  void _handleDeleteForEveryone() {
+    context.read<ChatBloc>().add(
+      DeleteGroupMessage(messageId: widget.grpmessage.id, forEveryone: true),
+    );
+  }
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    GroupMessage msg,
+    bool isMe,
+  ) async {
+    final box = context.findRenderObject() as RenderBox;
+    final offset = box.localToGlobal(Offset.zero);
+    final menuWidth = MediaQuery.of(context).size.width * 0.7;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "menu",
+      transitionDuration: const Duration(milliseconds: 150),
+      pageBuilder: (_, __, ___) {
+        return Stack(
+          children: [
+            Positioned(
+              top: offset.dy + box.size.height - 60,
+              left: isMe ? (screenWidth - menuWidth) - 16 : 16,
+              width: menuWidth,
+              child: Material(
+                color: Colors.white,
+                elevation: 8,
+                borderRadius: BorderRadius.circular(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildMenuItem(
+                      context,
+                      msg.isStarred ? 'UNSTAR' : 'STAR',
+                      iconPath: 'assets/icons/star_icon.svg',
+                      action: _handleStar,
+                    ),
+                    const PopupMenuDivider(),
+                    _buildMenuItem(
+                      context,
+                      'FORWARD',
+                      iconPath: 'assets/icons/forward_icon.svg',
+                      action: _handleForward,
+                    ),
+                    const PopupMenuDivider(),
+                    _buildMenuItem(
+                      context,
+                      'SHARE',
+                      iconPath: 'assets/icons/share_icon.svg',
+                      action: _handleShare,
+                    ),
+                    const PopupMenuDivider(),
+                    _buildMenuItem(
+                      context,
+                      'DELETE FOR ME',
+                      action: _handleDeleteForMe,
+                    ),
+                    if (isMe) ...[
+                      const PopupMenuDivider(),
+                      _buildMenuItem(
+                        context,
+                        'DELETE FOR EVERYONE',
+                        action: _handleDeleteForEveryone,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  PopupMenuEntry _buildMenuItem(
+    BuildContext context,
+    String title, {
+    String? iconPath,
+    required VoidCallback action,
+  }) {
+    return PopupMenuItem(
+      value: title,
+      onTap: action,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (iconPath != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: SvgPicture.asset(iconPath),
+            ),
+          Text(title, style: AppTextTheme.lightTextTheme.labelMedium),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _replyController.dispose();
@@ -68,7 +198,8 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   @override
   Widget build(BuildContext context) {
     final grpmessage = widget.grpmessage;
-    final isMe = grpmessage.senderName.toLowerCase() == 'you';
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isMe = currentUserId != null && grpmessage.senderId == currentUserId;
     final likeReaction = grpmessage.reactions
         .where((r) => r.emoji == '👍')
         .toList();
@@ -76,7 +207,9 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
     final likeCount = likeReaction.isNotEmpty ? likeReaction.first.count : 0;
 
     final isLiked =
-        likeReaction.isNotEmpty && likeReaction.first.userIds.contains('you');
+        likeReaction.isNotEmpty &&
+        likeReaction.first.userIds.contains(currentUserId);
+
     final BoxBorder? customBorder = widget.isReply
         ? null
         : Border(
@@ -90,117 +223,133 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                 : BorderSide.none,
           );
 
-    return Container(
-      margin: EdgeInsets.only(
-        bottom: widget.isLastInGroup && !widget.isReply ? 8 : 0,
-      ),
-
-      decoration: BoxDecoration(
-        color: isMe ? const Color(0xFFF9EFDB) : AppColors.white,
-        border: widget.isContinuation || widget.isReply ? null : customBorder,
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(
-              top: widget.isContinuation ? 2 : 12,
-              bottom: widget.isLastInGroup ? 12 : 2,
-              left: 12,
-              right: 12,
+    return Builder(
+      builder: (context) {
+        return GestureDetector(
+          onLongPress: () => _showContextMenu(context, grpmessage, isMe),
+          child: Container(
+            margin: EdgeInsets.only(
+              bottom: widget.isLastInGroup && !widget.isReply ? 6 : 0,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            decoration: BoxDecoration(
+              border: widget.isContinuation || widget.isReply
+                  ? null
+                  : customBorder,
+            ),
+            child: Column(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundImage: NetworkImage(grpmessage.avatar ?? ''),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(grpmessage),
+                Container(
+                  color: isMe ? const Color(0xFFF9EFDB) : AppColors.white,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: widget.isContinuation ? 8 : 12,
+                      bottom: widget.isLastInGroup ? 8 : 2,
+                      left: 12,
+                      right: 12,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundImage: grpmessage.avatar != null
+                              ? NetworkImage(grpmessage.avatar!)
+                              : null,
+                          backgroundColor: AppColors.borderColor,
+                          child: grpmessage.avatar == null
+                              ? const Icon(Icons.person)
+                              : null,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GroupMessageHeader(
+                                grpmessage: grpmessage,
+                                isMe: isMe,
+                              ),
 
-                      if (grpmessage.imagePath != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ImageMessageBubble(
-                            imagePath: grpmessage.imagePath!,
-                            isMe: grpmessage.senderName.toLowerCase() == 'you',
-                            isGroup: true,
+                              if (grpmessage.imagePath != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
+                                  child: ImageMessageBubble(
+                                    imagePath: grpmessage.imagePath!,
+                                    isMe: isMe,
+
+                                    isGroup: true,
+                                  ),
+                                ),
+
+                              if (grpmessage.text != null &&
+                                  grpmessage.text!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
+                                  child: Text(
+                                    grpmessage.text!,
+                                    style:
+                                        AppTextTheme.lightTextTheme.bodyMedium,
+                                  ),
+                                ),
+
+                              MessageActions(
+                                isLiked: isLiked,
+                                likeCount: likeCount,
+                                reactions: grpmessage.reactions,
+                                onReactionTap: (emoji) =>
+                                    _onReactionTap(context, emoji),
+                                isReplyInputVisible:
+                                    grpmessage.isReplyInputOpen,
+
+                                onAddReactionTap: _showEmojiPicker,
+                                onLikeTap: () => _onReactionTap(context, '👍'),
+                                onReplyTap: () {
+                                  context.read<ChatBloc>().add(
+                                    ToggleReplyInput(messageId: grpmessage.id),
+                                  );
+                                },
+
+                                isReply: widget.isReply,
+                              ),
+
+                              if (grpmessage.replies.isNotEmpty)
+                                _buildReplyButton(grpmessage),
+                            ],
                           ),
                         ),
-
-                      if (grpmessage.text != null &&
-                          grpmessage.text!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: Text(
-                            grpmessage.text!,
-                            style: AppTextTheme.lightTextTheme.bodyMedium,
-                          ),
-                        ),
-
-                      MessageActions(
-                        isLiked: isLiked,
-                        likeCount: likeCount,
-                        reactions: grpmessage.reactions,
-                        onReactionTap: (emoji) =>
-                            _onReactionTap(context, emoji),
-                        onAddReactionTap: _showEmojiPicker,
-                        onLikeTap: () => _onReactionTap(context, '👍'),
-                        onReplyTap: () {
-                          context.read<ChatBloc>().add(
-                            ToggleReplyInput(messageId: grpmessage.id),
-                          );
-                        },
-
-                        isReply: widget.isReply,
-                      ),
-
-                      if (grpmessage.replies.isNotEmpty)
-                        _buildReplyButton(grpmessage),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+
+                if (grpmessage.isThreadOpen)
+                  MessageReplies(replies: grpmessage.replies),
+
+                if (grpmessage.isReplyInputOpen)
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 33,
+                      right: 12,
+                      bottom: 12,
+                    ),
+                    child: BuildReplyInputField(
+                      replyController: _replyController,
+                      grpmessage: grpmessage,
+                    ),
+                  ),
               ],
             ),
           ),
-
-          if (grpmessage.isThreadOpen)
-            MessageReplies(replies: grpmessage.replies),
-
-          if (grpmessage.isReplyInputOpen)
-            Padding(
-              padding: const EdgeInsets.only(left: 33,right: 12,bottom: 12),
-              child: BuildReplyInputField(
-                replyController: _replyController,
-                grpmessage: grpmessage,
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
-
-  Widget _buildHeader(GroupMessage grpmessage) => Row(
-    children: [
-      Text(
-        grpmessage.senderName,
-        style: AppTextTheme.lightTextTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      const SizedBox(width: 14),
-      Text(
-        TimeUtils.formatTimeString(grpmessage.time),
-        style: AppTextTheme.lightTextTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    ],
-  );
 
   Widget _buildReplyButton(GroupMessage grpmessage) => Center(
     child: TextButton.icon(
@@ -213,6 +362,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
       label: Text(
         "${grpmessage.replies.length} Replies",
         style: TextStyle(
+          fontSize: 12,
           color: grpmessage.isThreadOpen
               ? AppColors.textDarkGray
               : AppColors.buttonBlue,
@@ -225,59 +375,9 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
         color: grpmessage.isThreadOpen
             ? AppColors.textDarkGray
             : AppColors.buttonBlue,
-        size: 24,
+        size: 20,
       ),
       iconAlignment: IconAlignment.end,
     ),
   );
-}
-
-class BuildReplyInputField extends StatelessWidget {
-  const BuildReplyInputField({
-    super.key,
-    required TextEditingController replyController,
-    required this.grpmessage,
-  }) : _replyController = replyController;
-
-  final TextEditingController _replyController;
-  final GroupMessage grpmessage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: TextField(
-        controller: _replyController,
-        autofocus: true,
-        decoration: InputDecoration(
-          hintText: "Write a reply...",
-          hintStyle: AppTextTheme.lightTextTheme.labelMedium,
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.send, color: AppColors.buttonBlue),
-            onPressed: () {
-              if (_replyController.text.trim().isEmpty) return;
-
-              context.read<ChatBloc>().add(
-                AddGroupReply(
-                  parentMessageId: grpmessage.id,
-                  text: _replyController.text.trim(),
-                ),
-              );
-
-              _replyController.clear();
-
-              context.read<ChatBloc>().add(
-                ToggleReplyInput(messageId: grpmessage.id),
-              );
-            },
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide(color: AppColors.borderColor),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-        ),
-      ),
-    );
-  }
 }

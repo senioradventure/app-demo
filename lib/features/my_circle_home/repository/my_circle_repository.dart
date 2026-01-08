@@ -1,10 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/circle_chat_model.dart';
+import '../models/my_circle_model.dart';
 
-class ChatRepository {
+class MyCircleRepository {
   final _client = Supabase.instance.client;
 
-  Future<List<CircleChat>> fetchChats() async {
+  Future<List<MyCircle>> fetchMyCircleChats() async {
     final userId = _client.auth.currentUser?.id;
 
     if (userId == null) {
@@ -27,12 +27,12 @@ class ChatRepository {
     final individualChats = (individualResponse as List? ?? [])
         .map(
           (json) =>
-              CircleChat.fromConversationRpc(json as Map<String, dynamic>),
+              MyCircle.fromConversationRpc(json as Map<String, dynamic>),
         )
         .toList();
 
     final circleChats = (circleResponse as List? ?? [])
-        .map((json) => CircleChat.fromSupabase(json as Map<String, dynamic>))
+        .map((json) => MyCircle.fromSupabase(json as Map<String, dynamic>))
         .toList();
 
     final allChats = [...individualChats, ...circleChats]
