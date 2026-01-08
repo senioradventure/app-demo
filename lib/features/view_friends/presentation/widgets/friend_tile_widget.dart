@@ -6,6 +6,8 @@ import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
 import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -81,18 +83,9 @@ class FriendTile extends StatelessWidget {
                   height: 24,
                   child: SvgPicture.asset('assets/icons/message_circle.svg'),
                 ),
-                onPressed: () async {
-                  final chat = await viewFriendsRepository
-                      .getOrCreateIndividualChatWithFriend(friend.id);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider(
-                        create: (_) =>
-                            IndividualChatBloc(IndividualChatRepository())
-                              ..add(LoadConversationMessages(chat.id)),
-                        child: MyCircleIndividualChatPage(chat: chat),
-                      ),
-                    ),
+                onPressed: () {
+                  context.read<ViewFriendsBloc>().add(
+                    StartChatWithFriend(friend.id),
                   );
                 },
               ),
