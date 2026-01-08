@@ -28,13 +28,11 @@ class CircleChatBloc extends Bloc<CirleChatEvent, CircleChatState> {
     }
   }
 
-  void _onFilterChats(
-    FilterChats event,
-    Emitter<CircleChatState> emit,
-  ) {
+  void _onFilterChats(FilterChats event, Emitter<CircleChatState> emit) {
     final filtered = _allChats
-        .where((chat) =>
-            chat.name.toLowerCase().contains(event.query.toLowerCase()))
+        .where(
+          (chat) => chat.name.toLowerCase().contains(event.query.toLowerCase()),
+        )
         .toList();
 
     emit(ChatLoaded(filtered));

@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/profile_aware_appbar.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createCircle/presentation/circle_creation_screen.dart';
+import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
+import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_state.dart';
@@ -27,6 +29,11 @@ class MyCircleHomePage extends StatefulWidget {
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
   //add this function whenever focus need to be removed when navigating from any screen
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void deactivate() {
     FocusManager.instance.primaryFocus?.unfocus();
     super.deactivate();
@@ -34,16 +41,25 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
 
   void navigateToChatRoom(CircleChat chat) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isAdmin = chat.adminId == currentUserId;
 
-    bool isAdmin = chat.adminId == currentUserId;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) => ChatBloc()..add(LoadMessages()),
-          child: chat.isGroup
-              ? MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin)
-              : MyCircleIndividualChatPage(chat: chat),
-        ),
+        builder: (_) {
+          if (chat.isGroup) {
+            return BlocProvider(
+              create: (_) => ChatBloc()..add(LoadMessages()),
+              child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
+            );
+          } else {
+            return BlocProvider(
+              create: (_) =>
+                  IndividualChatBloc(IndividualChatRepository())
+                    ..add(LoadConversationMessages(chat.id)),
+              child: MyCircleIndividualChatPage(chat: chat),
+            );
+          }
+        },
       ),
     );
   }
