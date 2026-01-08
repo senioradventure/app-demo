@@ -6,7 +6,6 @@ class ChatInputBar extends StatelessWidget {
   final ImagePicker picker;
   final ValueNotifier<String?> pendingImage;
   final ValueNotifier<bool> isTyping;
-  final ValueNotifier<int> fabRebuild;
   final TextEditingController messageController;
   final VoidCallback onSend;
 
@@ -15,7 +14,6 @@ class ChatInputBar extends StatelessWidget {
     required this.picker,
     required this.pendingImage,
     required this.isTyping,
-    required this.fabRebuild,
     required this.messageController,
     required this.onSend,
   });
@@ -82,8 +80,8 @@ class ChatInputBar extends StatelessWidget {
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: onSend,
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: fabRebuild,
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: isTyping,
                       builder: (context, _, __) {
                         final showFab2 =
                             isTyping.value || pendingImage.value != null;

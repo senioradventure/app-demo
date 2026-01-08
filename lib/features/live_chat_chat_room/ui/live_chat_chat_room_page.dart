@@ -36,7 +36,6 @@ class _ChatroomState extends State<Chatroom> {
   final ImagePicker picker = ImagePicker();
   final ValueNotifier<String?> pendingImage = ValueNotifier(null);
   final ValueNotifier<bool> isTyping = ValueNotifier<bool>(false);
-  final ValueNotifier<int> fabRebuild = ValueNotifier<int>(0);
   final TextEditingController messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -69,15 +68,12 @@ class _ChatroomState extends State<Chatroom> {
         .eq('live_chat_room_id', _liveChatRoomId)
         .order('created_at', ascending: true);
 
-    pendingImage.addListener(() => fabRebuild.value++);
-    isTyping.addListener(() => fabRebuild.value++);
   }
 
   @override
   void dispose() {
     pendingImage.dispose();
     isTyping.dispose();
-    fabRebuild.dispose();
     _scrollController.dispose();
     messageController.dispose();
     super.dispose();
@@ -207,7 +203,6 @@ class _ChatroomState extends State<Chatroom> {
         picker: picker,
         pendingImage: pendingImage,
         isTyping: isTyping,
-        fabRebuild: fabRebuild,
         messageController: messageController,
         onSend: _sendMessage,
       ),
