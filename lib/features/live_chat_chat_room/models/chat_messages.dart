@@ -1,62 +1,16 @@
 import 'package:flutter/material.dart';
 
 final List<ChatMessage> defaultChatMessages = [
-  ChatMessage(
-    isSender: false,
-    profileAsset: 'assets/images/Ellipse 1.png',
-    name: 'Large name of the sender',
-    text: "Good Morning everyone! Isn’t it a lovely day for a chat",
-    time: '9:01 AM',
-  ),
-  ChatMessage(isSender: true, text: "Welcome to the chat", time: "9:03 AM"),
-  ChatMessage(isSender: true, text: "Great to meet you all.", time: "9:03 AM"),
-  ChatMessage(
-    isSender: false,
-    profileAsset: 'assets/images/Ellipse 3.png',
-    name: 'Large name of the sender',
-    text: "How is this",
-    time: '9:03 AM',
-    imageAsset: 'assets/images/Frame 32.png',
-    isFriend: true,
-  ),
+  
 ];
 
 final ValueNotifier<List<ChatMessage>> chatMessages =
     ValueNotifier<List<ChatMessage>>([
-      ChatMessage(
-        isSender: false,
-        profileAsset: 'assets/images/Ellipse 1.png',
-        name: 'Large name of the sender',
-        text: "Good Morning everyone! Isn’t it  a lovely day for a chat",
-        time: '9:01 AM',
-      ),
-      ChatMessage(isSender: true, text: "Welcome to the chat", time: "9:03 AM"),
-      ChatMessage(
-        isSender: true,
-        text: "Great to meet you all.",
-        time: "9:03 AM",
-      ),
-      ChatMessage(
-        isSender: false,
-        profileAsset: 'assets/images/Ellipse 1.png',
-        name: 'Large name of the sender',
-        text: "Good Morning everyone! Isn’t it a lovely day for a chat",
-        time: '9:02 AM',
-      ),
-      ChatMessage(
-        isSender: false,
-        profileAsset: 'assets/images/Ellipse 3.png',
-        name: 'Large name of the sender',
-        text: "How is this",
-        time: '9:03 AM',
-        imageAsset: 'assets/images/Frame 32.png',
-        isFriend: true,
-      ),
-      ChatMessage(isSender: true, text: "Hi how are you", time: "9:04 AM"),
     ]);
 
 class ChatMessage {
   final String? id;
+  final String? senderId;
   final bool isSender;
   final String? profileAsset;
   final String? name;
@@ -68,6 +22,7 @@ class ChatMessage {
 
   ChatMessage({
     this.id,
+    this.senderId,
     required this.isSender,
     this.profileAsset,
     this.name,
@@ -103,6 +58,7 @@ class ChatMessage {
 
     return ChatMessage(
       id: id,
+      senderId: senderId,
       isSender: isSender,
       text: content,
       time: time,
@@ -114,6 +70,7 @@ class ChatMessage {
 
   ChatMessage copyWith({
     String? id,
+    String? senderId,
     bool? isSender,
     String? profileAsset,
     String? name,
@@ -125,6 +82,7 @@ class ChatMessage {
   }) {
     return ChatMessage(
       id: id ?? this.id,
+      senderId: senderId ?? this.senderId,
       isSender: isSender ?? this.isSender,
       profileAsset: profileAsset ?? this.profileAsset,
       name: name ?? this.name,

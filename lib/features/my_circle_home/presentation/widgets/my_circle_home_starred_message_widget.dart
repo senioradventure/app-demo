@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/features/starred_messages/presentation/pages/starred_messages_page.dart';
 
 class StarredMessageWidget extends StatelessWidget {
   const StarredMessageWidget({super.key});
@@ -9,7 +10,9 @@ class StarredMessageWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // Handle tap event
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const StarredMessagesPage()),
+        );
       },
       child: Container(
         color: AppColors.lightGray,
@@ -28,9 +31,9 @@ class StarredMessageWidget extends StatelessWidget {
               child: Text(
                 'Starred Messages',
                 style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                color: AppColors.textDarkGray,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: AppColors.textDarkGray,
                 ),
               ),
             ),

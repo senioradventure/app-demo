@@ -44,7 +44,7 @@ class _ChatroomState extends State<Chatroom> {
   late final Stream<List<Map<String, dynamic>>> _messagesStream;
   final _supabase = Supabase.instance.client;
   final _uuid = const Uuid();
-  final List<ChatMessage> _optimisticMessages = [];
+  final List<ChatMessage> messages = [];
 
   String _formatTime(DateTime dateTime) {
     final localTime = dateTime.toLocal();
@@ -106,7 +106,7 @@ class _ChatroomState extends State<Chatroom> {
       );
 
       setState(() {
-        _optimisticMessages.add(tempMsg);
+        messages.add(tempMsg);
         messageController.clear();
         pendingImage.value = null;
         isTyping.value = false;
@@ -144,7 +144,7 @@ class _ChatroomState extends State<Chatroom> {
       });
     } catch (e) {
       setState(() {
-        if (_optimisticMessages.isNotEmpty) _optimisticMessages.removeLast();
+        if (messages.isNotEmpty) messages.removeLast();
       });
       ScaffoldMessenger.of(
         context,
@@ -194,7 +194,7 @@ class _ChatroomState extends State<Chatroom> {
               Expanded(
                 child: ChatMessageList(
                   messagesStream: _messagesStream,
-                  optimisticMessages: _optimisticMessages,
+                  optimisticMessages: messages,
                   currentUserId: currentUserId,
                   scrollController: _scrollController,
                   onOpenLink: _openLink,
