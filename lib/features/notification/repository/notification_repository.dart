@@ -9,9 +9,7 @@ class NotificationRepository {
 
   Future<List<ReceivedRequestModel>> getReceivedRequests() async {
     try {
-      print('getReceivedRequests called');
       final userId = _client.auth.currentUser!.id;
-      print('Current user: $userId');
       final response = await _client
           .from('friend_requests')
           .select('''
@@ -25,10 +23,10 @@ class NotificationRepository {
   )
 ''')
           .eq('receiver_id', userId)
+          .eq('status', 'pending')
           .isFilter('deleted_at', null)
           .order('created_at', ascending: false)
           .then((res) {
-            print('Raw received response: $res');
             return res;
           });
 

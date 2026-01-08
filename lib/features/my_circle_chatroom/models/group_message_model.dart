@@ -1,4 +1,5 @@
 import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
+import 'package:flutter/foundation.dart';
 
 class GroupMessage {
   final String id;
@@ -12,6 +13,7 @@ class GroupMessage {
   final List<GroupMessage> replies;
   final bool isThreadOpen;
   final bool isReplyInputOpen;
+  final String? replyToMessageId;
 
   const GroupMessage({
     required this.id,
@@ -25,9 +27,11 @@ class GroupMessage {
     this.replies = const [],
     this.isThreadOpen = false,
     this.isReplyInputOpen = false,
+    this.replyToMessageId,
+    this.isStarred = false,
   });
 
-
+  final bool isStarred;
 
   GroupMessage copyWith({
     String? id,
@@ -41,6 +45,8 @@ class GroupMessage {
     List<GroupMessage>? replies,
     bool? isThreadOpen,
     bool? isReplyInputOpen,
+    String? replyToMessageId,
+    bool? isStarred,
   }) {
     return GroupMessage(
       id: id ?? this.id,
@@ -54,6 +60,41 @@ class GroupMessage {
       replies: replies ?? this.replies,
       isThreadOpen: isThreadOpen ?? this.isThreadOpen,
       isReplyInputOpen: isReplyInputOpen ?? this.isReplyInputOpen,
+      replyToMessageId: replyToMessageId ?? this.replyToMessageId,
+      isStarred: isStarred ?? this.isStarred,
+    );
+  }
+
+  factory GroupMessage.fromSupabase({
+    required Map<String, dynamic> messageRow,
+    required List<Reaction> reactions,
+    List<GroupMessage> replies = const [],
+    bool isStarred = false,
+  }) {
+    if (messageRow['sender_id'] == null) {
+      debugPrint('Message ${messageRow['id']} has NULL sender_id');
+    }
+
+    debugPrint(
+      'GroupMessage.fromSupabase → id=${messageRow['id']} '
+      'replyTo=${messageRow['reply_to_message_id']} '
+      'reactions=${reactions.length}',
+    );
+
+    return GroupMessage(
+      id: messageRow['id'] as String,
+      senderId: messageRow['sender_id']?.toString() ?? '',
+      senderName: messageRow['profiles']?['full_name'] ?? 'Unknown',
+      avatar: messageRow['profiles']?['avatar_url'],
+      text: messageRow['content'],
+      imagePath: messageRow['media_type'] == 'image'
+          ? messageRow['media_url']
+          : null,
+      time: messageRow['created_at']?.toString() ?? '',
+      reactions: reactions,
+      replies: replies,
+      replyToMessageId: messageRow['reply_to_message_id'],
+      isStarred: isStarred,
     );
   }
 
@@ -70,6 +111,7 @@ class GroupMessage {
       imagePath: map['imagePath'],
       isThreadOpen: map['isThreadOpen'] ?? false,
       isReplyInputOpen: map['isReplyInputOpen'] ?? false,
+      isStarred: map['isStarred'] ?? false,
       replies: (map['replies'] as List? ?? [])
           .map((e) => GroupMessage.fromMap(Map<String, dynamic>.from(e)))
           .toList(),
@@ -94,9 +136,10 @@ class GroupMessage {
       'isThreadOpen': isThreadOpen,
       'isReplyInputOpen': isReplyInputOpen,
       'reactions': {
-      for (final reaction in reactions) reaction.emoji: reaction.userIds,
-    },
+        for (final reaction in reactions) reaction.emoji: reaction.userIds,
+      },
       'replies': replies.map((reply) => reply.toMap()).toList(),
+      'isStarred': isStarred,
     };
   }
 }
