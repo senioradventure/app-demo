@@ -12,8 +12,6 @@ class GroupChatRepository {
   Future<List<GroupMessage>> fetchGroupMessages({
     required String circleId,
   }) async {
-    
-
     try {
       final messageRows = await _fetchMessageRows(circleId);
       if (messageRows.isEmpty) {
@@ -23,7 +21,11 @@ class GroupChatRepository {
 
       final reactionsByMessage = await _fetchReactions(messageRows);
       final savedMessageIds = await _fetchSavedMessageIds(messageRows);
-      return _buildMessageTree(messageRows, reactionsByMessage, savedMessageIds);
+      return _buildMessageTree(
+        messageRows,
+        reactionsByMessage,
+        savedMessageIds,
+      );
     } catch (e, stack) {
       debugPrint('🟥 [GroupChatRepo] ERROR: $e');
       debugPrint('🟥 [GroupChatRepo] STACKTRACE:\n$stack');
@@ -32,54 +34,36 @@ class GroupChatRepository {
   }
 
   Future<List<Map<String, dynamic>>> _fetchMessageRows(String circleId) async {
-  final userId = _client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser!.id;
 
-  final rows = await _client
-      .from('messages')
-      .select('''
-        id,
-        sender_id,
-        content,
-        media_url,
-        media_type,
-        reply_to_message_id,
-        created_at,
-        profiles!messages_sender_id_fkey (
-          id,
-          full_name,
-          avatar_url
-        ),
-        hidden_messages!left(
-          message_id,
-          user_id
-        )
+    final rows = await _client
+        .from('messages')
+        .select('''
+        id, sender_id, content, media_url, media_type, reply_to_message_id, created_at,
+        profiles!messages_sender_id_fkey (id, full_name, avatar_url),
+        hidden_messages!left (message_id, user_id)
       ''')
-      .eq('circle_id', circleId)
-      .isFilter('deleted_at', null)
-      .eq('hidden_messages.user_id', userId)
-      .order('created_at', ascending: false);
+        .eq('circle_id', circleId)
+        .isFilter('deleted_at', null)
+        .eq('hidden_messages.user_id', userId)
+        .order('created_at', ascending: false);
 
-  debugPrint('🟩 [GroupChatRepo] Raw rows fetched: ${rows.length}');
-
-  return (rows as List)
-      .where(
-        (e) =>
-            e['hidden_messages'] == null ||
-            (e['hidden_messages'] as List).isEmpty,
-      )
-      .cast<Map<String, dynamic>>()
-      .toList();
-}
-
+    return (rows as List)
+        .where((e) => (e['hidden_messages'] as List).isEmpty)
+        .cast<Map<String, dynamic>>()
+        .toList();
+  }
 
   Future<Map<String, List<Map<String, dynamic>>>> _fetchReactions(
     List<Map<String, dynamic>> messageRows,
   ) async {
-    final messageIds =
-        messageRows.map<String>((m) => m['id'] as String).toList();
+    final messageIds = messageRows
+        .map<String>((m) => m['id'] as String)
+        .toList();
 
     debugPrint(
-        '🟩 [GroupChatRepo] Collecting reactions for ${messageIds.length} messages');
+      '🟩 [GroupChatRepo] Collecting reactions for ${messageIds.length} messages',
+    );
 
     final reactionRows = await _client
         .from('message_reactions')
@@ -87,7 +71,8 @@ class GroupChatRepository {
         .inFilter('message_id', messageIds);
 
     debugPrint(
-        '🟩 [GroupChatRepo] Reaction rows fetched: ${reactionRows.length}');
+      '🟩 [GroupChatRepo] Reaction rows fetched: ${reactionRows.length}',
+    );
 
     final Map<String, List<Map<String, dynamic>>> reactionsByMessage = {};
     for (final row in reactionRows) {
@@ -105,8 +90,9 @@ class GroupChatRepository {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return {};
 
-    final messageIds =
-        messageRows.map<String>((m) => m['id'] as String).toList();
+    final messageIds = messageRows
+        .map<String>((m) => m['id'] as String)
+        .toList();
 
     if (messageIds.isEmpty) return {};
 
@@ -124,59 +110,38 @@ class GroupChatRepository {
     Map<String, List<Map<String, dynamic>>> reactionsByMessage,
     Set<String> savedMessageIds,
   ) {
-    final Map<String, List<GroupMessage>> repliesByParent = {};
-    final Map<String, GroupMessage> allMessages = {};
-
-    for (final row in messageRows) {
+    final List<GroupMessage> allMessagesList = messageRows.map((row) {
       final id = row['id'] as String;
-      final replyTo = row['reply_to_message_id'] as String?;
-
-      final reactions = ReactionMapper.aggregate(reactionsByMessage[id] ?? []);
-      final mediaType = row['media_type'];
-
-      final message = GroupMessage(
+      return GroupMessage(
         id: id,
         senderId: row['sender_id'] ?? '',
         senderName: row['profiles']?['full_name'] ?? 'Unknown',
         avatar: row['profiles']?['avatar_url'],
         text: row['content'],
-        imagePath: mediaType == 'image' ? row['media_url'] : null,
+        imagePath: row['media_type'] == 'image' ? row['media_url'] : null,
         time: row['created_at'] as String,
-        reactions: reactions,
+        reactions: ReactionMapper.aggregate(reactionsByMessage[id] ?? []),
         replies: const [],
-        replyToMessageId: replyTo,
+        replyToMessageId: row['reply_to_message_id'] as String?,
         isStarred: savedMessageIds.contains(id),
       );
+    }).toList();
 
-      allMessages[id] = message;
+    final Map<String, List<GroupMessage>> repliesMap = {};
 
-      if (replyTo != null) {
-        repliesByParent.putIfAbsent(replyTo, () => []);
-        repliesByParent[replyTo]!.add(message);
+    for (var m in allMessagesList) {
+      if (m.replyToMessageId != null) {
+        repliesMap.putIfAbsent(m.replyToMessageId!, () => []).add(m);
       }
     }
 
-    debugPrint(
-      '🟩 [GroupChatRepo] Total messages: ${allMessages.length}, '
-      'Replies: ${repliesByParent.values.fold<int>(0, (sum, l) => sum + l.length)}',
-    );
-
-    final List<GroupMessage> parentMessages = [];
-
-    for (final message in allMessages.values) {
-      final replies = repliesByParent[message.id] ?? [];
-      final updated = message.copyWith(
-        replies: replies.reversed.toList(),
-      );
-
-      if (updated.replyToMessageId == null) {
-        parentMessages.add(updated);
-      }
-    }
-
-    debugPrint(
-        '🟦 [GroupChatRepo] Final parent messages count: ${parentMessages.length}');
-    return parentMessages;
+    return allMessagesList
+        .where((m) => m.replyToMessageId == null)
+        .map(
+          (m) =>
+              m.copyWith(replies: (repliesMap[m.id] ?? []).reversed.toList()),
+        )
+        .toList();
   }
 
   Future<GroupMessage> sendGroupMessage({
@@ -225,7 +190,10 @@ class GroupChatRepository {
           .maybeSingle();
 
       if (existing != null) {
-        await _client.from('message_reactions').delete().eq('id', existing['id']);
+        await _client
+            .from('message_reactions')
+            .delete()
+            .eq('id', existing['id']);
       } else {
         await _client.from('message_reactions').insert({
           'message_id': messageId,
@@ -239,7 +207,6 @@ class GroupChatRepository {
       rethrow;
     }
   }
-
 
   Future<String> uploadCircleImage(File file) async {
     debugPrint('🟦 [Upload] Method entered');
@@ -297,16 +264,13 @@ class GroupChatRepository {
   }
 
   Future<void> deleteGroupMessageForMe(String messageId) async {
-  await _client.rpc(
-    'delete_message_for_me',
-    params: {'p_message_id': messageId},
-  );
-}
+    await _client.rpc(
+      'delete_message_for_me',
+      params: {'p_message_id': messageId},
+    );
+  }
 
-
-  Future<void> toggleSaveMessage({
-    required GroupMessage message,
-  }) async {
+  Future<void> toggleSaveMessage({required GroupMessage message}) async {
     try {
       final userId = _client.auth.currentUser!.id;
 
