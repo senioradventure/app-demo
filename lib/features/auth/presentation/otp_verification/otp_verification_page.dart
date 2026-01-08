@@ -147,70 +147,73 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                               const SizedBox(height: 20),
 
                               // OTP Inputs
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(6, (index) {
-                                  return Container(
-                                    width: 50,
-                                    height: 40, // Elongated height
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    child: TextFormField(
-                                      controller: _controllers[index],
-                                      focusNode: _focusNodes[index],
-                                      keyboardType: TextInputType.number,
-                                      textAlign: TextAlign.center,
-                                      maxLength: 1,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(6, (index) {
+                                    return Container(
+                                      width: 50,
+                                      height: 40, // Elongated height
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4,
                                       ),
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
-                                      ],
-                                      decoration: InputDecoration(
-                                        counterText: "",
-                                        hintText: "-",
-                                        hintStyle: TextStyle(
-                                          color: Colors.grey[400],
+                                      child: TextFormField(
+                                        controller: _controllers[index],
+                                        focusNode: _focusNodes[index],
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.center,
+                                        maxLength: 1,
+                                        style: const TextStyle(
                                           fontSize: 20,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        contentPadding: EdgeInsets.zero,
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        decoration: InputDecoration(
+                                          counterText: "",
+                                          hintText: "-",
+                                          hintStyle: TextStyle(
+                                            color: Colors.grey[400],
+                                            fontSize: 20,
                                           ),
-                                          borderSide: BorderSide(
-                                            color: Colors.grey[300]!,
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding: EdgeInsets.zero,
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey[300]!,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey[300]!,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: Colors.blueAccent,
+                                              width: 1.5,
+                                            ),
                                           ),
                                         ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: Colors.grey[300]!,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.blueAccent,
-                                            width: 1.5,
-                                          ),
-                                        ),
+                                        onChanged: (value) =>
+                                            _onOtpChanged(value, index),
                                       ),
-                                      onChanged:
-                                          (value) =>
-                                              _onOtpChanged(value, index),
-                                    ),
-                                  );
-                                }),
+                                    );
+                                  }),
+                                ),
                               ),
 
                               const SizedBox(height: 20),
