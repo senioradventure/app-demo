@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'members_list_fullscreen.dart';
+import 'widgets/add_friends_bottom_sheet.dart';
 
 enum ChatType { room, circle }
 
@@ -204,8 +205,22 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         ),
                         if (widget.type == ChatType.circle)
                           IconButton(
-                            onPressed: () {
-                              // Add member logic placeholder
+                            onPressed: () async {
+                              final result = await showModalBottomSheet<bool>(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) => AddFriendsBottomSheet(
+                                  circleId: widget.id,
+                                  existingMemberIds: _members
+                                      .map((m) => m['user_id'] as String)
+                                      .toList(),
+                                ),
+                              );
+
+                              if (result == true) {
+                                _fetchDetails();
+                              }
                             },
                             icon: const Icon(
                               Icons.add_circle,
