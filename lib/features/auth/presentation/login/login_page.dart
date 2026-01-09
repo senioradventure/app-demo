@@ -238,7 +238,7 @@ class LoginPage extends StatelessWidget {
                       ? null
                       : () {
                           context.read<AuthBloc>().add(
-                            AuthPhoneSubmitted(phoneController.text),
+                            AuthPhoneSubmitted("+91${phoneController.text}"),
                           );
                         },
                   style: ElevatedButton.styleFrom(

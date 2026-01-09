@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_chat_room_appbar.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_card.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_input_field.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
+import 'package:file_picker/file_picker.dart';
 
 class MyCircleIndividualChatPage extends StatefulWidget {
   const MyCircleIndividualChatPage({super.key, required this.chat});
@@ -112,7 +114,6 @@ class _MyCircleIndividualChatPageState
               /// ================= CHAT LIST =================
               Expanded(
                 child: BlocConsumer<IndividualChatBloc, IndividualChatState>(
-                  /// ✅ REBUILD WHEN MESSAGE LIST CHANGES
                   buildWhen: (previous, current) {
                     if (previous is IndividualChatLoaded &&
                         current is IndividualChatLoaded) {
@@ -200,15 +201,97 @@ class _MyCircleIndividualChatPageState
               /// ================= INPUT FIELD =================
               BlocBuilder<IndividualChatBloc, IndividualChatState>(
                 buildWhen: (previous, current) {
+                  if (previous is! IndividualChatLoaded &&
+                      current is IndividualChatLoaded) {
+                    return true;
+                  }
+
                   if (previous is IndividualChatLoaded &&
                       current is IndividualChatLoaded) {
                     return previous.isSending != current.isSending ||
-                        previous.replyTo != current.replyTo;
+                        previous.replyTo != current.replyTo ||
+                        previous.imagePath != current.imagePath ||
+                        previous.filePath != current.filePath;
                   }
+
                   return false;
                 },
                 builder: (context, state) {
-                  return IndividualMessageInputField();
+                  if (state is! IndividualChatLoaded) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return IndividualMessageInputField(
+                    replyTo: state.replyTo,
+                    imagePath: state.imagePath,
+                    isSending: state.isSending,
+
+                    onClearReply: () {
+                      context.read<IndividualChatBloc>().add(
+                        ClearReplyMessage(),
+                      );
+                    },
+
+                    onPickImage: () async {
+                      final image = await ImagePicker().pickImage(
+                        source: ImageSource.gallery,
+                      );
+                      if (image != null) {
+                        context.read<IndividualChatBloc>().add(
+                          PickMessageImage(image.path),
+                        );
+                      }
+                    },
+
+                    onPickCamera: () async {
+                      final XFile? image = await ImagePicker().pickImage(
+                        source: ImageSource.camera,
+                      );
+                      if (image != null) {
+                        context.read<IndividualChatBloc>().add(
+                          PickMessageImage(image.path),
+                        );
+                      }
+                    },
+
+                    onPickFile: () async {
+                      final result = await FilePicker.platform.pickFiles(
+                        allowMultiple: false,
+                        withData: false,
+                      );
+
+                      if (result != null && result.files.single.path != null) {
+                        context.read<IndividualChatBloc>().add(
+                          PickMessageFile(result.files.single.path!),
+                        );
+                      }
+                    },
+
+                    onRemoveFile: () {
+                      context.read<IndividualChatBloc>().add(
+                        RemovePickedFile(),
+                      );
+                    },
+
+                    onRemoveImage: () {
+                      context.read<IndividualChatBloc>().add(
+                        RemovePickedImage(),
+                      );
+                    },
+
+                    onSend: (text) {
+                      context.read<IndividualChatBloc>().add(
+                        SendConversationMessage(text: text),
+                      );
+                    },
+                    onSendVoice: (audioFile) {
+                      context.read<IndividualChatBloc>().add(
+                        SendVoiceMessage(audioFile: audioFile),
+                      );
+                    },
+
+                    filePath: state.filePath,
+                  );
                 },
               ),
             ],

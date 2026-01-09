@@ -24,6 +24,8 @@ class IndividualChatBloc
     on<LoadConversationMessages>(_onLoadMessages);
     on<PickMessageImage>(_onPickImage);
     on<RemovePickedImage>(_onRemoveImage);
+    on<PickMessageFile>(_onPickFile);
+    on<RemovePickedFile>(_onRemoveFile);
     on<PickReplyMessage>(_onPickReply);
     on<ClearReplyMessage>(_onClearReply);
     on<SendConversationMessage>(_onSendMessage);
@@ -31,6 +33,7 @@ class IndividualChatBloc
     on<StarMessage>(_onStarMessage);
     on<DeleteMessageForEveryone>(_onDeleteMessageForEveryone);
     on<DeleteMessageForMe>(_onDeleteMessageForMe);
+    on<SendVoiceMessage>(_onSendVoiceMessage);
   }
 
   // ---------------------------------------------------------------------------
@@ -50,6 +53,7 @@ class IndividualChatBloc
         IndividualChatLoaded(
           messages: messages,
           imagePath: null,
+          filePath: null,
           replyTo: null,
           isSending: false,
         ),
@@ -57,7 +61,6 @@ class IndividualChatBloc
 
       _subscribeToRealtime();
     } catch (e) {
-      print(e.toString());
       emit(IndividualChatError(e.toString()));
     }
   }
@@ -67,12 +70,38 @@ class IndividualChatBloc
   // ---------------------------------------------------------------------------
   void _onPickImage(PickMessageImage event, Emitter emit) {
     if (state is! IndividualChatLoaded) return;
-    emit((state as IndividualChatLoaded).copyWith(imagePath: event.imagePath));
+    emit(
+      (state as IndividualChatLoaded).copyWith(
+        imagePath: event.imagePath,
+        clearFilePath: true,
+      ),
+    );
   }
 
   void _onRemoveImage(RemovePickedImage event, Emitter emit) {
     if (state is! IndividualChatLoaded) return;
     emit((state as IndividualChatLoaded).copyWith(clearImagePath: true));
+  }
+
+  // ---------------------------------------------------------------------------
+  // FILE STATE
+  // ---------------------------------------------------------------------------
+  void _onPickFile(PickMessageFile event, Emitter emit) {
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    emit(
+      current.copyWith(
+        filePath: event.path,
+        clearImagePath: true, // optional: prevent both
+      ),
+    );
+  }
+
+  void _onRemoveFile(RemovePickedFile event, Emitter emit) {
+    if (state is! IndividualChatLoaded) return;
+
+    emit((state as IndividualChatLoaded).copyWith(clearFilePath: true));
   }
 
   // ---------------------------------------------------------------------------
@@ -99,28 +128,43 @@ class IndividualChatBloc
     final current = state as IndividualChatLoaded;
 
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    String? uploadedImageUrl;
+    String? uploadedMediaUrl;
+    String mediaType = 'text';
 
     try {
       emit(current.copyWith(isSending: true));
 
-      // IMAGE UPLOAD
+      /// ───────── IMAGE UPLOAD ─────────
       if (current.imagePath != null) {
         final file = File(current.imagePath!);
         final fileName =
-            'messages/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
+            'messages/images/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
 
         await _client.storage.from('media').upload(fileName, file);
-        uploadedImageUrl = _client.storage.from('media').getPublicUrl(fileName);
+        uploadedMediaUrl = _client.storage.from('media').getPublicUrl(fileName);
+
+        mediaType = 'image';
       }
 
-      // OPTIMISTIC MESSAGE
+      /// ───────── FILE UPLOAD ─────────
+      if (current.filePath != null) {
+        final file = File(current.filePath!);
+        final fileName =
+            'messages/files/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
+
+        await _client.storage.from('media').upload(fileName, file);
+        uploadedMediaUrl = _client.storage.from('media').getPublicUrl(fileName);
+
+        mediaType = 'file';
+      }
+
+      /// ───────── OPTIMISTIC MESSAGE ─────────
       final optimisticMessage = IndividualChatMessageModel(
         id: tempId,
         senderId: _client.auth.currentUser!.id,
         content: event.text,
-        mediaUrl: uploadedImageUrl,
-        mediaType: uploadedImageUrl == null ? 'text' : 'image',
+        mediaUrl: uploadedMediaUrl,
+        mediaType: mediaType,
         createdAt: DateTime.now(),
         replyToMessageId:
             current.replyTo != null && !current.replyTo!.id.startsWith('temp_')
@@ -132,19 +176,21 @@ class IndividualChatBloc
         current.copyWith(
           messages: [...current.messages, optimisticMessage],
           clearImagePath: true,
+          clearFilePath: true,
           clearReplyTo: true,
+          version: current.version + 1, // 🔥 IMPORTANT
         ),
       );
 
-      // INSERT REAL MESSAGE
+      /// ───────── INSERT REAL MESSAGE ─────────
       final response = await _client
           .from('messages')
           .insert({
             'conversation_id': _conversationId,
             'sender_id': _client.auth.currentUser!.id,
             'content': event.text,
-            'media_url': uploadedImageUrl,
-            'media_type': uploadedImageUrl == null ? 'text' : 'image',
+            'media_url': uploadedMediaUrl,
+            'media_type': mediaType,
             'reply_to_message_id': optimisticMessage.replyToMessageId,
           })
           .select()
@@ -165,6 +211,70 @@ class IndividualChatBloc
         );
       }
     } catch (e) {
+      emit(current.copyWith(isSending: false));
+      emit(IndividualChatError(e.toString()));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // SEND VOICE MESSAGE
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onSendVoiceMessage(
+    SendVoiceMessage event,
+    Emitter<IndividualChatState> emit,
+  ) async {
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+
+    try {
+      emit(current.copyWith(isSending: true));
+
+      /// ───────── UPLOAD VOICE FILE ─────────
+      final file = event.audioFile;
+      final fileName =
+          'messages/voice/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
+
+      await _client.storage.from('media').upload(fileName, file);
+
+      final uploadedUrl = _client.storage.from('media').getPublicUrl(fileName);
+
+      /// ───────── OPTIMISTIC VOICE MESSAGE ─────────
+      final optimisticMessage = IndividualChatMessageModel(
+        id: tempId,
+        senderId: _client.auth.currentUser!.id,
+        content: '', // or '🎤 Voice message'
+        mediaUrl: uploadedUrl,
+        mediaType: 'voice',
+        createdAt: DateTime.now(),
+        replyToMessageId:
+            current.replyTo != null && !current.replyTo!.id.startsWith('temp_')
+            ? current.replyTo!.id
+            : null,
+      );
+
+      emit(
+        current.copyWith(
+          messages: [...current.messages, optimisticMessage],
+          clearReplyTo: true,
+          isSending: false,
+          version: current.version + 1, // 🔥 force rebuild
+        ),
+      );
+
+      /// ───────── INSERT TO DB ─────────
+      await _client.from('messages').insert({
+        'conversation_id': _conversationId,
+        'sender_id': _client.auth.currentUser!.id,
+        'content': '',
+        'media_url': uploadedUrl,
+        'media_type': 'audio',
+        'reply_to_message_id': optimisticMessage.replyToMessageId,
+      });
+    } catch (e) {
+      emit(current.copyWith(isSending: false));
       emit(IndividualChatError(e.toString()));
     }
   }
