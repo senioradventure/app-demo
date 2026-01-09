@@ -188,6 +188,7 @@ class _ChatroomState extends State<Chatroom> {
                 title: widget.title,
                 imageUrl: widget.imageUrl,
                 isAdmin: widget.isAdmin,
+                roomId: _liveChatRoomId,
               ),
 
               Expanded(

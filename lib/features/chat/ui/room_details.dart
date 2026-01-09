@@ -1,40 +1,118 @@
 import 'package:flutter/material.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'members_list_fullscreen.dart';
 
-/*void main() {
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: ChatDetailsScreen(),
-    ),
-  );
-}*/
+enum ChatType { room, circle }
 
 class ChatDetailsScreen extends StatefulWidget {
-  const ChatDetailsScreen({super.key});
+  final String id;
+  final ChatType type;
+
+  const ChatDetailsScreen({super.key, required this.id, required this.type});
 
   @override
   State<ChatDetailsScreen> createState() => _ChatDetailsScreenState();
 }
 
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
+  final _supabase = Supabase.instance.client;
+  bool _isLoading = true;
+  Map<String, dynamic>? _details;
+  List<Map<String, dynamic>> _members = [];
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDetails();
+  }
+
+  Future<void> _fetchDetails() async {
+    try {
+      if (widget.type == ChatType.room) {
+        // Fetch Room Details
+        final roomResponse = await _supabase
+            .from('live_chat_rooms')
+            .select()
+            .eq('id', widget.id)
+            .single();
+
+        // Fetch Room Participants
+        final participantsResponse = await _supabase
+            .from('live_chat_participants')
+            .select('*, profiles(*)')
+            .eq('room_id', widget.id)
+            .limit(5); // Limit for preview
+
+        setState(() {
+          _details = roomResponse;
+          _members = List<Map<String, dynamic>>.from(participantsResponse);
+          _isLoading = false;
+        });
+      } else {
+        // Fetch Circle Details
+        final circleResponse = await _supabase
+            .from('circles')
+            .select()
+            .eq('id', widget.id)
+            .single();
+
+        // Fetch Circle Members
+        final membersResponse = await _supabase
+            .from('circle_members')
+            .select('*, profiles(*)')
+            .eq('circle_id', widget.id)
+            .limit(5); // Limit for preview
+
+        setState(() {
+          _details = circleResponse;
+          _members = List<Map<String, dynamic>>.from(membersResponse);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(backgroundColor: Colors.white),
+        body: Center(child: Text('Error: $_errorMessage')),
+      );
+    }
+
+    if (_details == null) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: Text('No details found')),
+      );
+    }
+
+    final String name = _details!['name'] ?? 'Unknown';
+    final String? imageUrl = _details!['image_url'];
+    final String description = _details!['description'] ?? '';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        /*Pink tint will appear w/o this */
-        //elevation: 500,
-        /*Elevation is not working. No idea why*/
-        //leading: IconButton(
-         /* onPressed: () {
-            /*Go back to the previous screen*/
-          },
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-        ),*/
         title: const Text(
           'Details',
           style: TextStyle(
@@ -49,7 +127,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             onPressed: () {
               /*More details*/
             },
-            icon: Icon(Icons.more_vert, color: Colors.black),
+            icon: const Icon(Icons.more_vert, color: Colors.black),
           ),
         ],
       ),
@@ -69,83 +147,47 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       ),
                     ),
                   ),
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 50.0,
-                    backgroundImage: AssetImage('assets/images/avatar.png'),
+                    backgroundImage: imageUrl != null
+                        ? NetworkImage(imageUrl)
+                        : const AssetImage('assets/images/avatar.png')
+                              as ImageProvider,
                   ),
                   const SizedBox(height: 16),
-                  // Group Name
-                  const Text(
-                    'Chai Talks',
-                    style: TextStyle(
+                  // Name
+                  Text(
+                    name,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
                     ),
                   ),
-                  SizedBox(
-                    height: 50,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xd7d7e6fa),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text('Tea'),
+                  const SizedBox(height: 16),
+
+                  // Description (Only for Rooms)
+                  if (widget.type == ChatType.room && description.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.white,
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
+                        child: Text(
+                          description,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            height: 1.4,
+                            fontSize: 14,
                           ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xd7d7e6fa),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text('Tea'),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xd7d7e6fa),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text('Friends'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.white,
-                      ),
-                      child: const Text(
-                        'Masala chai, the spiced milk tea widely loved in India today, was actually popularized only in the 20th century — after the British encouraged tea consumption in India to boost sales for their tea companies.',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          height: 1.4,
-                          fontSize: 14,
                         ),
                       ),
                     ),
-                  ),
+
                   const SizedBox(height: 24),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -175,46 +217,14 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 ],
               ),
             ),
-            ListView(
+            ListView.builder(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey.shade200, width: 1),
-                    ),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      radius: 22.0,
-                      backgroundImage: AssetImage('assets/images/avatar.png'),
-                    ),
-                    title: Text(
-                      'Chai Talks',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                    ),
-                    trailing: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.amberAccent.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text('Admin'),
-                    ),
-                  ),
-                ),
-                ...List.generate(
-                  4,
-                  (index) => Container(
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _members.length + 1, // +1 for "See all"
+              itemBuilder: (context, index) {
+                if (index == _members.length) {
+                  // "See all" button
+                  return Container(
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
@@ -223,55 +233,89 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         ),
                       ),
                     ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        radius: 22.0,
-                        backgroundImage: AssetImage('assets/images/avatar.png'),
-                      ),
-                      title: Text(
-                        'Chai Talks',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MembersListFullscreen(
+                              id: widget.id,
+                              type: widget.type,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const ListTile(
+                        title: Text(
+                          'See all',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.arrow_forward,
+                          size: 25,
                           color: Colors.black,
                         ),
                       ),
                     ),
-                  ),
-                ),
-                Container(
+                  );
+                }
+
+                final member = _members[index];
+                final profile = member['profiles'];
+                final String memberName = profile != null
+                    ? (profile['full_name'] ??
+                          profile['username'] ??
+                          'Unknown Member')
+                    : 'Unknown Member';
+                final String? memberImage = profile?['avatar_url'];
+                final bool isAdmin =
+                    member['role'] == 'admin' ||
+                    (widget.type == ChatType.room &&
+                        _details!['admin_id'] == member['user_id']);
+
+                return Container(
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(color: Colors.grey.shade200, width: 1),
                     ),
                   ),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MembersListFullscreen(),
-                        ),
-                      );
-                    },
-                    child: ListTile(
-                      title: Text(
-                        'See all',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward,
-                        size: 25,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 22.0,
+                      backgroundImage: memberImage != null
+                          ? NetworkImage(memberImage)
+                          : const AssetImage('assets/images/avatar.png')
+                                as ImageProvider,
+                    ),
+                    title: Text(
+                      memberName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                         color: Colors.black,
                       ),
                     ),
+                    trailing: isAdmin
+                        ? Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amberAccent.shade100,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text('Admin'),
+                          )
+                        : null,
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ],
         ),

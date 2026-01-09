@@ -1,16 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/chat/ui/room_details.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'room_details.dart';
 
 class MembersListFullscreen extends StatefulWidget {
-  const MembersListFullscreen({super.key});
+  final String id;
+  final ChatType type;
+
+  const MembersListFullscreen({
+    super.key,
+    required this.id,
+    required this.type,
+  });
 
   @override
   State<MembersListFullscreen> createState() => _MembersListFullscreenState();
 }
 
 class _MembersListFullscreenState extends State<MembersListFullscreen> {
+  final _supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> _members = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllMembers();
+  }
+
+  Future<void> _fetchAllMembers() async {
+    try {
+      if (widget.type == ChatType.room) {
+        final participantsResponse = await _supabase
+            .from('live_chat_participants')
+            .select('*, profiles(*)')
+            .eq('room_id', widget.id);
+
+        setState(() {
+          _members = List<Map<String, dynamic>>.from(participantsResponse);
+          _isLoading = false;
+        });
+      } else {
+        final membersResponse = await _supabase
+            .from('circle_members')
+            .select('*, profiles(*)')
+            .eq('circle_id', widget.id);
+
+        setState(() {
+          _members = List<Map<String, dynamic>>.from(membersResponse);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(backgroundColor: Colors.white),
+        body: Center(child: Text('Error: $_errorMessage')),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -18,48 +78,75 @@ class _MembersListFullscreenState extends State<MembersListFullscreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ChatDetailsScreen(),
-              ),
-            );
+            Navigator.pop(context);
           },
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
         ),
+        title: const Text('Members', style: TextStyle(color: Colors.black)),
       ),
-      body: SingleChildScrollView(
-        child: ListView(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          children: [
-            ...List.generate(
-              50,
-              (index) => Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.grey.shade200, width: 1),
-                  ),
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    radius: 22.0,
-                    backgroundImage: AssetImage('assets/images/avatar.png'),
-                  ),
-                  title: Text(
-                    'Chai Talks',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _members.length,
+                itemBuilder: (context, index) {
+                  final member = _members[index];
+                  final profile = member['profiles'];
+                  final String memberName = profile != null
+                      ? (profile['full_name'] ??
+                            profile['username'] ??
+                            'Unknown Member')
+                      : 'Unknown Member';
+                  final String? memberImage = profile?['avatar_url'];
+
+                  // For simplicity, checking 'role' in member/participant table if available, or just mocking admin for now if logic is complex
+                  // In circles: role is in circle_members. In rooms: admin is in room details usually, but participants might not have role column.
+                  // Assuming basic display for now.
+                  final bool isAdmin = member['role'] == 'admin';
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Colors.grey.shade200, width: 1),
+                      ),
                     ),
-                  ),
-                ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        radius: 22.0,
+                        backgroundImage: memberImage != null
+                            ? NetworkImage(memberImage)
+                            : const AssetImage('assets/images/avatar.png')
+                                  as ImageProvider,
+                      ),
+                      title: Text(
+                        memberName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                      trailing: isAdmin
+                          ? Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.amberAccent.shade100,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text('Admin'),
+                            )
+                          : null,
+                    ),
+                  );
+                },
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

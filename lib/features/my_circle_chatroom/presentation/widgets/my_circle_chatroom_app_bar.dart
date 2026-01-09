@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
-import 'package:senior_circle/features/chat/ui/room_details_admin.dart';
+import 'package:senior_circle/features/chat/ui/room_details.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
 class MyCircleChatroomAppBar extends StatelessWidget
@@ -26,18 +26,15 @@ class MyCircleChatroomAppBar extends StatelessWidget
       titleSpacing: 0,
       title: InkWell(
         onTap: () {
-          if (isAdmin) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin()),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
-            );
-          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  ChatDetailsScreen(id: chat.id, type: ChatType.circle),
+            ),
+          );
         },
+
         child: Row(
           children: [
             _buildAvatar(),
