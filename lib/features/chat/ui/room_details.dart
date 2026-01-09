@@ -189,18 +189,31 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                     ),
 
                   const SizedBox(height: 24),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Members',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Members',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
+                        if (widget.type == ChatType.circle)
+                          IconButton(
+                            onPressed: () {
+                              // Add member logic placeholder
+                            },
+                            icon: const Icon(
+                              Icons.add_circle,
+                              color: Colors.blue,
+                              size: 28,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   Container(
@@ -217,13 +230,77 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 ],
               ),
             ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _members.length + 1, // +1 for "See all"
-              itemBuilder: (context, index) {
-                if (index == _members.length) {
-                  // "See all" button
+            if (_members.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text(
+                    'No members',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _members.length + 1, // +1 for "See all"
+                itemBuilder: (context, index) {
+                  if (index == _members.length) {
+                    // "See all" button
+                    return Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MembersListFullscreen(
+                                id: widget.id,
+                                type: widget.type,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const ListTile(
+                          title: Text(
+                            'See all',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward,
+                            size: 25,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final member = _members[index];
+                  final profile = member['profiles'];
+                  final String memberName = profile != null
+                      ? (profile['full_name'] ??
+                            profile['username'] ??
+                            'Unknown Member')
+                      : 'Unknown Member';
+                  final String? memberImage = profile?['avatar_url'];
+                  final bool isAdmin =
+                      member['role'] == 'admin' ||
+                      (widget.type == ChatType.room &&
+                          _details!['admin_id'] == member['user_id']);
+
                   return Container(
                     decoration: BoxDecoration(
                       border: Border(
@@ -233,90 +310,40 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         ),
                       ),
                     ),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MembersListFullscreen(
-                              id: widget.id,
-                              type: widget.type,
-                            ),
-                          ),
-                        );
-                      },
-                      child: const ListTile(
-                        title: Text(
-                          'See all',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
-                        ),
-                        trailing: Icon(
-                          Icons.arrow_forward,
-                          size: 25,
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        radius: 22.0,
+                        backgroundImage: memberImage != null
+                            ? NetworkImage(memberImage)
+                            : const AssetImage('assets/images/avatar.png')
+                                  as ImageProvider,
+                      ),
+                      title: Text(
+                        memberName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),
                       ),
+                      trailing: isAdmin
+                          ? Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.amberAccent.shade100,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text('Admin'),
+                            )
+                          : null,
                     ),
                   );
-                }
-
-                final member = _members[index];
-                final profile = member['profiles'];
-                final String memberName = profile != null
-                    ? (profile['full_name'] ??
-                          profile['username'] ??
-                          'Unknown Member')
-                    : 'Unknown Member';
-                final String? memberImage = profile?['avatar_url'];
-                final bool isAdmin =
-                    member['role'] == 'admin' ||
-                    (widget.type == ChatType.room &&
-                        _details!['admin_id'] == member['user_id']);
-
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey.shade200, width: 1),
-                    ),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      radius: 22.0,
-                      backgroundImage: memberImage != null
-                          ? NetworkImage(memberImage)
-                          : const AssetImage('assets/images/avatar.png')
-                                as ImageProvider,
-                    ),
-                    title: Text(
-                      memberName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                    ),
-                    trailing: isAdmin
-                        ? Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.amberAccent.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text('Admin'),
-                          )
-                        : null,
-                  ),
-                );
-              },
-            ),
+                },
+              ),
           ],
         ),
       ),
