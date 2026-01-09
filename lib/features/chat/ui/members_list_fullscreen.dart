@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'room_details.dart';
+
+import '../enum/chat_type.dart';
+import '../repository/chat_details_repository.dart';
 
 class MembersListFullscreen extends StatefulWidget {
   final String id;
@@ -17,7 +18,7 @@ class MembersListFullscreen extends StatefulWidget {
 }
 
 class _MembersListFullscreenState extends State<MembersListFullscreen> {
-  final _supabase = Supabase.instance.client;
+  final _repository = ChatDetailsRepository();
   List<Map<String, dynamic>> _members = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -30,27 +31,15 @@ class _MembersListFullscreenState extends State<MembersListFullscreen> {
 
   Future<void> _fetchAllMembers() async {
     try {
-      if (widget.type == ChatType.room) {
-        final participantsResponse = await _supabase
-            .from('live_chat_participants')
-            .select('*, profiles(*)')
-            .eq('room_id', widget.id);
+      final members = await _repository.fetchAllMembers(
+        id: widget.id,
+        type: widget.type,
+      );
 
-        setState(() {
-          _members = List<Map<String, dynamic>>.from(participantsResponse);
-          _isLoading = false;
-        });
-      } else {
-        final membersResponse = await _supabase
-            .from('circle_members')
-            .select('*, profiles(*)')
-            .eq('circle_id', widget.id);
-
-        setState(() {
-          _members = List<Map<String, dynamic>>.from(membersResponse);
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _members = members;
+        _isLoading = false;
+      });
     } catch (e) {
       if (mounted) {
         setState(() {

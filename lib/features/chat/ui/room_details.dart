@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'members_list_fullscreen.dart';
 import 'widgets/add_friends_bottom_sheet.dart';
-
-enum ChatType { room, circle }
+import '../enum/chat_type.dart';
+import '../repository/chat_details_repository.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String id;
@@ -16,7 +16,7 @@ class ChatDetailsScreen extends StatefulWidget {
 }
 
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
-  final _supabase = Supabase.instance.client;
+  final _repository = ChatDetailsRepository();
   bool _isLoading = true;
   Map<String, dynamic>? _details;
   List<Map<String, dynamic>> _members = [];
@@ -30,47 +30,16 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
   Future<void> _fetchDetails() async {
     try {
-      if (widget.type == ChatType.room) {
-        // Fetch Room Details
-        final roomResponse = await _supabase
-            .from('live_chat_rooms')
-            .select()
-            .eq('id', widget.id)
-            .single();
+      final result = await _repository.fetchDetails(
+        id: widget.id,
+        type: widget.type,
+      );
 
-        // Fetch Room Participants
-        final participantsResponse = await _supabase
-            .from('live_chat_participants')
-            .select('*, profiles(*)')
-            .eq('room_id', widget.id)
-            .limit(5); // Limit for preview
-
-        setState(() {
-          _details = roomResponse;
-          _members = List<Map<String, dynamic>>.from(participantsResponse);
-          _isLoading = false;
-        });
-      } else {
-        // Fetch Circle Details
-        final circleResponse = await _supabase
-            .from('circles')
-            .select()
-            .eq('id', widget.id)
-            .single();
-
-        // Fetch Circle Members
-        final membersResponse = await _supabase
-            .from('circle_members')
-            .select('*, profiles(*)')
-            .eq('circle_id', widget.id)
-            .limit(5); // Limit for preview
-
-        setState(() {
-          _details = circleResponse;
-          _members = List<Map<String, dynamic>>.from(membersResponse);
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _details = result.details;
+        _members = result.members;
+        _isLoading = false;
+      });
     } catch (e) {
       if (mounted) {
         setState(() {

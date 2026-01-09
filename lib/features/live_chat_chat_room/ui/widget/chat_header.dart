@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/chat/ui/room_details.dart';
+import 'package:senior_circle/features/chat/enum/chat_type.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 
