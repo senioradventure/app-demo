@@ -3,14 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/profile_aware_appbar.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createCircle/presentation/circle_creation_screen.dart';
+import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_individual_chat_page.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_event.dart';
-import 'package:senior_circle/features/my_circle_home/bloc/circle_chat_state.dart';
-import 'package:senior_circle/features/my_circle_home/models/circle_chat_model.dart';
+import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
+import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/my_circle_bloc.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/my_circle_event.dart';
+import 'package:senior_circle/features/my_circle_home/bloc/my_circle_state.dart';
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_add_chat_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
 import 'package:senior_circle/core/common/widgets/search_bar_widget.dart';
@@ -27,23 +30,39 @@ class MyCircleHomePage extends StatefulWidget {
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
   //add this function whenever focus need to be removed when navigating from any screen
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void deactivate() {
     FocusManager.instance.primaryFocus?.unfocus();
     super.deactivate();
   }
 
-  void navigateToChatRoom(CircleChat chat) {
+  void navigateToChatRoom(MyCircle chat) {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isAdmin = chat.adminId == currentUserId;
 
-    bool isAdmin = chat.adminId == currentUserId;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) => ChatBloc()..add(LoadMessages()),
-          child: chat.isGroup
-              ? MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin)
-              : MyCircleIndividualChatPage(chat: chat),
-        ),
+        builder: (_) {
+          if (chat.isGroup) {
+            return BlocProvider(
+          create: (_) => ChatBloc(
+            repository: GroupChatRepository(Supabase.instance.client),
+          )..add(LoadGroupMessages(chatId: chat.id)),
+          child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
+        );
+          } else {
+            return BlocProvider(
+              create: (_) =>
+                  IndividualChatBloc(IndividualChatRepository())
+                    ..add(LoadConversationMessages(chat.id)),
+              child: MyCircleIndividualChatPage(chat: chat),
+            );
+          }
+        },
       ),
     );
   }
@@ -58,26 +77,26 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
         children: [
           SearchBarWidget(
             onChanged: (value) {
-              context.read<CircleChatBloc>().add(FilterChats(value));
+              context.read<MyCircleBloc>().add(FilterMyCircleChats(value));
             },
           ),
           SizedBox(height: 4),
           StarredMessageWidget(),
           Expanded(
-            child: BlocBuilder<CircleChatBloc, CircleChatState>(
+            child: BlocBuilder<MyCircleBloc, MyCircleState>(
               builder: (context, state) {
-                if (state is ChatLoading) {
+                if (state is MyCircleChatLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (state is ChatLoaded) {
+                if (state is MyCircleChatLoaded) {
                   return ChatListWidget(
                     foundResults: state.chats,
                     onChatTap: navigateToChatRoom,
                   );
                 }
 
-                if (state is ChatError) {
+                if (state is MyCircleChatError) {
                   return Center(child: Text(state.message));
                 }
 
@@ -90,7 +109,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
       floatingActionButton: AddChatWidget(
         destinationPage: const CircleCreationScreen(),
         onReturn: () {
-          context.read<CircleChatBloc>().add(LoadChats());
+          context.read<MyCircleBloc>().add(LoadMyCircleChats());
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,

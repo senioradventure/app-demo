@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:senior_circle/features/notification/notification_repository.dart';
+import 'package:senior_circle/features/notification/repository/notification_repository.dart';
 import '../models/sent_request_model.dart';
 import 'notification_event.dart';
 import 'notification_state.dart';

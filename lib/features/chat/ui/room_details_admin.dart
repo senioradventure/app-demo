@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'members_list_fullscreen.dart';
-//Base screen : room_details.dart
 
-/*void main() {
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: ChatDetailsScreen(),
-    ),
-  );
-}*/
 
 class ChatDetailsScreenadmin extends StatefulWidget {
   const ChatDetailsScreenadmin({super.key});

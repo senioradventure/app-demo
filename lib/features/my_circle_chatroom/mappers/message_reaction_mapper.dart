@@ -1,5 +1,5 @@
-import 'message_model.dart';
-import 'reaction_model.dart';
+import '../models/message_model.dart';
+import '../models/reaction_model.dart';
 
 extension MessageReactionMapper on Message {
   List<Reaction> get reactionList {
