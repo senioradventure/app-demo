@@ -268,7 +268,11 @@ class GroupChatRepository {
     );
   }
 
-  Future<void> toggleSaveMessage({required GroupMessage message}) async {
+  Future<void> toggleSaveMessage({
+    required GroupMessage message,
+    String? source,
+    String? sourceType,
+  }) async {
     try {
       final userId = _client.auth.currentUser!.id;
 
@@ -289,6 +293,9 @@ class GroupChatRepository {
           'sender_id': message.senderId,
           'content': message.text,
           'media_url': message.imagePath,
+          'media_type': message.mediaType,
+          'source': source,
+          'source_type': sourceType,
           'saved_at': DateTime.now().toIso8601String(),
         });
         debugPrint('⭐ Saved message: ${message.id}');

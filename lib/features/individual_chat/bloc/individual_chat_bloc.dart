@@ -245,7 +245,11 @@ class IndividualChatBloc
     final current = state as IndividualChatLoaded;
 
     try {
-      await _repository.starMessage(message: event.message);
+      await _repository.starMessage(
+        message: event.message,
+        source: _conversationId,
+        sourceType: 'conversation',
+      );
 
       // Emit ONE-TIME snackbar without replacing the chat state
       emit(StarMessageSuccess('Message starred ⭐'));

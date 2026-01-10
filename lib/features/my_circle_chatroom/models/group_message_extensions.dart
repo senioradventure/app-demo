@@ -30,7 +30,6 @@ extension GroupMessageExtensions on GroupMessage {
   }
 
   
-
   GroupMessage updateReaction({
     required String messageId,
     required String emoji,
@@ -53,7 +52,6 @@ extension GroupMessageExtensions on GroupMessage {
     );
   }
 
-  /// Generic recursive updater for a message tree.
   GroupMessage updateRecursive(
     String targetId,
     GroupMessage Function(GroupMessage) updateFn, {
@@ -81,7 +79,6 @@ extension GroupMessageExtensions on GroupMessage {
     return updated;
   }
 
-  /// Recursively find a message by ID.
   GroupMessage? findRecursive(String targetId) {
     if (id == targetId) return this;
     for (final reply in replies) {
@@ -91,8 +88,6 @@ extension GroupMessageExtensions on GroupMessage {
     return null;
   }
 
-  /// Recursively remove a message by ID.
-  /// Note: Returns null if this message itself is the target to be removed.
   GroupMessage? removeRecursive(String targetId) {
     if (id == targetId) return null;
     if (replies.isEmpty) return this;

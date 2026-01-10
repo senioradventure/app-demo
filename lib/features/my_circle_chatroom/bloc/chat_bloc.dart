@@ -207,7 +207,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     emit(state.copyWith(groupMessages: updatedMessages));
     try {
-      await repository.toggleSaveMessage(message: targetMessage);
+      if (_circleId != null) {
+        await repository.toggleSaveMessage(
+          message: targetMessage,
+          source: _circleId,
+          sourceType: 'circle',
+        );
+      }
     } catch (e) {
       debugPrint('Failed to toggle star: $e');
     }
@@ -227,7 +233,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     final payload = _buildForwardPayload(message);
 
-    // 1. Check for single recipient pre-fill (Individual or Circle)
+    //single recipient pre-fill
     final totalTargets = individualTargets.length + circles.length;
     if (totalTargets == 1) {
       debugPrint('🟨 [Forward] Single target detected → setting prefill state');
@@ -240,7 +246,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       return;
     }
 
-    // 2. Multi-forward logic (direct send)
+    // Multi-forward logic
     for (final target in individualTargets) {
       try {
         final String? existingConvId = target['conversationId'];
