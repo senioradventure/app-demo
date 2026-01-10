@@ -131,7 +131,7 @@ class ToggleStar extends ChatEvent {
 
 class ForwardMessage extends ChatEvent {
   final GroupMessage message;
-  final List<Map<String, String?>> individualTargets; // contains 'conversationId' and 'otherUserId'
+  final List<Map<String, String?>> individualTargets;
   final List<String> circleIds;
 
   const ForwardMessage({
