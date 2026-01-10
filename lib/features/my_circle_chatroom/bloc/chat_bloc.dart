@@ -78,9 +78,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       String? imageUrl;
 
       if (event.imagePath != null) {
-        debugPrint('🟨 [ChatBloc] Uploading image...');
-        imageUrl = await repository.uploadCircleImage(File(event.imagePath!));
-        debugPrint('🟩 [ChatBloc] Image uploaded: $imageUrl');
+        if (event.imagePath!.startsWith('http')) {
+          debugPrint('🟨 [ChatBloc] imagePath is a URL, skipping upload');
+          imageUrl = event.imagePath;
+        } else {
+          debugPrint('🟨 [ChatBloc] Uploading image...');
+          imageUrl = await repository.uploadCircleImage(File(event.imagePath!));
+          debugPrint('🟩 [ChatBloc] Image uploaded: $imageUrl');
+        }
       }
 
       debugPrint('🟨 [ChatBloc] Sending message to database');
@@ -227,15 +232,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   debugPrint('🟦 [Forward] ForwardMessage triggered');
 
   final message = event.message;
-  final conversationIds = event.conversationIds;
+  final individualTargets = event.individualTargets;
   final circles = event.circleIds;
 
-  debugPrint('🟦 [Forward] Conv count: ${conversationIds.length}, Circle count: ${circles.length}');
+  debugPrint('🟦 [Forward] Individual count: ${individualTargets.length}, Circle count: ${circles.length}');
 
   final payload = _buildForwardPayload(message);
 
   // 1. Check for single recipient pre-fill (Individual or Circle)
-  final totalTargets = conversationIds.length + circles.length;
+  final totalTargets = individualTargets.length + circles.length;
   if (totalTargets == 1) {
     debugPrint('🟨 [Forward] Single target detected → setting prefill state');
     emit(state.copyWith(
@@ -248,16 +253,29 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   // 2. Multi-forward logic (direct send)
-  for (final conversationId in conversationIds) {
+  for (final target in individualTargets) {
     try {
-      debugPrint('🟦 [Forward] Sending to individual conversation $conversationId');
+      final String? existingConvId = target['conversationId'];
+      final String? otherUserId = target['otherUserId'];
+      
+      String targetConvId;
+      if (existingConvId != null && existingConvId.isNotEmpty) {
+        targetConvId = existingConvId;
+      } else if (otherUserId != null) {
+        debugPrint('🟦 [Forward] Creating conversation for otherUserId $otherUserId');
+        targetConvId = await repository.getOrCreateConversation(otherUserId);
+      } else {
+        continue;
+      }
+
+      debugPrint('🟦 [Forward] Sending to individual conversation $targetConvId');
       await repository.forwardMessage(
-        conversationId: conversationId,
+        conversationId: targetConvId,
         payload: payload,
       );
-      debugPrint('🟩 [Forward] Sent to individual conversation $conversationId');
+      debugPrint('🟩 [Forward] Sent to individual conversation $targetConvId');
     } catch (e) {
-      debugPrint('🟥 [Forward] Failed for individual conversation $conversationId: $e');
+      debugPrint('🟥 [Forward] Failed for individual target $target: $e');
     }
   }
 

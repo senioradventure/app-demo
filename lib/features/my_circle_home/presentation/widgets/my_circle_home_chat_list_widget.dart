@@ -70,7 +70,7 @@ class ChatListWidget extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  formatChatTime(context, chat.updatedAt!),
+                  formatChatTime(context, chat.updatedAt),
                   style: TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 10,

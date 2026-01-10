@@ -89,23 +89,22 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
         final conversation = chats.firstWhere(
           (c) => !c.isGroup && c.otherUserId == friend.id,
           orElse: () => MyCircle(
-            id: '', // Dummy if not found, logic should handle missing conv
+            id: '', // Empty ID means no existing conversation
             name: friend.name,
             imageUrl: friend.profileImage,
-            updatedAt: DateTime.now(),
-            otherUserId: friend.id, createdAt: null,
+            updatedAt: null,
+            otherUserId: friend.id,
+            createdAt: null,
           ),
         );
 
-        if (conversation.id.isNotEmpty) {
-          items.add(ForwardItem(
-            id: conversation.id,
-            name: friend.name,
-            avatarUrl: friend.profileImage,
-            isGroup: false,
-            otherUserId: friend.id,
-          ));
-        }
+        items.add(ForwardItem(
+          id: conversation.id, // Might be empty
+          name: friend.name,
+          avatarUrl: friend.profileImage,
+          isGroup: false,
+          otherUserId: friend.id,
+        ));
       }
 
       if (mounted) {
@@ -116,11 +115,9 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading targets for forward: $e');
+      debugPrint('Error loading forwarding targets: $e');
       if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
       }
     }
   }
@@ -135,20 +132,22 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
     });
   }
 
-  void _toggleSelection(ForwardItem item) {
+  void _onItemToggle(ForwardItem item, bool selected) {
+    // If it's an individual without a conversation ID, we use otherUserId as the key
+    final key = item.id.isEmpty && item.otherUserId != null ? item.otherUserId! : item.id;
+
     setState(() {
-      final id = item.id;
       if (item.isGroup) {
-        if (selectedCircleIds.contains(id)) {
-          selectedCircleIds.remove(id);
+        if (selected) {
+          selectedCircleIds.add(key);
         } else {
-          selectedCircleIds.add(id);
+          selectedCircleIds.remove(key);
         }
       } else {
-        if (selectedIndividualIds.contains(id)) {
-          selectedIndividualIds.remove(id);
+        if (selected) {
+          selectedIndividualIds.add(key);
         } else {
-          selectedIndividualIds.add(id);
+          selectedIndividualIds.remove(key);
         }
       }
     });
@@ -219,7 +218,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
         final item = filteredItems[index];
         final isSelected = item.isGroup 
             ? selectedCircleIds.contains(item.id)
-            : selectedIndividualIds.contains(item.id);
+            : selectedIndividualIds.contains(item.id.isEmpty && item.otherUserId != null ? item.otherUserId : item.id);
 
         return ListTile(
           leading: Stack(
@@ -248,9 +247,9 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
           subtitle: Text(item.isGroup ? 'Circle' : 'Friend'),
           trailing: Checkbox(
             value: isSelected,
-            onChanged: (_) => _toggleSelection(item),
+            onChanged: (val) => _onItemToggle(item, val ?? false),
           ),
-          onTap: () => _toggleSelection(item),
+          onTap: () => _onItemToggle(item, !isSelected),
         );
       },
     );
@@ -264,8 +263,10 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
     // SINGLE TARGET CASE
     if (totalSelected == 1) {
       if (selectedIndividualIds.length == 1) {
-        final conversationId = selectedIndividualIds.first;
-        await _forwardToIndividual(conversationId);
+        final key = selectedIndividualIds.first;
+        // Find the item by ID or otherUserId
+        final item = allItems.firstWhere((i) => i.id == key || i.otherUserId == key);
+        await _forwardToIndividual(item);
       } else {
         final circleId = selectedCircleIds.first;
         await _forwardToCircle(circleId);
@@ -274,12 +275,20 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
     }
 
     // MULTI TARGET CASE
-    debugPrint('Forwarding message to ${selectedIndividualIds.length} conversations and ${selectedCircleIds.length} circles');
+    debugPrint('Forwarding message to ${selectedIndividualIds.length} individuals and ${selectedCircleIds.length} circles');
+
+    final individualTargets = selectedIndividualIds.map((key) {
+      final item = allItems.firstWhere((i) => i.id == key || i.otherUserId == key);
+      return {
+        'conversationId': item.id,
+        'otherUserId': item.otherUserId,
+      };
+    }).toList();
 
     context.read<ChatBloc>().add(
           ForwardMessage(
             message: widget.message,
-            conversationIds: selectedIndividualIds.toList(),
+            individualTargets: individualTargets,
             circleIds: selectedCircleIds.toList(),
           ),
         );
@@ -292,13 +301,32 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
     }
   }
 
-  Future<void> _forwardToIndividual(String conversationId) async {
+  Future<void> _forwardToIndividual(ForwardItem item) async {
+    String conversationId = item.id;
+
+    // If conversation doesn't exist, create it now
+    if (conversationId.isEmpty && item.otherUserId != null) {
+      try {
+        final repo = GroupChatRepository(Supabase.instance.client);
+        conversationId = await repo.getOrCreateConversation(item.otherUserId!);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to start conversation')),
+          );
+        }
+        return;
+      }
+    }
+
     try {
-      final repo = MyCircleRepository();
-      final chats = await repo.fetchMyCircleChats();
-      
-      final individualChat = chats.firstWhere(
-        (c) => c.id == conversationId,
+      final individualChat = MyCircle(
+        id: conversationId,
+        name: item.name,
+        imageUrl: item.avatarUrl,
+        updatedAt: DateTime.now(),
+        otherUserId: item.otherUserId,
+        createdAt: null,
       );
 
       if (!mounted) return;
@@ -319,7 +347,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
         ),
       );
     } catch (e) {
-      debugPrint('Could not find existing conversation for $conversationId: $e');
+      debugPrint('Error navigating to individual chat: $e');
     }
   }
 
@@ -346,7 +374,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
               ..add(LoadGroupMessages(chatId: circleChat.id))
               ..add(ForwardMessage(
                 message: widget.message, 
-                conversationIds: const [], 
+                individualTargets: const [], 
                 circleIds: [circleId], 
               )),
             child: MyCircleGroupChatPage(chat: circleChat, isAdmin: isAdmin),

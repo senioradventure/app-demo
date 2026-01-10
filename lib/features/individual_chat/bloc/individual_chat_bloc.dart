@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:senior_circle/features/individual_chat/model/individual_chat_delete_enum.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
@@ -116,12 +117,18 @@ class IndividualChatBloc
 
       // IMAGE UPLOAD (if local file picked)
       if (current.imagePath != null) {
-        final file = File(current.imagePath!);
-        final fileName =
-            'messages/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
+        if (current.imagePath!.startsWith('http')) {
+          debugPrint('🟨 [IndividualChatBloc] imagePath is a URL, skipping upload');
+          mediaUrl = current.imagePath;
+        } else {
+          debugPrint('🟨 [IndividualChatBloc] Uploading image...');
+          final file = File(current.imagePath!);
+          final fileName =
+              'messages/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
 
-        await _client.storage.from('media').upload(fileName, file);
-        mediaUrl = _client.storage.from('media').getPublicUrl(fileName);
+          await _client.storage.from('media').upload(fileName, file);
+          mediaUrl = _client.storage.from('media').getPublicUrl(fileName);
+        }
       }
 
       // OPTIMISTIC MESSAGE

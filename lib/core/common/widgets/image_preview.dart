@@ -22,7 +22,7 @@ class ImagePreview extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Image.file(
               File(selectedImage.path),
-              height: MediaQuery.of(context).size.width * 0.5,
+              height: MediaQuery.of(context).size.height * 0.5,
               width: double.infinity,
               fit: BoxFit.cover,
             ),

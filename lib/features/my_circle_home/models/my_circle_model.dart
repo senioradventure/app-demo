@@ -37,16 +37,18 @@ class MyCircle {
       adminId: json['admin_id'],
       inviteCode: json['invite_code'],
       otherUserId: null,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at']) : null,
       deletedAt: json['deleted_at'] != null
-          ? DateTime.parse(json['deleted_at'])
+          ? DateTime.tryParse(json['deleted_at'])
           : null,
     );
   }
 
   factory MyCircle.fromConversationRpc(Map<String, dynamic> json) {
     final otherUser = json['other_user'] as Map<String, dynamic>;
+
+    final String? rawUpdated = json['updated_at'] ?? json['last_message_created_at'];
 
     return MyCircle(
       id: json['conversation_id'],
@@ -55,8 +57,8 @@ class MyCircle {
       adminId: null,
       inviteCode: null,
       otherUserId: otherUser['id'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      updatedAt: rawUpdated != null ? DateTime.tryParse(rawUpdated) : null,
       deletedAt: null,
     );
   }

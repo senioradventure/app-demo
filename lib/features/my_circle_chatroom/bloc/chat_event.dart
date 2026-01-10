@@ -131,14 +131,17 @@ class ToggleStar extends ChatEvent {
 
 class ForwardMessage extends ChatEvent {
   final GroupMessage message;
-  final List<String> conversationIds;
+  final List<Map<String, String?>> individualTargets; // contains 'conversationId' and 'otherUserId'
   final List<String> circleIds;
 
-  ForwardMessage({
+  const ForwardMessage({
     required this.message,
-    required this.conversationIds,
+    required this.individualTargets,
     this.circleIds = const [],
   });
+
+  @override
+  List<Object?> get props => [message, individualTargets, circleIds];
 }
 
 class ForwardToSingleUser extends ChatEvent {

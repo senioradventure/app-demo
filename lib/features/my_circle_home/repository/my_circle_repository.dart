@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/my_circle_model.dart';
 
@@ -16,6 +17,10 @@ class MyCircleRepository {
       'get_all_conversations',
       params: {'p_user_id': userId},
     );
+    debugPrint('🟩 [MyCircleRepo] Individual chats count: ${(individualResponse as List?)?.length}');
+    if (individualResponse is List && individualResponse.isNotEmpty) {
+      debugPrint('🟩 [MyCircleRepo] First individual chat sample: ${individualResponse.first}');
+    }
 
     // 🔹 Circle / group chats (filtered by membership)
     final circleResponse = await _client
@@ -24,6 +29,7 @@ class MyCircleRepository {
         .eq('circle_members.user_id', userId)
         .filter('deleted_at', 'is', null)
         .order('updated_at', ascending: false);
+    debugPrint('🟩 [MyCircleRepo] Circle chats count: ${(circleResponse as List?)?.length}');
 
     final individualChats = (individualResponse as List? ?? [])
         .map(
@@ -37,7 +43,12 @@ class MyCircleRepository {
         .toList();
 
     final allChats = [...individualChats, ...circleChats]
-      ..sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+      ..sort((a, b) {
+        // Use updatedAt primarily, fall back to createdAt, finally epoch 0
+        final aTime = a.updatedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime = b.updatedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bTime.compareTo(aTime);
+      });
 
     return allChats;
   }

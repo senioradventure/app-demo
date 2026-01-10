@@ -303,6 +303,25 @@ class GroupChatRepository {
     }
   }
 
+  Future<String> getOrCreateConversation(String otherUserId) async {
+    debugPrint('🟦 [Repo] getOrCreateConversation for $otherUserId');
+    try {
+      final response = await _client.rpc(
+        'create_conversation',
+        params: {
+          'p_other_user_id': otherUserId,
+        },
+      );
+      debugPrint('🟩 [Repo] create_conversation result: $response');
+      
+      final data = response as Map<String, dynamic>;
+      return data['conversation_id'] as String;
+    } catch (e) {
+      debugPrint('🟥 [Repo] create_conversation failed: $e');
+      rethrow;
+    }
+  }
+
  Future<void> forwardMessage({
   String? conversationId,
   String? circleId,
