@@ -8,6 +8,7 @@ import '../../bloc/admin_reports_state.dart';
 import '../../repositories/admin_reports_repository.dart';
 import '../../repositories/chat_details_repository.dart';
 import '../../models/chat_details_models.dart';
+import '../widgets/add_friends_bottom_sheet.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String chatId;
@@ -264,7 +265,26 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         if (widget.type == ChatType.circle)
                           IconButton(
                             onPressed: () {
-                              // Add friend logic
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) => AddFriendsBottomSheet(
+                                  chatId: widget.chatId,
+                                  currentMembers: _members,
+                                  onMembersAdded: () {
+                                    _fetchDetails(); // Refresh list after adding members
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Members added successfully',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
                             },
                             icon: const Icon(
                               Icons.add_circle,
