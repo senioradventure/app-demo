@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/chat/ui/room_details.dart';
+import 'package:senior_circle/features/chat/presentation/page/room_details.dart';
 
 class MembersListFullscreen extends StatefulWidget {
   const MembersListFullscreen({super.key});

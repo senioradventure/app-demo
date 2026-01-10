@@ -17,7 +17,13 @@ class ViewFriendsRepository {
     }
 
     final data = response as List;
+    final Map<String, Friend> friends = {};
 
-    return data.map((e) => Friend.fromJson(e)).toList();
+    for (var e in data) {
+      final friend = Friend.fromJson(e);
+      friends[friend.id] = friend;
+    }
+
+    return friends.values.toList();
   }
 }
