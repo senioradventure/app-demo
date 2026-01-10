@@ -20,6 +20,9 @@ class IndividualChatBloc
   late String _conversationId;
   RealtimeChannel? _channel;
 
+  String? _prefilledText;
+  String? _prefilledMedia;
+
   IndividualChatBloc(this._repository) : super(IndividualChatInitial()) {
     on<LoadConversationMessages>(_onLoadMessages);
     on<PickMessageImage>(_onPickImage);
@@ -31,6 +34,7 @@ class IndividualChatBloc
     on<StarMessage>(_onStarMessage);
     on<DeleteMessageForEveryone>(_onDeleteMessageForEveryone);
     on<DeleteMessageForMe>(_onDeleteMessageForMe);
+    on<PrefillIndividualChat>(_onPrefillChat);
   }
 
   // ---------------------------------------------------------------------------
@@ -52,8 +56,14 @@ class IndividualChatBloc
           imagePath: null,
           replyTo: null,
           isSending: false,
+          prefilledInputText: _prefilledText,
+          prefilledMediaUrl: _prefilledMedia,
         ),
       );
+
+      // Clear after applying to initial state
+      _prefilledText = null;
+      _prefilledMedia = null;
 
       _subscribeToRealtime();
     } catch (e) {
@@ -99,19 +109,19 @@ class IndividualChatBloc
     final current = state as IndividualChatLoaded;
 
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    String? uploadedImageUrl;
+    String? mediaUrl = current.prefilledMediaUrl;
 
     try {
       emit(current.copyWith(isSending: true));
 
-      // IMAGE UPLOAD
+      // IMAGE UPLOAD (if local file picked)
       if (current.imagePath != null) {
         final file = File(current.imagePath!);
         final fileName =
             'messages/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
 
         await _client.storage.from('media').upload(fileName, file);
-        uploadedImageUrl = _client.storage.from('media').getPublicUrl(fileName);
+        mediaUrl = _client.storage.from('media').getPublicUrl(fileName);
       }
 
       // OPTIMISTIC MESSAGE
@@ -119,8 +129,8 @@ class IndividualChatBloc
         id: tempId,
         senderId: _client.auth.currentUser!.id,
         content: event.text,
-        mediaUrl: uploadedImageUrl,
-        mediaType: uploadedImageUrl == null ? 'text' : 'image',
+        mediaUrl: mediaUrl,
+        mediaType: mediaUrl == null ? 'text' : 'image',
         createdAt: DateTime.now(),
         replyToMessageId:
             current.replyTo != null && !current.replyTo!.id.startsWith('temp_')
@@ -133,6 +143,7 @@ class IndividualChatBloc
           messages: [...current.messages, optimisticMessage],
           clearImagePath: true,
           clearReplyTo: true,
+          prefilledMediaUrl: null, // Clear after use
         ),
       );
 
@@ -143,8 +154,8 @@ class IndividualChatBloc
             'conversation_id': _conversationId,
             'sender_id': _client.auth.currentUser!.id,
             'content': event.text,
-            'media_url': uploadedImageUrl,
-            'media_type': uploadedImageUrl == null ? 'text' : 'image',
+            'media_url': mediaUrl,
+            'media_type': mediaUrl == null ? 'text' : 'image',
             'reply_to_message_id': optimisticMessage.replyToMessageId,
           })
           .select()
@@ -344,5 +355,27 @@ class IndividualChatBloc
   Future<void> close() {
     _channel?.unsubscribe();
     return super.close();
+  }
+
+  void _onPrefillChat(
+    PrefillIndividualChat event,
+    Emitter<IndividualChatState> emit,
+  ) {
+    _prefilledText = event.text;
+    _prefilledMedia = event.mediaUrl;
+
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    emit(
+      current.copyWith(
+        prefilledInputText: _prefilledText,
+        prefilledMediaUrl: _prefilledMedia,
+      ),
+    );
+
+    // Clear after emitting state
+    _prefilledText = null;
+    _prefilledMedia = null;
   }
 }

@@ -6,6 +6,7 @@ class GroupMessage {
   final String senderId;
   final String senderName;
   final String? avatar;
+  final String mediaType;
   final String? text;
   final String? imagePath;
   final String time;
@@ -19,6 +20,7 @@ class GroupMessage {
     required this.id,
     required this.senderId,
     required this.senderName,
+    required this.mediaType,
     this.avatar,
     this.text,
     required this.time,
@@ -37,6 +39,7 @@ class GroupMessage {
     String? id,
     String? senderId,
     String? senderName,
+    String? mediaType,
     String? avatar,
     String? text,
     String? imagePath,
@@ -52,6 +55,7 @@ class GroupMessage {
       id: id ?? this.id,
       senderId: senderId ?? this.senderId,
       senderName: senderName ?? this.senderName,
+      mediaType: mediaType ?? this.mediaType,
       avatar: avatar ?? this.avatar,
       text: text ?? this.text,
       imagePath: imagePath ?? this.imagePath,
@@ -85,6 +89,7 @@ class GroupMessage {
       id: messageRow['id'] as String,
       senderId: messageRow['sender_id']?.toString() ?? '',
       senderName: messageRow['profiles']?['full_name'] ?? 'Unknown',
+      mediaType: messageRow['media_type']?? 'text',
       avatar: messageRow['profiles']?['avatar_url'],
       text: messageRow['content'],
       imagePath: messageRow['media_type'] == 'image'
@@ -105,6 +110,7 @@ class GroupMessage {
       id: map['id'],
       senderId: map['senderId'],
       senderName: map['senderName'],
+      mediaType: map['mediaType'] ?? 'text',
       avatar: map['avatar'],
       text: map['text'],
       time: map['time'],
@@ -129,6 +135,7 @@ class GroupMessage {
       'id': id,
       'senderId': senderId,
       'senderName': senderName,
+      'mediaType': mediaType,
       'avatar': avatar,
       'text': text,
       'imagePath': imagePath,

@@ -128,3 +128,19 @@ class ToggleStar extends ChatEvent {
   @override
   List<Object?> get props => [messageId, userId];
 }
+
+class ForwardMessage extends ChatEvent {
+  final GroupMessage message;
+  final List<String> receiverIds;
+
+  ForwardMessage({
+    required this.message,
+    required this.receiverIds,
+  });
+}
+
+class ForwardToSingleUser extends ChatEvent {
+  final String text;
+
+  ForwardToSingleUser({required this.text});
+}

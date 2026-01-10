@@ -17,10 +17,11 @@ class MyCircleRepository {
       params: {'p_user_id': userId},
     );
 
-    // 🔹 Circle / group chats
+    // 🔹 Circle / group chats (filtered by membership)
     final circleResponse = await _client
         .from('circles')
-        .select()
+        .select('*, circle_members!inner(user_id)')
+        .eq('circle_members.user_id', userId)
         .filter('deleted_at', 'is', null)
         .order('updated_at', ascending: false);
 

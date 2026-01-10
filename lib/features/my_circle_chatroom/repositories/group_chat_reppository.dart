@@ -116,6 +116,7 @@ class GroupChatRepository {
         id: id,
         senderId: row['sender_id'] ?? '',
         senderName: row['profiles']?['full_name'] ?? 'Unknown',
+        mediaType: row['media_type'] ?? 'text',
         avatar: row['profiles']?['avatar_url'],
         text: row['content'],
         imagePath: row['media_type'] == 'image' ? row['media_url'] : null,
@@ -301,4 +302,24 @@ class GroupChatRepository {
       rethrow;
     }
   }
+
+ Future<void> forwardMessage({
+  required String receiverId,
+  required Map<String, dynamic> payload,
+}) async {
+  debugPrint('🟦 [Repo] Forwarding message to $receiverId');
+  debugPrint('🟦 [Repo] Payload: $payload');
+
+  final senderId = _client.auth.currentUser!.id;
+
+  await _client.from('messages').insert({
+    'sender_id': senderId,
+    'receiver_id': receiverId,
+    ...payload,
+  });
+
+  debugPrint('🟩 [Repo] Forward insert success');
+}
+
+
 }

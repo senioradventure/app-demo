@@ -16,7 +16,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   RealtimeChannel? _groupChannel;
 
   ChatBloc({required this.repository})
-    : super(const ChatState(messages: [], groupMessages: [])) {
+    : super(const ChatState(groupMessages: [])) {
     on<LoadGroupMessages>(_onLoadGroupMessages);
     on<GroupMessageInserted>(_onGroupMessageInserted);
     on<SendGroupMessage>(_onSendGroupMessage);
@@ -26,6 +26,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ToggleGroupThread>(_onToggleGroupThread);
     on<ToggleReplyInput>(_onToggleReplyInput);
     on<ToggleStar>(_onToggleStar);
+    on<ForwardMessage>(_onForwardMessage);
+
   }
 
   Future<void> _onLoadGroupMessages(
@@ -72,6 +74,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     debugPrint('🟦 circleId: $circleId');
 
     try {
+      emit(state.copyWith(isSending: true));
       String? imageUrl;
 
       if (event.imagePath != null) {
@@ -91,11 +94,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
 
       debugPrint('🟩 [ChatBloc] Message sent successfully');
+      emit(state.copyWith(isSending: false));
       add(GroupMessageInserted(newMessage));
       
     } catch (e, st) {
       debugPrint('🟥 [ChatBloc] Error sending message: $e');
       debugPrintStack(stackTrace: st);
+      emit(state.copyWith(isSending: false, error: 'Failed to send message'));
     }
   }
 
@@ -135,14 +140,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
     if (event.type == ChatMessageType.individual) return;
 
-    final updatedMessages = state.groupMessages.map((message) {
-      return message.updateReaction(
+    final updatedMessages = _updateMessageRecursive(
+      state.groupMessages,
+      event.messageId,
+      (msg) => msg.updateReaction(
         messageId: event.messageId,
         emoji: event.emoji,
         userId: event.userId,
         applyReactionFn: applyReaction,
-      );
-    }).toList();
+      ),
+    );
 
     emit(state.copyWith(groupMessages: updatedMessages));
 
@@ -154,41 +161,39 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onToggleGroupThread(ToggleGroupThread event, Emitter<ChatState> emit) {
-    final updatedGroupMessages = state.groupMessages.map((message) {
-      if (message.id == event.messageId) {
+    final updatedGroupMessages = _updateMessageRecursive(
+      state.groupMessages,
+      event.messageId,
+      (message) {
         final willOpen = !message.isThreadOpen;
-
         return message.copyWith(
           isThreadOpen: willOpen,
           isReplyInputOpen: willOpen ? message.isReplyInputOpen : false,
         );
-      }
-
-      return message.copyWith(isThreadOpen: false, isReplyInputOpen: false);
-    }).toList();
+      },
+      clearOthers: true, // Close other threads/inputs
+    );
 
     emit(state.copyWith(groupMessages: updatedGroupMessages));
-
-    debugPrint("🧵 [ChatBloc] Thread toggled: ${event.messageId}");
+    debugPrint("[ChatBloc] Thread toggled: ${event.messageId}");
   }
 
   void _onToggleReplyInput(ToggleReplyInput event, Emitter<ChatState> emit) {
-    final updatedGroupMessages = state.groupMessages.map((message) {
-      if (message.id == event.messageId) {
+    final updatedGroupMessages = _updateMessageRecursive(
+      state.groupMessages,
+      event.messageId,
+      (message) {
         final willOpen = !message.isReplyInputOpen;
-
         return message.copyWith(
           isReplyInputOpen: willOpen,
           isThreadOpen: willOpen ? message.isThreadOpen : false,
         );
-      }
-
-      return message.copyWith(isReplyInputOpen: false);
-    }).toList();
+      },
+      clearOthers: true, // Close other threads/inputs
+    );
 
     emit(state.copyWith(groupMessages: updatedGroupMessages));
-
-    debugPrint("💬 [ChatBloc] Reply input toggled: ${event.messageId}");
+    debugPrint("[ChatBloc] Reply input toggled: ${event.messageId}");
   }
 
   Future<void> _onToggleStar(ToggleStar event, Emitter<ChatState> emit) async {
@@ -197,20 +202,87 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     if (targetMessage == null) return;
 
-
-    final updatedMessages = state.groupMessages.map((msg) {
-      return msg.toggleStar(event.messageId);
-    }).toList();
+    final updatedMessages = _updateMessageRecursive(
+      state.groupMessages,
+      event.messageId,
+      (msg) => msg.toggleStar(event.messageId),
+    );
 
     emit(state.copyWith(groupMessages: updatedMessages));
-
-
     try {
       await repository.toggleSaveMessage(message: targetMessage);
     } catch (e) {
-      debugPrint('🟥 Failed to toggle star: $e');
+      debugPrint('Failed to toggle star: $e');
     }
   }
+
+  Future<void> _onForwardMessage(
+  ForwardMessage event,
+  Emitter<ChatState> emit,
+) async {
+  debugPrint('🟦 [Forward] ForwardMessage triggered');
+
+  final message = event.message;
+  final receivers = event.receiverIds;
+
+  debugPrint('🟦 [Forward] Receiver count: ${receivers.length}');
+  debugPrint('🟦 [Forward] Receiver IDs: $receivers');
+
+  final payload = _buildForwardPayload(message);
+//single reciever case
+  if (receivers.length == 1) {
+    debugPrint('🟨 [Forward] Single receiver → prefilling input');
+
+    emit(state.copyWith(
+      prefilledInputText: message.text, 
+      prefilledMedia: message.avatar != null
+          ? ForwardMedia(
+              url: message.avatar!,
+              type: message.mediaType,
+            )
+          : null,
+    ));
+
+    debugPrint('🟩 [Forward] Input + media prefilled');
+    return;
+  }
+
+  debugPrint('🟨 [Forward] Multiple receivers → sending directly');
+
+  for (final receiverId in receivers) {
+    try {
+      debugPrint('🟦 [Forward] Sending to $receiverId');
+
+      await repository.forwardMessage(
+        receiverId: receiverId,
+        payload: payload,
+      );
+
+      debugPrint('🟩 [Forward] Sent to $receiverId');
+    } catch (e, st) {
+      debugPrint('🟥 [Forward] Failed for $receiverId');
+      debugPrint('🟥 Error: $e');
+      debugPrintStack(stackTrace: st);
+    }
+  }
+
+  debugPrint('🟩 [Forward] Forward process completed');
+}
+
+Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
+  debugPrint('🟦 [Forward] Building forward payload');
+  debugPrint('🟦 [Forward] Message ID: ${message.id}');
+  debugPrint('🟦 [Forward] MediaType: ${message.mediaType}');
+  debugPrint('🟦 [Forward] ImagePath: ${message.imagePath}');
+  debugPrint('🟦 [Forward] Content: "${message.text}"');
+
+  return {
+    'content': message.text,         
+    'media_url': message.imagePath,
+    'media_type': message.mediaType,
+    'is_forwarded': true,
+  };
+}
 
   GroupMessage? _findMessageRecursive(List<GroupMessage> messages, String id) {
     for (final msg in messages) {
@@ -238,18 +310,51 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }).toList();
   }
 
+  /// Generic recursive updater for GroupMessage objects.
+  /// [clearOthers] will reset isThreadOpen and isReplyInputOpen on all other messages.
+  List<GroupMessage> _updateMessageRecursive(
+    List<GroupMessage> messages,
+    String targetId,
+    GroupMessage Function(GroupMessage) updateFn, {
+    bool clearOthers = false,
+  }) {
+    return messages.map((m) {
+      GroupMessage updated = m;
+
+      if (updated.id == targetId) {
+        updated = updateFn(updated);
+      } else if (clearOthers) {
+        updated = updated.copyWith(
+          isThreadOpen: false,
+          isReplyInputOpen: false,
+        );
+      }
+
+      if (updated.replies.isNotEmpty) {
+        updated = updated.copyWith(
+          replies: _updateMessageRecursive(
+            updated.replies,
+            targetId,
+            updateFn,
+            clearOthers: clearOthers,
+          ),
+        );
+      }
+
+      return updated;
+    }).toList();
+  }
+
   void _onGroupMessageInserted(
     GroupMessageInserted event,
     Emitter<ChatState> emit,
   ) {
-    // 🟦 Parent message (optimization)
     if (event.message.replyToMessageId == null) {
       emit(state.copyWith(
           groupMessages: [event.message, ...state.groupMessages]));
       return;
     }
 
-    // 🌳 Update recursively for replies
     final updatedMessages = state.groupMessages.map((msg) {
       return msg.addReply(event.message);
     }).toList();
@@ -261,14 +366,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     GroupReactionChanged event,
     Emitter<ChatState> emit,
   ) {
-    final updated = state.groupMessages.map((message) {
-      return message.updateReaction(
+    final updated = _updateMessageRecursive(
+      state.groupMessages,
+      event.messageId,
+      (message) => message.updateReaction(
         messageId: event.messageId,
         emoji: event.emoji,
         userId: event.userId,
         applyReactionFn: applyReaction,
-      );
-    }).toList();
+      ),
+    );
 
     emit(state.copyWith(groupMessages: updated));
   }
@@ -295,7 +402,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             value: circleId,
           ),
           callback: (payload) {
-            debugPrint('🟩 [Realtime] New group message received');
+            debugPrint('[Realtime] New group message received');
 
             final newMessage = GroupMessage.fromSupabase(
               messageRow: payload.newRecord,

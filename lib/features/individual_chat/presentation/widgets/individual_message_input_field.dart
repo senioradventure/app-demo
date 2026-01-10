@@ -6,19 +6,59 @@ import 'package:senior_circle/core/common/widgets/image_preview.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 
-class IndividualMessageInputField extends StatelessWidget {
-  IndividualMessageInputField({super.key});
+class IndividualMessageInputField extends StatefulWidget {
+  const IndividualMessageInputField({super.key});
 
+  @override
+  State<IndividualMessageInputField> createState() => _IndividualMessageInputFieldState();
+}
+
+class _IndividualMessageInputFieldState extends State<IndividualMessageInputField> {
   final TextEditingController _controller = TextEditingController();
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<IndividualChatBloc, IndividualChatState>(
+    return BlocConsumer<IndividualChatBloc, IndividualChatState>(
+      listenWhen: (prev, curr) {
+        if (curr is IndividualChatLoaded) {
+          if (prev is! IndividualChatLoaded) return true;
+          
+          return prev.prefilledInputText != curr.prefilledInputText ||
+                 prev.prefilledMediaUrl != curr.prefilledMediaUrl;
+        }
+        return false;
+      },
+      listener: (context, state) {
+        if (state is IndividualChatLoaded) {
+          if (state.prefilledInputText != null) {
+            _controller.text = state.prefilledInputText!;
+          }
+          if (state.prefilledMediaUrl != null) {
+             // For forwarding, we might need to handle mediaUrl being a network URL
+             // If individual chat expects a local path for imagePath, we might need more logic
+             // But for now let's assume if prefilledMediaUrl is present, it's an image.
+             // We can use PickMessageImage with the URL directly if the BLoC supports it.
+             // The LoadConversationMessage handler in Bloc handles the media upload.
+             // For now let's just make sure the BLoC's imagePath can handle a URL
+             // Actually, SendConversationMessage in IndividualChatBloc uses 'current.imagePath'
+             // which it expects to be a local file to upload.
+             // If it's a forward, it's ALREADY uploaded.
+             // We may need a separate event or field for prefilled media.
+          }
+        }
+      },
       buildWhen: (prev, curr) {
         if (prev is IndividualChatLoaded && curr is IndividualChatLoaded) {
           return prev.replyTo != curr.replyTo ||
               prev.imagePath != curr.imagePath ||
-              prev.isSending != curr.isSending;
+              prev.isSending != curr.isSending ||
+              prev.prefilledMediaUrl != curr.prefilledMediaUrl;
         }
         return true;
       },
@@ -67,12 +107,53 @@ class IndividualMessageInputField extends StatelessWidget {
                 ),
 
               /// ---------------- IMAGE PREVIEW ----------------
-              if (state.imagePath != null)
-                ImagePreview(
-                  selectedImage: XFile(state.imagePath!),
-                  onRemove: () {
-                    context.read<IndividualChatBloc>().add(RemovePickedImage());
-                  },
+              if (state.imagePath != null || state.prefilledMediaUrl != null)
+                Stack(
+                  children: [
+                    if (state.imagePath != null)
+                      ImagePreview(
+                        selectedImage: XFile(state.imagePath!),
+                        onRemove: () {
+                          context.read<IndividualChatBloc>().add(RemovePickedImage());
+                        },
+                      ),
+                    if (state.imagePath == null && state.prefilledMediaUrl != null)
+                       Padding(
+                         padding: const EdgeInsets.only(bottom: 8.0),
+                         child: Stack(
+                           children: [
+                             ClipRRect(
+                               borderRadius: BorderRadius.circular(8),
+                               child: Image.network(
+                                 state.prefilledMediaUrl!,
+                                 height: 100,
+                                 width: 100,
+                                 fit: BoxFit.cover,
+                               ),
+                             ),
+                             Positioned(
+                               top: 4,
+                               right: 4,
+                               child: GestureDetector(
+                                 onTap: () {
+                                   context.read<IndividualChatBloc>().add(
+                                     const PrefillIndividualChat(mediaUrl: null),
+                                   );
+                                 },
+                                 child: Container(
+                                   padding: const EdgeInsets.all(2),
+                                   decoration: const BoxDecoration(
+                                     color: Colors.black54,
+                                     shape: BoxShape.circle,
+                                   ),
+                                   child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                 ),
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
+                  ],
                 ),
 
               /// ---------------- INPUT ROW ----------------
@@ -87,6 +168,12 @@ class IndividualMessageInputField extends StatelessWidget {
                         context.read<IndividualChatBloc>().add(
                           PickMessageImage(image.path),
                         );
+                        // Also clear prefilled media if a new one is picked
+                        if (state.prefilledMediaUrl != null) {
+                           context.read<IndividualChatBloc>().add(
+                             const PrefillIndividualChat(mediaUrl: null),
+                           );
+                        }
                       }
                     },
                     child: SvgPicture.asset(
@@ -111,13 +198,26 @@ class IndividualMessageInputField extends StatelessWidget {
                         ? null
                         : () {
                             final text = _controller.text.trim();
-                            if (text.isEmpty && state.imagePath == null) return;
+                            if (text.isEmpty && state.imagePath == null && state.prefilledMediaUrl == null) return;
 
-                            context.read<IndividualChatBloc>().add(
-                              SendConversationMessage(text: text),
-                            );
+                            if (state.prefilledMediaUrl != null && state.imagePath == null) {
+                                // Specific handling for forwarding with ALREADY uploaded media
+                                context.read<IndividualChatBloc>().add(
+                                  SendConversationMessage(text: text),
+                                );
+                            } else {
+                                context.read<IndividualChatBloc>().add(
+                                  SendConversationMessage(text: text),
+                                );
+                            }
 
                             _controller.clear();
+                            // Clear prefilled states after sending
+                            if (state.prefilledInputText != null || state.prefilledMediaUrl != null) {
+                               context.read<IndividualChatBloc>().add(
+                                 const PrefillIndividualChat(text: null, mediaUrl: null),
+                               );
+                            }
                           },
                     child: SvgPicture.asset('assets/icons/send_icon.svg'),
                   ),
