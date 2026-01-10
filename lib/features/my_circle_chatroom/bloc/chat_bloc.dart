@@ -94,7 +94,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
 
       debugPrint('🟩 [ChatBloc] Message sent successfully');
-      emit(state.copyWith(isSending: false));
+      emit(state.copyWith(
+        isSending: false,
+        prefilledInputText: null, // Clear after successful send
+        prefilledMedia: null,      // Clear after successful send
+      ));
       add(GroupMessageInserted(newMessage));
       
     } catch (e, st) {
@@ -223,46 +227,50 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   debugPrint('🟦 [Forward] ForwardMessage triggered');
 
   final message = event.message;
-  final receivers = event.receiverIds;
+  final conversationIds = event.conversationIds;
+  final circles = event.circleIds;
 
-  debugPrint('🟦 [Forward] Receiver count: ${receivers.length}');
-  debugPrint('🟦 [Forward] Receiver IDs: $receivers');
+  debugPrint('🟦 [Forward] Conv count: ${conversationIds.length}, Circle count: ${circles.length}');
 
   final payload = _buildForwardPayload(message);
-//single reciever case
-  if (receivers.length == 1) {
-    debugPrint('🟨 [Forward] Single receiver → prefilling input');
 
+  // 1. Check for single recipient pre-fill (Individual or Circle)
+  final totalTargets = conversationIds.length + circles.length;
+  if (totalTargets == 1) {
+    debugPrint('🟨 [Forward] Single target detected → setting prefill state');
     emit(state.copyWith(
-      prefilledInputText: message.text, 
-      prefilledMedia: message.avatar != null
-          ? ForwardMedia(
-              url: message.avatar!,
-              type: message.mediaType,
-            )
+      prefilledInputText: message.text,
+      prefilledMedia: message.imagePath != null
+          ? ForwardMedia(url: message.imagePath!, type: message.mediaType)
           : null,
     ));
-
-    debugPrint('🟩 [Forward] Input + media prefilled');
     return;
   }
 
-  debugPrint('🟨 [Forward] Multiple receivers → sending directly');
-
-  for (final receiverId in receivers) {
+  // 2. Multi-forward logic (direct send)
+  for (final conversationId in conversationIds) {
     try {
-      debugPrint('🟦 [Forward] Sending to $receiverId');
-
+      debugPrint('🟦 [Forward] Sending to individual conversation $conversationId');
       await repository.forwardMessage(
-        receiverId: receiverId,
+        conversationId: conversationId,
         payload: payload,
       );
+      debugPrint('🟩 [Forward] Sent to individual conversation $conversationId');
+    } catch (e) {
+      debugPrint('🟥 [Forward] Failed for individual conversation $conversationId: $e');
+    }
+  }
 
-      debugPrint('🟩 [Forward] Sent to $receiverId');
-    } catch (e, st) {
-      debugPrint('🟥 [Forward] Failed for $receiverId');
-      debugPrint('🟥 Error: $e');
-      debugPrintStack(stackTrace: st);
+  for (final circleId in circles) {
+    try {
+      debugPrint('🟦 [Forward] Sending to circle $circleId');
+      await repository.forwardMessage(
+        circleId: circleId,
+        payload: payload,
+      );
+      debugPrint('🟩 [Forward] Sent to circle $circleId');
+    } catch (e) {
+      debugPrint('🟥 [Forward] Failed for circle $circleId: $e');
     }
   }
 
@@ -271,16 +279,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
 Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
   debugPrint('🟦 [Forward] Building forward payload');
-  debugPrint('🟦 [Forward] Message ID: ${message.id}');
-  debugPrint('🟦 [Forward] MediaType: ${message.mediaType}');
-  debugPrint('🟦 [Forward] ImagePath: ${message.imagePath}');
-  debugPrint('🟦 [Forward] Content: "${message.text}"');
-
+  
   return {
     'content': message.text,         
     'media_url': message.imagePath,
     'media_type': message.mediaType,
-    'is_forwarded': true,
   };
 }
 

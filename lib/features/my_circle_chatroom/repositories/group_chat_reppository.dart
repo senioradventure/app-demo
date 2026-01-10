@@ -304,17 +304,19 @@ class GroupChatRepository {
   }
 
  Future<void> forwardMessage({
-  required String receiverId,
+  String? conversationId,
+  String? circleId,
   required Map<String, dynamic> payload,
 }) async {
-  debugPrint('🟦 [Repo] Forwarding message to $receiverId');
+  debugPrint('🟦 [Repo] Forwarding message to ${conversationId ?? circleId}');
   debugPrint('🟦 [Repo] Payload: $payload');
 
   final senderId = _client.auth.currentUser!.id;
 
   await _client.from('messages').insert({
     'sender_id': senderId,
-    'receiver_id': receiverId,
+    if (conversationId != null) 'conversation_id': conversationId,
+    if (circleId != null) 'circle_id': circleId,
     ...payload,
   });
 

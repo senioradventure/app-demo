@@ -40,16 +40,7 @@ class _IndividualMessageInputFieldState extends State<IndividualMessageInputFiel
             _controller.text = state.prefilledInputText!;
           }
           if (state.prefilledMediaUrl != null) {
-             // For forwarding, we might need to handle mediaUrl being a network URL
-             // If individual chat expects a local path for imagePath, we might need more logic
-             // But for now let's assume if prefilledMediaUrl is present, it's an image.
-             // We can use PickMessageImage with the URL directly if the BLoC supports it.
-             // The LoadConversationMessage handler in Bloc handles the media upload.
-             // For now let's just make sure the BLoC's imagePath can handle a URL
-             // Actually, SendConversationMessage in IndividualChatBloc uses 'current.imagePath'
-             // which it expects to be a local file to upload.
-             // If it's a forward, it's ALREADY uploaded.
-             // We may need a separate event or field for prefilled media.
+            // Already handled in the builder by showing an Image.network preview
           }
         }
       },

@@ -37,7 +37,7 @@ class MyCircleRepository {
         .toList();
 
     final allChats = [...individualChats, ...circleChats]
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      ..sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
 
     return allChats;
   }

@@ -10,8 +10,8 @@ class MyCircle {
   /// Individual chat only
   final String? otherUserId;
 
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final DateTime? deletedAt;
 
   bool get isGroup => adminId != null;
@@ -24,8 +24,8 @@ class MyCircle {
     this.adminId,
     this.inviteCode,
     this.otherUserId,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     this.deletedAt,
   });
 
