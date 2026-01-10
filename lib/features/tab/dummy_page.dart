@@ -5,6 +5,6 @@ class DummyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text("Comming soon ....."));
+    return const Center(child: Text("Coming soon ....."));
   }
 }
