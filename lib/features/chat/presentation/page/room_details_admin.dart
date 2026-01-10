@@ -9,8 +9,11 @@ import '../../repositories/admin_reports_repository.dart';
 import '../../repositories/chat_details_repository.dart';
 import '../../models/chat_details_models.dart';
 import '../widgets/add_friends_bottom_sheet.dart';
+import '../../bloc/chat_details_bloc.dart';
+import '../../bloc/chat_details_event.dart';
+import '../../bloc/chat_details_state.dart';
 
-class ChatDetailsScreen extends StatefulWidget {
+class ChatDetailsScreen extends StatelessWidget {
   final String chatId;
   final ChatType type;
 
@@ -21,313 +24,278 @@ class ChatDetailsScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatDetailsScreen> createState() => _ChatDetailsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) =>
+          ChatDetailsBloc(ChatDetailsRepository(Supabase.instance.client))
+            ..add(LoadChatDetails(chatId: chatId, type: type)),
+      child: _ChatDetailsView(chatId: chatId, type: type),
+    );
+  }
 }
 
-class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
-  late ChatDetailsRepository _repository;
-  ChatDetailsModel? _details;
-  List<ChatMember> _members = [];
-  bool _isLoading = true;
-  bool _isAdmin = false;
-  String? _currentUserId;
+class _ChatDetailsView extends StatelessWidget {
+  final String chatId;
+  final ChatType type;
 
-  @override
-  void initState() {
-    super.initState();
-    _repository = ChatDetailsRepository(Supabase.instance.client);
-    _currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    _fetchDetails();
-  }
-
-  Future<void> _fetchDetails() async {
-    try {
-      final details = await _repository.getChatDetails(
-        widget.chatId,
-        widget.type,
-      );
-      final members = await _repository.getChatMembers(
-        widget.chatId,
-        widget.type,
-      );
-
-      // Determine if current user is admin
-      // 1. Check if user is the creator/admin of the chat object
-      bool isAdmin = details.adminId == _currentUserId;
-
-      // 2. Or check if user has admin role in members list
-      if (!isAdmin && _currentUserId != null) {
-        final member = members.firstWhere(
-          (m) => m.userId == _currentUserId,
-          orElse: () => ChatMember(userId: '', role: ChatRole.member),
-        );
-        isAdmin = member.isAdmin;
-      }
-
-      if (mounted) {
-        setState(() {
-          _details = details;
-          _members = members;
-          _isAdmin = isAdmin;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching details: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
+  const _ChatDetailsView({required this.chatId, required this.type});
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    return BlocBuilder<ChatDetailsBloc, ChatDetailsState>(
+      builder: (context, state) {
+        if (state is ChatDetailsLoading) {
+          return const Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    if (_details == null) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: Text("Failed to load details")),
-      );
-    }
+        if (state is ChatDetailsError) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text("Error: ${state.message}")),
+          );
+        }
 
-    Widget content = Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        title: const Text(
-          'Details',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 23.0,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert, color: Colors.black),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              color: Colors.grey.shade100,
+        if (state is ChatDetailsLoaded) {
+          final details = state.details;
+          final members = state.members;
+          final isAdmin = state.isAdmin;
+
+          Widget content = Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              title: const Text(
+                'Details',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 23.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.more_vert, color: Colors.black),
+                ),
+              ],
+            ),
+            body: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    height: 20,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: Colors.grey.shade300, width: 1),
-                      ),
-                    ),
-                  ),
-                  CircleAvatar(
-                    radius: 50.0,
-                    backgroundImage:
-                        _details!.imageUrl != null &&
-                            _details!.imageUrl!.isNotEmpty
-                        ? NetworkImage(_details!.imageUrl!)
-                        : const AssetImage('assets/images/avatar.png')
-                              as ImageProvider,
-                  ),
-                  const SizedBox(height: 16),
-                  // Group Name
-                  Text(
-                    _details!.name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Tags/Categories
-                  if (_details is RoomDetails) ...[
-                    // Placeholder for tags if needed as per UI
-                    SizedBox(
-                      height: 50,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xd7d7e6fa),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text('Tea'),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xd7d7e6fa),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text('Tea'),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xd7d7e6fa),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text('Friends'),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    if ((_details as RoomDetails).description != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white,
-                          ),
-                          child: Text(
-                            (_details as RoomDetails).description!,
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              height: 1.4,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-
-                  if (_isAdmin && widget.type == ChatType.room) ...[
-                    //Reported messages section
-                    const SizedBox(height: 24),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Reported Messages',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildReportedMessages(),
-                  ],
-
-                  // Members Section
-                  const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    color: Colors.grey.shade100,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Members',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                        Container(
+                          height: 20,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                        CircleAvatar(
+                          radius: 50.0,
+                          backgroundImage:
+                              details.imageUrl != null &&
+                                  details.imageUrl!.isNotEmpty
+                              ? NetworkImage(details.imageUrl!)
+                              : const AssetImage('assets/images/avatar.png')
+                                    as ImageProvider,
+                        ),
+                        const SizedBox(height: 16),
+                        // Group Name
+                        Text(
+                          details.name,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
                             color: Colors.black,
                           ),
                         ),
-                        if (widget.type == ChatType.circle)
-                          IconButton(
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) => AddFriendsBottomSheet(
-                                  chatId: widget.chatId,
-                                  currentMembers: _members,
-                                  onMembersAdded: () {
-                                    _fetchDetails(); // Refresh list after adding members
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Members added successfully',
-                                        ),
-                                        backgroundColor: Colors.green,
-                                      ),
+                        const SizedBox(height: 16),
+
+                        // Tags/Categories
+                        if (details is RoomDetails) ...[
+                          // Placeholder for tags
+                          SizedBox(
+                            height: 50,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildTag('Tea'),
+                                _buildTag(
+                                  'Tea',
+                                ), // Duplicated in original design, keeping faithful
+                                _buildTag('Friends'),
+                              ],
+                            ),
+                          ),
+
+                          if (details.description != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.white,
+                                ),
+                                child: Text(
+                                  details.description!,
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    height: 1.4,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+
+                        if (isAdmin && type == ChatType.room) ...[
+                          //Reported messages section
+                          const SizedBox(height: 24),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Reported Messages',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildReportedMessages(),
+                        ],
+
+                        // Members Section
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Members',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              if (type == ChatType.circle)
+                                IconButton(
+                                  onPressed: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (bottomSheetContext) =>
+                                          AddFriendsBottomSheet(
+                                            chatId: chatId,
+                                            currentMembers: members,
+                                            onMembersAdded: () {
+                                              context
+                                                  .read<ChatDetailsBloc>()
+                                                  .add(
+                                                    LoadChatDetails(
+                                                      chatId: chatId,
+                                                      type: type,
+                                                    ),
+                                                  );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Members added successfully',
+                                                  ),
+                                                  backgroundColor: Colors.green,
+                                                ),
+                                              );
+                                            },
+                                          ),
                                     );
                                   },
+                                  icon: const Icon(
+                                    Icons.add_circle,
+                                    color: Colors.blue,
+                                    size: 28,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
                                 ),
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.add_circle,
-                              color: Colors.blue,
-                              size: 28,
-                            ),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
+                            ],
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 9,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 9,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.grey.shade300,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildMembersList(context, members, type),
                 ],
               ),
             ),
-            _buildMembersList(),
-          ],
-        ),
-      ),
+          );
+
+          if (isAdmin && type == ChatType.room) {
+            return BlocProvider(
+              create: (context) => AdminReportsBloc(
+                AdminReportsRepository(Supabase.instance.client),
+              )..add(LoadAdminReports(chatId)),
+              child: content,
+            );
+          }
+
+          return content;
+        }
+
+        return const SizedBox.shrink();
+      },
     );
+  }
 
-    if (_isAdmin && widget.type == ChatType.room) {
-      return BlocProvider(
-        create: (context) =>
-            AdminReportsBloc(AdminReportsRepository(Supabase.instance.client))
-              ..add(LoadAdminReports(widget.chatId)),
-        child: content,
-      );
-    }
-
-    return content;
+  Widget _buildTag(String text) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xd7d7e6fa),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(text),
+    );
   }
 
   Widget _buildReportedMessages() {
@@ -582,13 +550,17 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     );
   }
 
-  Widget _buildMembersList() {
-    if (_members.isEmpty) {
+  Widget _buildMembersList(
+    BuildContext context,
+    List<ChatMember> members,
+    ChatType type,
+  ) {
+    if (members.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(32.0),
         child: Center(
           child: Text(
-            widget.type == ChatType.room ? 'No participants' : 'No members',
+            type == ChatType.room ? 'No participants' : 'No members',
             style: const TextStyle(
               fontSize: 16,
               color: Colors.grey,
@@ -600,7 +572,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     }
 
     // Show first 5 members, then "See all"
-    final displayMembers = _members.take(5).toList();
+    final displayMembers = members.take(5).toList();
 
     return ListView(
       shrinkWrap: true,
@@ -648,7 +620,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           ),
         ),
 
-        if (_members.length > 5)
+        if (members.length > 5)
           Container(
             decoration: BoxDecoration(
               border: Border(
@@ -660,10 +632,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MembersListFullscreen(
-                      chatId: widget.chatId,
-                      type: widget.type,
-                    ),
+                    builder: (context) =>
+                        MembersListFullscreen(chatId: chatId, type: type),
                   ),
                 );
               },
