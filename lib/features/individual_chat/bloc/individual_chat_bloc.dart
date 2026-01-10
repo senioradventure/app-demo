@@ -232,7 +232,7 @@ class IndividualChatBloc
     try {
       emit(current.copyWith(isSending: true));
 
-      /// ───────── UPLOAD VOICE FILE ─────────
+      /// ─────── UPLOAD VOICE FILE ───────
       final file = event.audioFile;
       final fileName =
           'messages/voice/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
@@ -241,13 +241,13 @@ class IndividualChatBloc
 
       final uploadedUrl = _client.storage.from('media').getPublicUrl(fileName);
 
-      /// ───────── OPTIMISTIC VOICE MESSAGE ─────────
+      /// ─────── OPTIMISTIC VOICE MESSAGE ───────
       final optimisticMessage = IndividualChatMessageModel(
         id: tempId,
         senderId: _client.auth.currentUser!.id,
-        content: '', // or '🎤 Voice message'
+        content: '',
         mediaUrl: uploadedUrl,
-        mediaType: 'voice',
+        mediaType: 'audio',
         createdAt: DateTime.now(),
         replyToMessageId:
             current.replyTo != null && !current.replyTo!.id.startsWith('temp_')
@@ -259,20 +259,40 @@ class IndividualChatBloc
         current.copyWith(
           messages: [...current.messages, optimisticMessage],
           clearReplyTo: true,
-          isSending: false,
           version: current.version + 1, // 🔥 force rebuild
         ),
       );
 
-      /// ───────── INSERT TO DB ─────────
-      await _client.from('messages').insert({
-        'conversation_id': _conversationId,
-        'sender_id': _client.auth.currentUser!.id,
-        'content': '',
-        'media_url': uploadedUrl,
-        'media_type': 'audio',
-        'reply_to_message_id': optimisticMessage.replyToMessageId,
-      });
+      /// ─────── INSERT TO DB ───────
+      final response = await _client
+          .from('messages')
+          .insert({
+            'conversation_id': _conversationId,
+            'sender_id': _client.auth.currentUser!.id,
+            'content': '',
+            'media_url': uploadedUrl,
+            'media_type': 'audio',
+            'reply_to_message_id': optimisticMessage.replyToMessageId,
+          })
+          .select()
+          .single();
+
+      final realMessage = IndividualChatMessageModel.fromSupabase(response);
+
+      // ✅ Replace optimistic message with real one
+      if (state is IndividualChatLoaded) {
+        final live = state as IndividualChatLoaded;
+
+        emit(
+          live.copyWith(
+            messages: live.messages
+                .map((m) => m.id == tempId ? realMessage : m)
+                .toList(),
+            isSending: false,
+            version: live.version + 1, // 🔥 INCREMENT VERSION HERE TOO
+          ),
+        );
+      }
     } catch (e) {
       emit(current.copyWith(isSending: false));
       emit(IndividualChatError(e.toString()));
