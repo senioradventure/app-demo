@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/chat/presentation/page/room_details.dart';
 import 'package:senior_circle/features/chat/presentation/page/room_details_admin.dart';
+import 'package:senior_circle/features/chat/models/chat_details_models.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
 class MyCircleChatroomAppBar extends StatelessWidget
@@ -29,12 +29,21 @@ class MyCircleChatroomAppBar extends StatelessWidget
           if (isAdmin) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ChatDetailsScreenadmin(liveChatRoomId: '',)),
+              MaterialPageRoute(
+                builder: (_) => ChatDetailsScreen(
+                  chatId: chat.id,
+                  type: ChatType
+                      .circle, // Assuming Admin view also goes to same screen for now, or just handle logic inside Screen
+                ),
+              ),
             );
           } else {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
+              MaterialPageRoute(
+                builder: (_) =>
+                    ChatDetailsScreen(chatId: chat.id, type: ChatType.circle),
+              ),
             );
           }
         },
