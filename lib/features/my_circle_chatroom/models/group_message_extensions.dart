@@ -42,28 +42,66 @@ extension GroupMessageExtensions on GroupMessage {
       required String userId,
     }) applyReactionFn,
   }) {
-    if (id == messageId) {
-      return applyReactionFn(
-        message: this,
+    return updateRecursive(
+      messageId,
+      (msg) => applyReactionFn(
+        message: msg,
         targetMessageId: messageId,
         emoji: emoji,
         userId: userId,
+      ),
+    );
+  }
+
+  /// Generic recursive updater for a message tree.
+  GroupMessage updateRecursive(
+    String targetId,
+    GroupMessage Function(GroupMessage) updateFn, {
+    bool clearOthers = false,
+  }) {
+    GroupMessage updated = this;
+
+    if (id == targetId) {
+      updated = updateFn(updated);
+    } else if (clearOthers) {
+      updated = updated.copyWith(
+        isThreadOpen: false,
+        isReplyInputOpen: false,
       );
     }
 
-    if (replies.isNotEmpty) {
-      return copyWith(
-        replies: replies
-            .map((r) => r.updateReaction(
-                  messageId: messageId,
-                  emoji: emoji,
-                  userId: userId,
-                  applyReactionFn: applyReactionFn,
-                ))
+    if (updated.replies.isNotEmpty) {
+      updated = updated.copyWith(
+        replies: updated.replies
+            .map((r) => r.updateRecursive(targetId, updateFn, clearOthers: clearOthers))
             .toList(),
       );
     }
 
-    return this;
+    return updated;
+  }
+
+  /// Recursively find a message by ID.
+  GroupMessage? findRecursive(String targetId) {
+    if (id == targetId) return this;
+    for (final reply in replies) {
+      final found = reply.findRecursive(targetId);
+      if (found != null) return found;
+    }
+    return null;
+  }
+
+  /// Recursively remove a message by ID.
+  /// Note: Returns null if this message itself is the target to be removed.
+  GroupMessage? removeRecursive(String targetId) {
+    if (id == targetId) return null;
+    if (replies.isEmpty) return this;
+
+    return copyWith(
+      replies: replies
+          .map((r) => r.removeRecursive(targetId))
+          .whereType<GroupMessage>()
+          .toList(),
+    );
   }
 }

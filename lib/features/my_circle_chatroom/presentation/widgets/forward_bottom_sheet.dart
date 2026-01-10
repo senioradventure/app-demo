@@ -47,8 +47,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
 
   List<ForwardItem> allItems = [];
   List<ForwardItem> filteredItems = [];
-  final Set<String> selectedIndividualIds = {};
-  final Set<String> selectedCircleIds = {};
+  final Set<ForwardItem> selectedItems = {};
   bool isLoading = true;
 
   @override
@@ -133,22 +132,11 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
   }
 
   void _onItemToggle(ForwardItem item, bool selected) {
-    // If it's an individual without a conversation ID, we use otherUserId as the key
-    final key = item.id.isEmpty && item.otherUserId != null ? item.otherUserId! : item.id;
-
     setState(() {
-      if (item.isGroup) {
-        if (selected) {
-          selectedCircleIds.add(key);
-        } else {
-          selectedCircleIds.remove(key);
-        }
+      if (selected) {
+        selectedItems.add(item);
       } else {
-        if (selected) {
-          selectedIndividualIds.add(key);
-        } else {
-          selectedIndividualIds.remove(key);
-        }
+        selectedItems.remove(item);
       }
     });
   }
@@ -178,7 +166,6 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
   }
 
   Widget _header() {
-    final totalSelected = selectedIndividualIds.length + selectedCircleIds.length;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
@@ -188,9 +175,9 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const Spacer(),
-          if (totalSelected > 0)
+          if (selectedItems.isNotEmpty)
             Text(
-              '$totalSelected selected',
+              '${selectedItems.length} selected',
               style: const TextStyle(
                 color: Colors.blue,
                 fontWeight: FontWeight.w500,
@@ -216,9 +203,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final item = filteredItems[index];
-        final isSelected = item.isGroup 
-            ? selectedCircleIds.contains(item.id)
-            : selectedIndividualIds.contains(item.id.isEmpty && item.otherUserId != null ? item.otherUserId : item.id);
+        final isSelected = selectedItems.contains(item);
 
         return ListTile(
           leading: Stack(
@@ -257,46 +242,41 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
 
 
   Future<void> _forward() async {
-    final totalSelected = selectedIndividualIds.length + selectedCircleIds.length;
-    if (totalSelected == 0) return;
+    if (selectedItems.isEmpty) return;
 
-    // SINGLE TARGET CASE
-    if (totalSelected == 1) {
-      if (selectedIndividualIds.length == 1) {
-        final key = selectedIndividualIds.first;
-        // Find the item by ID or otherUserId
-        final item = allItems.firstWhere((i) => i.id == key || i.otherUserId == key);
-        await _forwardToIndividual(item);
+    if (selectedItems.length == 1) {
+      final item = selectedItems.first;
+      if (item.isGroup) {
+        await _forwardToCircle(item.id);
       } else {
-        final circleId = selectedCircleIds.first;
-        await _forwardToCircle(circleId);
+        await _forwardToIndividual(item);
       }
       return;
     }
 
-    // MULTI TARGET CASE
-    debugPrint('Forwarding message to ${selectedIndividualIds.length} individuals and ${selectedCircleIds.length} circles');
+    debugPrint('Forwarding message to ${selectedItems.length} targets');
 
-    final individualTargets = selectedIndividualIds.map((key) {
-      final item = allItems.firstWhere((i) => i.id == key || i.otherUserId == key);
-      return {
-        'conversationId': item.id,
-        'otherUserId': item.otherUserId,
-      };
-    }).toList();
+    final individualTargets = selectedItems
+        .where((i) => !i.isGroup)
+        .map((i) => {
+              'conversationId': i.id,
+              'otherUserId': i.otherUserId,
+            })
+        .toList();
+
+    final circleIds = selectedItems.where((i) => i.isGroup).map((i) => i.id).toList();
 
     context.read<ChatBloc>().add(
           ForwardMessage(
             message: widget.message,
             individualTargets: individualTargets,
-            circleIds: selectedCircleIds.toList(),
+            circleIds: circleIds,
           ),
         );
 
-    // After Batch Forwarding, go back to My Circle (Home Page)
     if (mounted) {
-      Navigator.pop(context); // Close bottom sheet
-      Navigator.of(context).pop(); // Go back from current chatroom to Home
+      Navigator.pop(context); 
+      Navigator.of(context).pop(); 
       _showSuccess('Message forwarded successfully');
     }
   }

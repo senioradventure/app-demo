@@ -114,42 +114,34 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   Future<void> _onDeleteGroupMessage(
-  DeleteGroupMessage event,
-  Emitter<ChatState> emit,
-) async {
-  final previousState = state;
+    DeleteGroupMessage event,
+    Emitter<ChatState> emit,
+  ) async {
+    final previousState = state;
 
-  final updatedMessages =
-      _removeMessageRecursive(state.groupMessages, event.messageId);
+    final updatedMessages = state.groupMessages
+        .map((m) => m.removeRecursive(event.messageId))
+        .whereType<GroupMessage>()
+        .toList();
 
-  emit(state.copyWith(groupMessages: updatedMessages));
+    emit(state.copyWith(groupMessages: updatedMessages));
 
-  try {
-    if (event.forEveryone) {
-      // Delete for everyone
-      await repository.deleteGroupMessage(event.messageId);
-      debugPrint(
-        '[ChatBloc] Deleted message ${event.messageId} for everyone',
-      );
-    } else {
-      // Delete for me 
-      await repository.deleteGroupMessageForMe(event.messageId);
-      debugPrint(
-        '[ChatBloc] Deleted message ${event.messageId} for me',
-      );
+    try {
+      if (event.forEveryone) {
+        await repository.deleteGroupMessage(event.messageId);
+      } else {
+        await repository.deleteGroupMessageForMe(event.messageId);
+      }
+    } catch (e) {
+      debugPrint('[ChatBloc] Delete failed: $e');
+      emit(previousState);
     }
-  } catch (e) {
-    debugPrint('[ChatBloc] Delete failed: $e');
-
-    emit(previousState);
   }
-}
-
 
   void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
     if (event.type == ChatMessageType.individual) return;
 
-    final updatedMessages = _updateMessageRecursive(
+    final updatedMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
       (msg) => msg.updateReaction(
@@ -170,7 +162,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onToggleGroupThread(ToggleGroupThread event, Emitter<ChatState> emit) {
-    final updatedGroupMessages = _updateMessageRecursive(
+    final updatedGroupMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
       (message) {
@@ -180,15 +172,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           isReplyInputOpen: willOpen ? message.isReplyInputOpen : false,
         );
       },
-      clearOthers: true, // Close other threads/inputs
+      clearOthers: true,
     );
 
     emit(state.copyWith(groupMessages: updatedGroupMessages));
-    debugPrint("[ChatBloc] Thread toggled: ${event.messageId}");
   }
 
   void _onToggleReplyInput(ToggleReplyInput event, Emitter<ChatState> emit) {
-    final updatedGroupMessages = _updateMessageRecursive(
+    final updatedGroupMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
       (message) {
@@ -198,20 +189,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           isThreadOpen: willOpen ? message.isThreadOpen : false,
         );
       },
-      clearOthers: true, // Close other threads/inputs
+      clearOthers: true,
     );
 
     emit(state.copyWith(groupMessages: updatedGroupMessages));
-    debugPrint("[ChatBloc] Reply input toggled: ${event.messageId}");
   }
 
   Future<void> _onToggleStar(ToggleStar event, Emitter<ChatState> emit) async {
-    final targetMessage =
-        _findMessageRecursive(state.groupMessages, event.messageId);
-
+    final targetMessage = _findMessageInList(state.groupMessages, event.messageId);
     if (targetMessage == null) return;
 
-    final updatedMessages = _updateMessageRecursive(
+    final updatedMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
       (msg) => msg.toggleStar(event.messageId),
@@ -226,144 +214,102 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   Future<void> _onForwardMessage(
-  ForwardMessage event,
-  Emitter<ChatState> emit,
-) async {
-  debugPrint('🟦 [Forward] ForwardMessage triggered');
+    ForwardMessage event,
+    Emitter<ChatState> emit,
+  ) async {
+    debugPrint('🟦 [Forward] ForwardMessage triggered');
 
-  final message = event.message;
-  final individualTargets = event.individualTargets;
-  final circles = event.circleIds;
+    final message = event.message;
+    final individualTargets = event.individualTargets;
+    final circles = event.circleIds;
 
-  debugPrint('🟦 [Forward] Individual count: ${individualTargets.length}, Circle count: ${circles.length}');
+    debugPrint('🟦 [Forward] Individual count: ${individualTargets.length}, Circle count: ${circles.length}');
 
-  final payload = _buildForwardPayload(message);
+    final payload = _buildForwardPayload(message);
 
-  // 1. Check for single recipient pre-fill (Individual or Circle)
-  final totalTargets = individualTargets.length + circles.length;
-  if (totalTargets == 1) {
-    debugPrint('🟨 [Forward] Single target detected → setting prefill state');
-    emit(state.copyWith(
-      prefilledInputText: message.text,
-      prefilledMedia: message.imagePath != null
-          ? ForwardMedia(url: message.imagePath!, type: message.mediaType)
-          : null,
-    ));
-    return;
-  }
+    // 1. Check for single recipient pre-fill (Individual or Circle)
+    final totalTargets = individualTargets.length + circles.length;
+    if (totalTargets == 1) {
+      debugPrint('🟨 [Forward] Single target detected → setting prefill state');
+      emit(state.copyWith(
+        prefilledInputText: message.text,
+        prefilledMedia: message.imagePath != null
+            ? ForwardMedia(url: message.imagePath!, type: message.mediaType)
+            : null,
+      ));
+      return;
+    }
 
-  // 2. Multi-forward logic (direct send)
-  for (final target in individualTargets) {
-    try {
-      final String? existingConvId = target['conversationId'];
-      final String? otherUserId = target['otherUserId'];
-      
-      String targetConvId;
-      if (existingConvId != null && existingConvId.isNotEmpty) {
-        targetConvId = existingConvId;
-      } else if (otherUserId != null) {
-        debugPrint('🟦 [Forward] Creating conversation for otherUserId $otherUserId');
-        targetConvId = await repository.getOrCreateConversation(otherUserId);
-      } else {
-        continue;
+    // 2. Multi-forward logic (direct send)
+    for (final target in individualTargets) {
+      try {
+        final String? existingConvId = target['conversationId'];
+        final String? otherUserId = target['otherUserId'];
+        
+        String targetConvId;
+        if (existingConvId != null && existingConvId.isNotEmpty) {
+          targetConvId = existingConvId;
+        } else if (otherUserId != null) {
+          debugPrint('🟦 [Forward] Creating conversation for otherUserId $otherUserId');
+          targetConvId = await repository.getOrCreateConversation(otherUserId);
+        } else {
+          continue;
+        }
+
+        debugPrint('🟦 [Forward] Sending to individual conversation $targetConvId');
+        await repository.forwardMessage(
+          conversationId: targetConvId,
+          payload: payload,
+        );
+        debugPrint('🟩 [Forward] Sent to individual conversation $targetConvId');
+      } catch (e) {
+        debugPrint('🟥 [Forward] Failed for individual target $target: $e');
       }
-
-      debugPrint('🟦 [Forward] Sending to individual conversation $targetConvId');
-      await repository.forwardMessage(
-        conversationId: targetConvId,
-        payload: payload,
-      );
-      debugPrint('🟩 [Forward] Sent to individual conversation $targetConvId');
-    } catch (e) {
-      debugPrint('🟥 [Forward] Failed for individual target $target: $e');
     }
+
+    for (final circleId in circles) {
+      try {
+        debugPrint('🟦 [Forward] Sending to circle $circleId');
+        await repository.forwardMessage(
+          circleId: circleId,
+          payload: payload,
+        );
+        debugPrint('🟩 [Forward] Sent to circle $circleId');
+      } catch (e) {
+        debugPrint('🟥 [Forward] Failed for circle $circleId: $e');
+      }
+    }
+
+    debugPrint('🟩 [Forward] Forward process completed');
   }
 
-  for (final circleId in circles) {
-    try {
-      debugPrint('🟦 [Forward] Sending to circle $circleId');
-      await repository.forwardMessage(
-        circleId: circleId,
-        payload: payload,
-      );
-      debugPrint('🟩 [Forward] Sent to circle $circleId');
-    } catch (e) {
-      debugPrint('🟥 [Forward] Failed for circle $circleId: $e');
-    }
+  Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
+    debugPrint('🟦 [Forward] Building forward payload');
+    
+    return {
+      'content': message.text,         
+      'media_url': message.imagePath,
+      'media_type': message.mediaType,
+    };
   }
 
-  debugPrint('🟩 [Forward] Forward process completed');
-}
-
-Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
-  debugPrint('🟦 [Forward] Building forward payload');
-  
-  return {
-    'content': message.text,         
-    'media_url': message.imagePath,
-    'media_type': message.mediaType,
-  };
-}
-
-  GroupMessage? _findMessageRecursive(List<GroupMessage> messages, String id) {
+  GroupMessage? _findMessageInList(List<GroupMessage> messages, String id) {
     for (final msg in messages) {
-      if (msg.id == id) return msg;
-
-      if (msg.replies.isNotEmpty) {
-        final found = _findMessageRecursive(msg.replies, id);
-        if (found != null) return found;
-      }
+      final found = msg.findRecursive(id);
+      if (found != null) return found;
     }
     return null;
   }
 
-  List<GroupMessage> _removeMessageRecursive(
-    List<GroupMessage> messages,
-    String targetId,
-  ) {
-    return messages.where((m) => m.id != targetId).map((m) {
-      if (m.replies.isNotEmpty) {
-        return m.copyWith(
-          replies: _removeMessageRecursive(m.replies, targetId),
-        );
-      }
-      return m;
-    }).toList();
-  }
-
-  /// Generic recursive updater for GroupMessage objects.
-  /// [clearOthers] will reset isThreadOpen and isReplyInputOpen on all other messages.
-  List<GroupMessage> _updateMessageRecursive(
+  List<GroupMessage> _updateMessageInList(
     List<GroupMessage> messages,
     String targetId,
     GroupMessage Function(GroupMessage) updateFn, {
     bool clearOthers = false,
   }) {
-    return messages.map((m) {
-      GroupMessage updated = m;
-
-      if (updated.id == targetId) {
-        updated = updateFn(updated);
-      } else if (clearOthers) {
-        updated = updated.copyWith(
-          isThreadOpen: false,
-          isReplyInputOpen: false,
-        );
-      }
-
-      if (updated.replies.isNotEmpty) {
-        updated = updated.copyWith(
-          replies: _updateMessageRecursive(
-            updated.replies,
-            targetId,
-            updateFn,
-            clearOthers: clearOthers,
-          ),
-        );
-      }
-
-      return updated;
-    }).toList();
+    return messages
+        .map((m) => m.updateRecursive(targetId, updateFn, clearOthers: clearOthers))
+        .toList();
   }
 
   void _onGroupMessageInserted(
@@ -387,7 +333,7 @@ Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
     GroupReactionChanged event,
     Emitter<ChatState> emit,
   ) {
-    final updated = _updateMessageRecursive(
+    final updated = _updateMessageInList(
       state.groupMessages,
       event.messageId,
       (message) => message.updateReaction(

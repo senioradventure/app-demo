@@ -18,9 +18,7 @@ class MyCircleRepository {
       params: {'p_user_id': userId},
     );
     debugPrint('🟩 [MyCircleRepo] Individual chats count: ${(individualResponse as List?)?.length}');
-    if (individualResponse is List && individualResponse.isNotEmpty) {
-      debugPrint('🟩 [MyCircleRepo] First individual chat sample: ${individualResponse.first}');
-    }
+    // debugPrint('🟩 [MyCircleRepo] First individual chat sample: ${individualResponse.first}');
 
     // 🔹 Circle / group chats (filtered by membership)
     final circleResponse = await _client
@@ -31,7 +29,7 @@ class MyCircleRepository {
         .order('updated_at', ascending: false);
     debugPrint('🟩 [MyCircleRepo] Circle chats count: ${(circleResponse as List?)?.length}');
 
-    final individualChats = (individualResponse as List? ?? [])
+    final individualChats = (individualResponse  ?? [])
         .map(
           (json) =>
               MyCircle.fromConversationRpc(json as Map<String, dynamic>),

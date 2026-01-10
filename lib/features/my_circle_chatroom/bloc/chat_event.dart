@@ -147,5 +147,5 @@ class ForwardMessage extends ChatEvent {
 class ForwardToSingleUser extends ChatEvent {
   final String text;
 
-  ForwardToSingleUser({required this.text});
+  const ForwardToSingleUser({required this.text});
 }

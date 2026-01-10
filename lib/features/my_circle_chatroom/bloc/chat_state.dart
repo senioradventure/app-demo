@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
-
 
 class ChatState extends Equatable {
   final List<GroupMessage> groupMessages;

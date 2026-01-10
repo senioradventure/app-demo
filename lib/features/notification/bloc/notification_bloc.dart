@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/notification/repository/notification_repository.dart';
-import '../models/sent_request_model.dart';
 import 'notification_event.dart';
 import 'notification_state.dart';
 
@@ -18,7 +18,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     LoadNotifications event,
     Emitter<NotificationState> emit,
   ) async {
-    print('🔥 LoadNotifications event triggered');
+    debugPrint('🔥 LoadNotifications event triggered');
   emit(NotificationLoading());
 
   try {

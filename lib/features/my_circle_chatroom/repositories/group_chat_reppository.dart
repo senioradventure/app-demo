@@ -14,10 +14,7 @@ class GroupChatRepository {
   }) async {
     try {
       final messageRows = await _fetchMessageRows(circleId);
-      if (messageRows.isEmpty) {
-        debugPrint('🟨 [GroupChatRepo] No messages found');
-        return [];
-      }
+      if (messageRows.isEmpty) return [];
 
       final reactionsByMessage = await _fetchReactions(messageRows);
       final savedMessageIds = await _fetchSavedMessageIds(messageRows);
@@ -167,7 +164,7 @@ class GroupChatRepository {
         .select('*, profiles!messages_sender_id_fkey(full_name, avatar_url)')
         .single();
 
-    debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
+    // debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
 
     return GroupMessage.fromSupabase(
       messageRow: response,

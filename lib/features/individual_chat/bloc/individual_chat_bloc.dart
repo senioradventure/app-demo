@@ -4,7 +4,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
-import 'package:senior_circle/features/individual_chat/model/individual_chat_delete_enum.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
 import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
@@ -68,7 +67,7 @@ class IndividualChatBloc
 
       _subscribeToRealtime();
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       emit(IndividualChatError(e.toString()));
     }
   }
@@ -312,7 +311,7 @@ class IndividualChatBloc
       await _repository.deleteMessageForMe(event.messageId);
       // Success - no need to emit again since UI already updated
     } catch (e) {
-      print('Delete error: $e'); // Debug logging
+      debugPrint('Delete error: $e'); // Debug logging
       // Rollback on failure
       emit(DeleteMessageFailure('Failed to delete message: ${e.toString()}'));
       emit(
