@@ -78,24 +78,28 @@ class ChatInputBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onSend,
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: isTyping,
-                      builder: (context, _, __) {
-                        final showFab2 =
-                            isTyping.value || pendingImage.value != null;
-                        return SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: Image.asset(
-                            showFab2
-                                ? 'assets/icons/fab2.png'
-                                : 'assets/icons/fab.png',
-                          ),
-                        );
-                      },
-                    ),
+                  ValueListenableBuilder<String?>(
+                    valueListenable: pendingImage,
+                    builder: (context, pending, __) {
+                      return ValueListenableBuilder<bool>(
+                        valueListenable: isTyping,
+                        builder: (context, typing, ___) {
+                          final showFab2 = typing || pending != null;
+                          return GestureDetector(
+                            onTap: onSend,
+                            child: SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: Image.asset(
+                                showFab2
+                                    ? 'assets/icons/fab2.png'
+                                    : 'assets/icons/fab.png',
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
