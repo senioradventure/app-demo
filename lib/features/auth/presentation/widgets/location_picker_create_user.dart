@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/utils/location_service/location_model.dart';
 import 'package:senior_circle/features/auth/bloc/auth_bloc.dart';
-import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/createroom/presentation/widgets/create_room_interest_chip_widget.dart';
 
 class LocationPickerCreateUser extends StatefulWidget {

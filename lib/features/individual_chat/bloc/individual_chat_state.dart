@@ -16,6 +16,8 @@ class IndividualChatLoaded extends IndividualChatState {
   final String? imagePath;
   final bool isSending;
   final IndividualChatMessageModel? replyTo;
+  final String? prefilledInputText;
+  final String? prefilledMediaUrl;
 
   /// 🔥 VERSION FOR FORCING UI REBUILD
   final int version;
@@ -25,6 +27,8 @@ class IndividualChatLoaded extends IndividualChatState {
     this.imagePath,
     this.isSending = false,
     this.replyTo,
+    this.prefilledInputText,
+    this.prefilledMediaUrl,
     this.version = 0,
   });
 
@@ -37,12 +41,16 @@ class IndividualChatLoaded extends IndividualChatState {
     IndividualChatMessageModel? replyTo,
     bool clearImagePath = false,
     bool clearReplyTo = false,
+    String? prefilledInputText,
+    String? prefilledMediaUrl,
   }) {
     return IndividualChatLoaded(
       messages: messages ?? this.messages,
       imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
       isSending: isSending ?? this.isSending,
       replyTo: clearReplyTo ? null : (replyTo ?? this.replyTo),
+      prefilledInputText: prefilledInputText ?? this.prefilledInputText,
+      prefilledMediaUrl: prefilledMediaUrl ?? this.prefilledMediaUrl,
 
       /// 🔥 FORCE REBUILD
       version: version + 1,
@@ -56,6 +64,8 @@ class IndividualChatLoaded extends IndividualChatState {
     imagePath,
     isSending,
     replyTo,
+    prefilledInputText,
+    prefilledMediaUrl,
   ];
 }
 

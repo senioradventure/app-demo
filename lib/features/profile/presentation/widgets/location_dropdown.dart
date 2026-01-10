@@ -19,7 +19,7 @@ class ProfileLocationDropdown extends StatelessWidget {
         }
         final locations = state.allLocations;
         final selected = state.selectedLocation;
-        print('Locations count: ${locations.length}');
+        debugPrint('Locations count: ${locations.length}');
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -30,7 +30,7 @@ class ProfileLocationDropdown extends StatelessWidget {
             const SizedBox(height: 6),
 
             DropdownButtonFormField<LocationModel>(
-              value: selected,
+              initialValue: selected,
               hint: Text(
                 'Choose your location',
                 style: Theme.of(context).textTheme.labelSmall,

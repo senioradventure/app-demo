@@ -65,39 +65,92 @@ class _StarredMessagesPageState extends State<StarredMessagesPage> {
   }
 
   Widget _buildMessageItem(SavedMessage message) {
+    String sourceLabel = 'Chat';
+    Color sourceColor = Colors.blue;
+
+    if (message.sourceType == 'circle') {
+      sourceLabel = 'Circles';
+      sourceColor = Colors.green;
+    } else if (message.sourceType == 'live chat') {
+      sourceLabel = 'Live Chat';
+      sourceColor = Colors.orange;
+    } else if (message.sourceType == 'conversation') {
+      sourceLabel = 'Individual';
+      sourceColor = Colors.purple;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16.0),
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: AppColors.lightGray,
-        borderRadius: BorderRadius.circular(12.0),
+        color: const Color(0xFFE9F0FF),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: AppColors.lightGray),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Text(
+                message.senderName ?? 'User',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: AppColors.textDarkGray,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: sourceColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  sourceLabel,
+                  style: TextStyle(
+                    color: sourceColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           if (message.mediaType == 'image' && message.mediaUrl != null) ...[
             ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: BorderRadius.circular(12.0),
               child: Image.network(
                 message.mediaUrl!,
                 fit: BoxFit.cover,
                 width: double.infinity,
-                height: 200,
+                height: 180,
                 errorBuilder: (context, error, stackTrace) {
-                  return const SizedBox(
-                    height: 200,
-                    child: Center(child: Icon(Icons.broken_image, size: 50)),
+                  return Container(
+                    height: 180,
+                    color: AppColors.lightGray,
+                    child: const Center(child: Icon(Icons.broken_image, size: 40)),
                   );
                 },
               ),
             ),
             if (message.content != null && message.content!.isNotEmpty) ...[
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 12),
               Text(
                 message.content!,
                 style: const TextStyle(
                   color: AppColors.textDarkGray,
-                  fontSize: 16.0,
+                  fontSize: 15.0,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -106,7 +159,8 @@ class _StarredMessagesPageState extends State<StarredMessagesPage> {
               message.content!,
               style: const TextStyle(
                 color: AppColors.textDarkGray,
-                fontSize: 16.0,
+                fontSize: 15.0,
+                height: 1.4,
               ),
             ),
           ],

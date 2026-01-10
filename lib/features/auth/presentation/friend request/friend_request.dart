@@ -46,7 +46,7 @@ class _AllUsersWithFriendStatusPageState
 
       setState(() {});
     } catch (e) {
-      print("❌ ERROR LOADING: $e");
+      debugPrint("❌ ERROR LOADING: $e");
     }
   }
 

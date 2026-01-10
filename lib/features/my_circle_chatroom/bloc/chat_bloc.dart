@@ -16,7 +16,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   RealtimeChannel? _groupChannel;
 
   ChatBloc({required this.repository})
-    : super(const ChatState(messages: [], groupMessages: [])) {
+    : super(const ChatState(groupMessages: [])) {
     on<LoadGroupMessages>(_onLoadGroupMessages);
     on<GroupMessageInserted>(_onGroupMessageInserted);
     on<SendGroupMessage>(_onSendGroupMessage);
@@ -26,6 +26,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ToggleGroupThread>(_onToggleGroupThread);
     on<ToggleReplyInput>(_onToggleReplyInput);
     on<ToggleStar>(_onToggleStar);
+    on<ForwardMessage>(_onForwardMessage);
+
   }
 
   Future<void> _onLoadGroupMessages(
@@ -72,12 +74,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     debugPrint('🟦 circleId: $circleId');
 
     try {
+      emit(state.copyWith(isSending: true));
       String? imageUrl;
 
       if (event.imagePath != null) {
-        debugPrint('🟨 [ChatBloc] Uploading image...');
-        imageUrl = await repository.uploadCircleImage(File(event.imagePath!));
-        debugPrint('🟩 [ChatBloc] Image uploaded: $imageUrl');
+        if (event.imagePath!.startsWith('http')) {
+          debugPrint('🟨 [ChatBloc] imagePath is a URL, skipping upload');
+          imageUrl = event.imagePath;
+        } else {
+          debugPrint('🟨 [ChatBloc] Uploading image...');
+          imageUrl = await repository.uploadCircleImage(File(event.imagePath!));
+          debugPrint('🟩 [ChatBloc] Image uploaded: $imageUrl');
+        }
       }
 
       debugPrint('🟨 [ChatBloc] Sending message to database');
@@ -91,58 +99,58 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
 
       debugPrint('🟩 [ChatBloc] Message sent successfully');
+      emit(state.copyWith(
+        isSending: false,
+        prefilledInputText: null, // Clear after successful send
+        prefilledMedia: null,      // Clear after successful send
+      ));
       add(GroupMessageInserted(newMessage));
       
     } catch (e, st) {
       debugPrint('🟥 [ChatBloc] Error sending message: $e');
       debugPrintStack(stackTrace: st);
+      emit(state.copyWith(isSending: false, error: 'Failed to send message'));
     }
   }
 
   Future<void> _onDeleteGroupMessage(
-  DeleteGroupMessage event,
-  Emitter<ChatState> emit,
-) async {
-  final previousState = state;
+    DeleteGroupMessage event,
+    Emitter<ChatState> emit,
+  ) async {
+    final previousState = state;
 
-  final updatedMessages =
-      _removeMessageRecursive(state.groupMessages, event.messageId);
+    final updatedMessages = state.groupMessages
+        .map((m) => m.removeRecursive(event.messageId))
+        .whereType<GroupMessage>()
+        .toList();
 
-  emit(state.copyWith(groupMessages: updatedMessages));
+    emit(state.copyWith(groupMessages: updatedMessages));
 
-  try {
-    if (event.forEveryone) {
-      // Delete for everyone
-      await repository.deleteGroupMessage(event.messageId);
-      debugPrint(
-        '[ChatBloc] Deleted message ${event.messageId} for everyone',
-      );
-    } else {
-      // Delete for me 
-      await repository.deleteGroupMessageForMe(event.messageId);
-      debugPrint(
-        '[ChatBloc] Deleted message ${event.messageId} for me',
-      );
+    try {
+      if (event.forEveryone) {
+        await repository.deleteGroupMessage(event.messageId);
+      } else {
+        await repository.deleteGroupMessageForMe(event.messageId);
+      }
+    } catch (e) {
+      debugPrint('[ChatBloc] Delete failed: $e');
+      emit(previousState);
     }
-  } catch (e) {
-    debugPrint('[ChatBloc] Delete failed: $e');
-
-    emit(previousState);
   }
-}
-
 
   void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
     if (event.type == ChatMessageType.individual) return;
 
-    final updatedMessages = state.groupMessages.map((message) {
-      return message.updateReaction(
+    final updatedMessages = _updateMessageInList(
+      state.groupMessages,
+      event.messageId,
+      (msg) => msg.updateReaction(
         messageId: event.messageId,
         emoji: event.emoji,
         userId: event.userId,
         applyReactionFn: applyReaction,
-      );
-    }).toList();
+      ),
+    );
 
     emit(state.copyWith(groupMessages: updatedMessages));
 
@@ -154,102 +162,172 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onToggleGroupThread(ToggleGroupThread event, Emitter<ChatState> emit) {
-    final updatedGroupMessages = state.groupMessages.map((message) {
-      if (message.id == event.messageId) {
+    final updatedGroupMessages = _updateMessageInList(
+      state.groupMessages,
+      event.messageId,
+      (message) {
         final willOpen = !message.isThreadOpen;
-
         return message.copyWith(
           isThreadOpen: willOpen,
           isReplyInputOpen: willOpen ? message.isReplyInputOpen : false,
         );
-      }
-
-      return message.copyWith(isThreadOpen: false, isReplyInputOpen: false);
-    }).toList();
+      },
+      clearOthers: true,
+    );
 
     emit(state.copyWith(groupMessages: updatedGroupMessages));
-
-    debugPrint("🧵 [ChatBloc] Thread toggled: ${event.messageId}");
   }
 
   void _onToggleReplyInput(ToggleReplyInput event, Emitter<ChatState> emit) {
-    final updatedGroupMessages = state.groupMessages.map((message) {
-      if (message.id == event.messageId) {
+    final updatedGroupMessages = _updateMessageInList(
+      state.groupMessages,
+      event.messageId,
+      (message) {
         final willOpen = !message.isReplyInputOpen;
-
         return message.copyWith(
           isReplyInputOpen: willOpen,
           isThreadOpen: willOpen ? message.isThreadOpen : false,
         );
-      }
-
-      return message.copyWith(isReplyInputOpen: false);
-    }).toList();
+      },
+      clearOthers: true,
+    );
 
     emit(state.copyWith(groupMessages: updatedGroupMessages));
-
-    debugPrint("💬 [ChatBloc] Reply input toggled: ${event.messageId}");
   }
 
   Future<void> _onToggleStar(ToggleStar event, Emitter<ChatState> emit) async {
-    final targetMessage =
-        _findMessageRecursive(state.groupMessages, event.messageId);
-
+    final targetMessage = _findMessageInList(state.groupMessages, event.messageId);
     if (targetMessage == null) return;
 
-
-    final updatedMessages = state.groupMessages.map((msg) {
-      return msg.toggleStar(event.messageId);
-    }).toList();
+    final updatedMessages = _updateMessageInList(
+      state.groupMessages,
+      event.messageId,
+      (msg) => msg.toggleStar(event.messageId),
+    );
 
     emit(state.copyWith(groupMessages: updatedMessages));
-
-
     try {
-      await repository.toggleSaveMessage(message: targetMessage);
+      if (_circleId != null) {
+        await repository.toggleSaveMessage(
+          message: targetMessage,
+          source: _circleId,
+          sourceType: 'circle',
+        );
+      }
     } catch (e) {
-      debugPrint('🟥 Failed to toggle star: $e');
+      debugPrint('Failed to toggle star: $e');
     }
   }
 
-  GroupMessage? _findMessageRecursive(List<GroupMessage> messages, String id) {
-    for (final msg in messages) {
-      if (msg.id == id) return msg;
+  Future<void> _onForwardMessage(
+    ForwardMessage event,
+    Emitter<ChatState> emit,
+  ) async {
+    debugPrint('🟦 [Forward] ForwardMessage triggered');
 
-      if (msg.replies.isNotEmpty) {
-        final found = _findMessageRecursive(msg.replies, id);
-        if (found != null) return found;
+    final message = event.message;
+    final individualTargets = event.individualTargets;
+    final circles = event.circleIds;
+
+    debugPrint('🟦 [Forward] Individual count: ${individualTargets.length}, Circle count: ${circles.length}');
+
+    final payload = _buildForwardPayload(message);
+
+    //single recipient pre-fill
+    final totalTargets = individualTargets.length + circles.length;
+    if (totalTargets == 1) {
+      debugPrint('🟨 [Forward] Single target detected → setting prefill state');
+      emit(state.copyWith(
+        prefilledInputText: message.text,
+        prefilledMedia: message.imagePath != null
+            ? ForwardMedia(url: message.imagePath!, type: message.mediaType)
+            : null,
+      ));
+      return;
+    }
+
+    // Multi-forward logic
+    for (final target in individualTargets) {
+      try {
+        final String? existingConvId = target['conversationId'];
+        final String? otherUserId = target['otherUserId'];
+        
+        String targetConvId;
+        if (existingConvId != null && existingConvId.isNotEmpty) {
+          targetConvId = existingConvId;
+        } else if (otherUserId != null) {
+          debugPrint('🟦 [Forward] Creating conversation for otherUserId $otherUserId');
+          targetConvId = await repository.getOrCreateConversation(otherUserId);
+        } else {
+          continue;
+        }
+
+        debugPrint('🟦 [Forward] Sending to individual conversation $targetConvId');
+        await repository.forwardMessage(
+          conversationId: targetConvId,
+          payload: payload,
+        );
+        debugPrint('🟩 [Forward] Sent to individual conversation $targetConvId');
+      } catch (e) {
+        debugPrint('🟥 [Forward] Failed for individual target $target: $e');
       }
+    }
+
+    for (final circleId in circles) {
+      try {
+        debugPrint('🟦 [Forward] Sending to circle $circleId');
+        await repository.forwardMessage(
+          circleId: circleId,
+          payload: payload,
+        );
+        debugPrint('🟩 [Forward] Sent to circle $circleId');
+      } catch (e) {
+        debugPrint('🟥 [Forward] Failed for circle $circleId: $e');
+      }
+    }
+
+    debugPrint('🟩 [Forward] Forward process completed');
+  }
+
+  Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
+    debugPrint('🟦 [Forward] Building forward payload');
+    
+    return {
+      'content': message.text,         
+      'media_url': message.imagePath,
+      'media_type': message.mediaType,
+    };
+  }
+
+  GroupMessage? _findMessageInList(List<GroupMessage> messages, String id) {
+    for (final msg in messages) {
+      final found = msg.findRecursive(id);
+      if (found != null) return found;
     }
     return null;
   }
 
-  List<GroupMessage> _removeMessageRecursive(
+  List<GroupMessage> _updateMessageInList(
     List<GroupMessage> messages,
     String targetId,
-  ) {
-    return messages.where((m) => m.id != targetId).map((m) {
-      if (m.replies.isNotEmpty) {
-        return m.copyWith(
-          replies: _removeMessageRecursive(m.replies, targetId),
-        );
-      }
-      return m;
-    }).toList();
+    GroupMessage Function(GroupMessage) updateFn, {
+    bool clearOthers = false,
+  }) {
+    return messages
+        .map((m) => m.updateRecursive(targetId, updateFn, clearOthers: clearOthers))
+        .toList();
   }
 
   void _onGroupMessageInserted(
     GroupMessageInserted event,
     Emitter<ChatState> emit,
   ) {
-    // 🟦 Parent message (optimization)
     if (event.message.replyToMessageId == null) {
       emit(state.copyWith(
           groupMessages: [event.message, ...state.groupMessages]));
       return;
     }
 
-    // 🌳 Update recursively for replies
     final updatedMessages = state.groupMessages.map((msg) {
       return msg.addReply(event.message);
     }).toList();
@@ -261,14 +339,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     GroupReactionChanged event,
     Emitter<ChatState> emit,
   ) {
-    final updated = state.groupMessages.map((message) {
-      return message.updateReaction(
+    final updated = _updateMessageInList(
+      state.groupMessages,
+      event.messageId,
+      (message) => message.updateReaction(
         messageId: event.messageId,
         emoji: event.emoji,
         userId: event.userId,
         applyReactionFn: applyReaction,
-      );
-    }).toList();
+      ),
+    );
 
     emit(state.copyWith(groupMessages: updated));
   }
@@ -295,7 +375,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             value: circleId,
           ),
           callback: (payload) {
-            debugPrint('🟩 [Realtime] New group message received');
+            debugPrint('[Realtime] New group message received');
 
             final newMessage = GroupMessage.fromSupabase(
               messageRow: payload.newRecord,

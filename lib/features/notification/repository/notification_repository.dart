@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:senior_circle/features/notification/models/recieved_request_model.dart';
 import 'package:senior_circle/features/notification/models/sent_request_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -40,8 +41,8 @@ class NotificationRepository {
         );
       }).toList();
     } catch (e, s) {
-      print('getReceivedRequests error: $e');
-      print(s);
+      debugPrint('getReceivedRequests error: $e');
+      debugPrint(s as String?);
       rethrow;
     }
   }

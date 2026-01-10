@@ -84,6 +84,8 @@ class IndividualChatRepository {
 
   Future<void> starMessage({
     required IndividualChatMessageModel message,
+    String? source,
+    String? sourceType,
   }) async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
 
@@ -94,6 +96,9 @@ class IndividualChatRepository {
       'content': message.content,
       'media_url': message.mediaUrl,
       'media_type': message.mediaType,
+      'source': source,
+      'source_type': sourceType,
+      'saved_at': DateTime.now().toIso8601String(),
     });
   }
 

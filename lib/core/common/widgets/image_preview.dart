@@ -22,7 +22,7 @@ class ImagePreview extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Image.file(
               File(selectedImage.path),
-              height: MediaQuery.of(context).size.width * 0.5,
+              height: MediaQuery.of(context).size.height * 0.5,
               width: double.infinity,
               fit: BoxFit.cover,
             ),
@@ -36,7 +36,7 @@ class ImagePreview extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black54,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

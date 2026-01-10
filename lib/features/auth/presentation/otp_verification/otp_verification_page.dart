@@ -106,7 +106,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                       children: [
                         // Hero Image
                         const SizedBox(height: 60),
-                        Container(
+                        SizedBox(
                           height: 400,
                           child: SvgPicture.asset(
                             'assets/images/Welcome.svg',

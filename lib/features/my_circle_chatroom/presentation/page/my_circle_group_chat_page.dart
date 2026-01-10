@@ -110,14 +110,20 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
               ),
             ),
           ),
-          MessageInputField(
-            onSend: (text, imagePath) {
-              context.read<ChatBloc>().add(
-                SendGroupMessage(
-                  text: text,
-                  imagePath: imagePath,
-                  circleId: widget.chat.id,
-                ),
+          BlocBuilder<ChatBloc, ChatState>(
+            builder: (context, state) {
+              return MessageInputField(
+                initialText: state.prefilledInputText,
+                initialMediaUrl: state.prefilledMedia?.url,
+                onSend: (text, imagePath) {
+                  context.read<ChatBloc>().add(
+                        SendGroupMessage(
+                          text: text,
+                          imagePath: imagePath,
+                          circleId: widget.chat.id,
+                        ),
+                      );
+                },
               );
             },
           ),

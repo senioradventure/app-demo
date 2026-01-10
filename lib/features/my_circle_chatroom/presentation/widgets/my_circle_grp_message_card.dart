@@ -7,6 +7,7 @@ import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/core/enum/chat_message_type.dart';
+import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/forward_bottom_sheet.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
@@ -74,7 +75,19 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   }
 
   void _handleForward() {
-    debugPrint('Forward message: ${widget.grpmessage.id}');
+    final chatBloc = context.read<ChatBloc>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: chatBloc,
+        child: ForwardBottomSheet(message: widget.grpmessage),
+      ),
+    );
   }
 
   void _handleShare() {

@@ -14,10 +14,7 @@ class GroupChatRepository {
   }) async {
     try {
       final messageRows = await _fetchMessageRows(circleId);
-      if (messageRows.isEmpty) {
-        debugPrint('🟨 [GroupChatRepo] No messages found');
-        return [];
-      }
+      if (messageRows.isEmpty) return [];
 
       final reactionsByMessage = await _fetchReactions(messageRows);
       final savedMessageIds = await _fetchSavedMessageIds(messageRows);
@@ -116,6 +113,7 @@ class GroupChatRepository {
         id: id,
         senderId: row['sender_id'] ?? '',
         senderName: row['profiles']?['full_name'] ?? 'Unknown',
+        mediaType: row['media_type'] ?? 'text',
         avatar: row['profiles']?['avatar_url'],
         text: row['content'],
         imagePath: row['media_type'] == 'image' ? row['media_url'] : null,
@@ -166,7 +164,7 @@ class GroupChatRepository {
         .select('*, profiles!messages_sender_id_fkey(full_name, avatar_url)')
         .single();
 
-    debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
+    // debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
 
     return GroupMessage.fromSupabase(
       messageRow: response,
@@ -270,7 +268,11 @@ class GroupChatRepository {
     );
   }
 
-  Future<void> toggleSaveMessage({required GroupMessage message}) async {
+  Future<void> toggleSaveMessage({
+    required GroupMessage message,
+    String? source,
+    String? sourceType,
+  }) async {
     try {
       final userId = _client.auth.currentUser!.id;
 
@@ -291,6 +293,9 @@ class GroupChatRepository {
           'sender_id': message.senderId,
           'content': message.text,
           'media_url': message.imagePath,
+          'media_type': message.mediaType,
+          'source': source,
+          'source_type': sourceType,
           'saved_at': DateTime.now().toIso8601String(),
         });
         debugPrint('⭐ Saved message: ${message.id}');
@@ -301,4 +306,45 @@ class GroupChatRepository {
       rethrow;
     }
   }
+
+  Future<String> getOrCreateConversation(String otherUserId) async {
+    debugPrint('🟦 [Repo] getOrCreateConversation for $otherUserId');
+    try {
+      final response = await _client.rpc(
+        'create_conversation',
+        params: {
+          'p_other_user_id': otherUserId,
+        },
+      );
+      debugPrint('🟩 [Repo] create_conversation result: $response');
+      
+      final data = response as Map<String, dynamic>;
+      return data['conversation_id'] as String;
+    } catch (e) {
+      debugPrint('🟥 [Repo] create_conversation failed: $e');
+      rethrow;
+    }
+  }
+
+ Future<void> forwardMessage({
+  String? conversationId,
+  String? circleId,
+  required Map<String, dynamic> payload,
+}) async {
+  debugPrint('🟦 [Repo] Forwarding message to ${conversationId ?? circleId}');
+  debugPrint('🟦 [Repo] Payload: $payload');
+
+  final senderId = _client.auth.currentUser!.id;
+
+  await _client.from('messages').insert({
+    'sender_id': senderId,
+    if (conversationId != null) 'conversation_id': conversationId,
+    if (circleId != null) 'circle_id': circleId,
+    ...payload,
+  });
+
+  debugPrint('🟩 [Repo] Forward insert success');
+}
+
+
 }
