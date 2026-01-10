@@ -29,40 +29,52 @@ class _MessageVoiceBubbleState extends State<MessageVoiceBubble> {
   // Stream subscriptions to cancel on dispose
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
+  StreamSubscription<Duration?>? _durationSubscription;
 
   @override
   void initState() {
     super.initState();
     _player = AudioPlayer();
-
     _init();
   }
 
   Future<void> _init() async {
     try {
+      // Set audio source
       final d = await _player.setUrl(widget.audioUrl);
       if (d != null && mounted) {
         setState(() => _duration = d);
       }
 
+      // Listen to duration changes
+      _durationSubscription = _player.durationStream.listen((d) {
+        if (d != null && mounted) {
+          setState(() => _duration = d);
+        }
+      });
+
+      // Listen to position changes
       _positionSubscription = _player.positionStream.listen((p) {
         if (mounted) {
           setState(() => _position = p);
         }
       });
 
+      // Listen to player state changes
       _playerStateSubscription = _player.playerStateStream.listen((state) {
-        if (mounted) {
-          setState(() => _isPlaying = state.playing);
+        if (!mounted) return;
 
-          // Reset to start when playback completes
-          if (state.processingState == ProcessingState.completed) {
-            _player.seek(Duration.zero);
-            _player.pause();
-          }
+        setState(() => _isPlaying = state.playing);
+
+        // Reset to start when playback completes
+        if (state.processingState == ProcessingState.completed) {
+          _player.seek(Duration.zero);
+          _player.pause();
         }
       });
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error initializing audio player: $e');
+    }
   }
 
   @override
@@ -70,6 +82,7 @@ class _MessageVoiceBubbleState extends State<MessageVoiceBubble> {
     // Cancel stream subscriptions BEFORE disposing the player
     _positionSubscription?.cancel();
     _playerStateSubscription?.cancel();
+    _durationSubscription?.cancel();
     _player.dispose();
     super.dispose();
   }
@@ -96,6 +109,11 @@ class _MessageVoiceBubbleState extends State<MessageVoiceBubble> {
     final progress = _duration.inMilliseconds == 0
         ? 0.0
         : _position.inMilliseconds / _duration.inMilliseconds;
+
+    // ✅ WhatsApp-style: Show total duration if not playing, otherwise show current position
+    final displayTime = _isPlaying || _position.inSeconds > 0
+        ? _position
+        : _duration;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -146,9 +164,9 @@ class _MessageVoiceBubbleState extends State<MessageVoiceBubble> {
 
           const SizedBox(width: 6),
 
-          /// ⏱ TIME
+          /// ⏱ TIME (WhatsApp style)
           Text(
-            _format(_position),
+            _format(displayTime),
             style: TextStyle(
               fontSize: 12,
               color: widget.isMe ? Colors.white : Colors.black87,
