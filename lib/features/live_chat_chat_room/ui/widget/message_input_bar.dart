@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_event.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/image_preview.dart';
 
 class ChatInputBar extends StatelessWidget {
   final ImagePicker picker;
-  final ValueNotifier<String?> pendingImage;
-  final ValueNotifier<bool> isTyping;
-  final ValueNotifier<int> fabRebuild;
   final TextEditingController messageController;
   final VoidCallback onSend;
-
+  final bool showSend;
   const ChatInputBar({
     super.key,
     required this.picker,
-    required this.pendingImage,
-    required this.isTyping,
-    required this.fabRebuild,
     required this.messageController,
     required this.onSend,
+    required this.showSend,
   });
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('Bloc hash: ${context.read<ChatRoomBloc>().hashCode}');
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -30,8 +31,6 @@ class ChatInputBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SelectedImagePreview(imageNotifier: pendingImage),
-
             Container(
               height: 75,
               color: const Color(0xFFF9F9F7),
@@ -50,7 +49,10 @@ class ChatInputBar extends StatelessWidget {
                         source: ImageSource.gallery,
                       );
                       if (picked == null) return;
-                      pendingImage.value = picked.path;
+
+                      context.read<ChatRoomBloc>().add(
+                        ChatImageSelected(picked.path),
+                      );
                     },
                   ),
                   Expanded(
@@ -66,7 +68,11 @@ class ChatInputBar extends StatelessWidget {
                       ),
                       child: TextField(
                         controller: messageController,
-                        onChanged: (v) => isTyping.value = v.trim().isNotEmpty,
+                        onChanged: (value) {
+                          context.read<ChatRoomBloc>().add(
+                            ChatTypingChanged(value.trim().isNotEmpty),
+                          );
+                        },
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 14,
@@ -80,25 +86,21 @@ class ChatInputBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: onSend,
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: fabRebuild,
-                      builder: (context, _, __) {
-                        final showFab2 =
-                            isTyping.value || pendingImage.value != null;
-                        return SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: Image.asset(
-                            showFab2
-                                ? 'assets/icons/fab2.png'
-                                : 'assets/icons/fab.png',
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                 GestureDetector(
+  onTap: showSend ? onSend : null,
+  child: SizedBox(
+    width: 50,
+    height: 50,
+    child: Image.asset(
+      showSend
+          ? 'assets/icons/fab2.png'
+          : 'assets/icons/fab.png',
+    ),
+  ),
+),
+
+
+
                 ],
               ),
             ),

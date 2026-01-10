@@ -1,4 +1,4 @@
-part of 'chat_room_bloc.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class ChatRoomEvent extends Equatable {
   const ChatRoomEvent();
@@ -6,7 +6,6 @@ abstract class ChatRoomEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
-
 
 class ChatRoomStarted extends ChatRoomEvent {
   final String roomId;
@@ -16,52 +15,31 @@ class ChatRoomStarted extends ChatRoomEvent {
   @override
   List<Object?> get props => [roomId];
 }
-
-
 class ChatMessageSendRequested extends ChatRoomEvent {
   final String text;
-  final String? imagePath;
 
-  const ChatMessageSendRequested({
-    required this.text,
-    this.imagePath,
-  });
+  const ChatMessageSendRequested(this.text);
 
   @override
-  List<Object?> get props => [text, imagePath];
+  List<Object?> get props => [text];
 }
+class ChatTypingChanged extends ChatRoomEvent {
+  final bool isTyping;
+  const ChatTypingChanged(this.isTyping);
 
-
+  @override
+  List<Object?> get props => [isTyping];
+}
 class ChatImageSelected extends ChatRoomEvent {
   final String imagePath;
-
   const ChatImageSelected(this.imagePath);
 
   @override
   List<Object?> get props => [imagePath];
 }
 
-
 class ChatImageCleared extends ChatRoomEvent {
   const ChatImageCleared();
 }
 
 
-class ChatMessagesUpdated extends ChatRoomEvent {
-  final List<ChatMessage> messages;
-
-  const ChatMessagesUpdated(this.messages);
-
-  @override
-  List<Object?> get props => [messages];
-}
-
-
-class ChatRoomErrorOccurred extends ChatRoomEvent {
-  final String message;
-
-  const ChatRoomErrorOccurred(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
