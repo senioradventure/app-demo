@@ -69,6 +69,17 @@ class _MembersListFullscreenState extends State<MembersListFullscreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _members.isEmpty
+          ? Center(
+              child: Text(
+                widget.type == ChatType.room ? 'No participants' : 'No members',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            )
           : SingleChildScrollView(
               child: ListView(
                 shrinkWrap: true,
