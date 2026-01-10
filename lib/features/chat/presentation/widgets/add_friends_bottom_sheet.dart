@@ -176,6 +176,17 @@ class _AddFriendsBottomSheetState extends State<AddFriendsBottomSheet> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
+                : _filteredFriends.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No friends found',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
                 : ListView.builder(
                     itemCount: _filteredFriends.length,
                     itemBuilder: (context, index) {
