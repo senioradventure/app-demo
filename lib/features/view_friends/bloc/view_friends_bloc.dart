@@ -49,11 +49,11 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
     Emitter<ViewFriendsState> emit,
   ) async {
     try {
-      final MyCircle chat = await repository
+      final MyCircle conversation = await repository
           .getOrCreateIndividualChatWithFriend(event.friendId);
 
-      if (chat != null) {
-        emit(ViewFriendsNavigateToChat(chat));
+      if (conversation != null) {
+        emit(ViewFriendsNavigateToChat(conversation));
 
         // restore list state so UI doesn’t break
         emit(ViewFriendsLoaded(_allFriends));

@@ -76,19 +76,19 @@ class FriendTile extends StatelessWidget {
                   child: SvgPicture.asset('assets/icons/message_circle.svg'),
                 ),
                 onPressed: () async {
-                  final chat = await context
+                  final conversation = await context
                       .read<ViewFriendsBloc>()
                       .repository
                       .getOrCreateIndividualChatWithFriend(friend.id);
 
                   context.read<IndividualChatBloc>().add(
-                    LoadConversationMessages(chat.id),
+                    LoadConversationMessages(conversation.id),
                   );
 
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => MyCircleIndividualChatPage(chat: chat),
+                      builder: (_) => MyCircleIndividualChatPage(chat: conversation),
                     ),
                   );
                 },
