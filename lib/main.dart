@@ -66,7 +66,8 @@ class SeniorCircleApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) =>
-              MyCircleBloc(repository: MyCircleRepository())..add(LoadMyCircleChats()),
+              MyCircleBloc(repository: MyCircleRepository())
+                ..add(LoadMyCircleChats()),
         ),
         BlocProvider(
           create: (context) => LiveChatHomeBloc(LiveChatHomeRepository())

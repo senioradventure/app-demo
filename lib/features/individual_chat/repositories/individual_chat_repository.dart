@@ -120,4 +120,6 @@ class IndividualChatRepository {
 
     return UserProfile.fromSupabase(response);
   }
+
+  Future<dynamic> getOrCreateIndividualChatWithFriend(String friendId) async {}
 }
