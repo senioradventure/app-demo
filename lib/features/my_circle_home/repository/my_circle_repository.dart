@@ -42,12 +42,29 @@ class MyCircleRepository {
 
     final allChats = [...individualChats, ...circleChats]
       ..sort((a, b) {
-        // Use updatedAt primarily, fall back to createdAt, finally epoch 0
         final aTime = a.updatedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         final bTime = b.updatedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         return bTime.compareTo(aTime);
       });
 
     return allChats;
+  }
+
+  String? get currentUserId => _client.auth.currentUser?.id;
+
+  RealtimeChannel subscribeToMessageUpdates(void Function() onUpdate) {
+    debugPrint('🟦 [MyCircleRepo] Initializing real-time subscription');
+    return _client
+        .channel('my_circle_messages_refresh')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          callback: (payload) {
+            debugPrint('🟨 [MyCircleRepo] New message detected, refreshing list...');
+            onUpdate();
+          },
+        )
+        .subscribe();
   }
 }

@@ -47,7 +47,6 @@ class MyCircle {
 
   factory MyCircle.fromConversationRpc(Map<String, dynamic> json) {
     final otherUser = json['other_user'] as Map<String, dynamic>;
-
     final String? rawUpdated = json['updated_at'] ?? json['last_message_created_at'];
 
     return MyCircle(

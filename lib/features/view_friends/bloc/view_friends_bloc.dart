@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_state.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../repository/view_friends_repository.dart';
 
 class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
@@ -22,8 +21,11 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
     emit(ViewFriendsLoading());
 
     try {
-      final userId =
-          Supabase.instance.client.auth.currentUser!.id;
+      final userId = repository.currentUserId;
+      if (userId == null) {
+        emit(ViewFriendsError('User not logged in'));
+        return;
+      }
 
       _allFriends = await repository.getFriends(userId);
 

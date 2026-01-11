@@ -6,7 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class NotificationRepository {
   final SupabaseClient _client;
 
-  NotificationRepository(this._client);
+  NotificationRepository([SupabaseClient? client])
+      : _client = client ?? Supabase.instance.client;
 
   Future<List<ReceivedRequestModel>> getReceivedRequests() async {
     try {

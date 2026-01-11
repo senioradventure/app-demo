@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/my_circle_home/repository/my_circle_repository.dart';
@@ -21,29 +20,18 @@ class MyCircleBloc extends Bloc<MyCirleEvent, MyCircleState> {
   List<MyCircle> _allMyCircleChats = [];
 
   void _initRealtime() {
-    debugPrint('🟦 [MyCircleBloc] Initializing real-time subscription');
-    final userId = Supabase.instance.client.auth.currentUser?.id;
+    final userId = repository.currentUserId;
     if (userId == null) return;
 
-    _messageSubscription = Supabase.instance.client
-        .channel('my_circle_messages_refresh')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
-          schema: 'public',
-          table: 'messages',
-          callback: (payload) {
-            debugPrint('🟨 [MyCircleBloc] New message detected, refreshing list...');
-            add(LoadMyCircleChats());
-          },
-        )
-        .subscribe();
+    _messageSubscription = repository.subscribeToMessageUpdates(() {
+      add(LoadMyCircleChats());
+    });
   }
 
   Future<void> _onLoadChats(
     LoadMyCircleChats event,
     Emitter<MyCircleState> emit,
   ) async {
-    // Only show loading if we don't have data yet to avoid flickering
     if (_allMyCircleChats.isEmpty) {
       emit(MyCircleChatLoading());
     }

@@ -14,7 +14,6 @@ import 'package:senior_circle/features/my_circle_chatroom/models/group_message_m
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_header.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_reply_input.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupMessageCard extends StatefulWidget {
   final GroupMessage grpmessage;
@@ -38,7 +37,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   final TextEditingController _replyController = TextEditingController();
 
   void _onReactionTap(BuildContext context, String emoji) {
-    final userId = Supabase.instance.client.auth.currentUser!.id;
+    final userId = context.read<ChatBloc>().repository.currentUserId!;
 
     context.read<ChatBloc>().add(
       ToggleReaction(
@@ -66,12 +65,10 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   }
 
   void _handleStar() {
-    context.read<ChatBloc>().add(
       ToggleStar(
         messageId: widget.grpmessage.id,
-        userId: Supabase.instance.client.auth.currentUser!.id,
-      ),
-    );
+        userId: context.read<ChatBloc>().repository.currentUserId!,
+      );
   }
 
   void _handleForward() {
@@ -211,7 +208,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   @override
   Widget build(BuildContext context) {
     final grpmessage = widget.grpmessage;
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId = context.read<ChatBloc>().repository.currentUserId;
     final isMe = currentUserId != null && grpmessage.senderId == currentUserId;
     final likeReaction = grpmessage.reactions
         .where((r) => r.emoji == '👍')

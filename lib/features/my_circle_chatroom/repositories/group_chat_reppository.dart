@@ -7,7 +7,10 @@ import '../mappers/reaction_mapper.dart';
 class GroupChatRepository {
   final SupabaseClient _client;
 
-  GroupChatRepository(this._client);
+  GroupChatRepository([SupabaseClient? client])
+      : _client = client ?? Supabase.instance.client;
+
+  String? get currentUserId => _client.auth.currentUser?.id;
 
   Future<List<GroupMessage>> fetchGroupMessages({
     required String circleId,
@@ -164,7 +167,7 @@ class GroupChatRepository {
         .select('*, profiles!messages_sender_id_fkey(full_name, avatar_url)')
         .single();
 
-    // debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
+    //debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
 
     return GroupMessage.fromSupabase(
       messageRow: response,
@@ -319,7 +322,10 @@ class GroupChatRepository {
       debugPrint('🟩 [Repo] create_conversation result: $response');
       
       final data = response as Map<String, dynamic>;
-      return data['conversation_id'] as String;
+      final conversationId = data['conversation_id'] as String;
+      
+      debugPrint('🟩 [Repo] Returned conversationId: $conversationId');
+      return conversationId;
     } catch (e) {
       debugPrint('🟥 [Repo] create_conversation failed: $e');
       rethrow;
@@ -343,8 +349,28 @@ class GroupChatRepository {
     ...payload,
   });
 
-  debugPrint('🟩 [Repo] Forward insert success');
+  debugPrint('[Repo] Forward insert success');
 }
 
-
+  RealtimeChannel subscribeToGroupMessages({
+    required String circleId,
+    required void Function(Map<String, dynamic> payload) onMessageReceived,
+  }) {
+    debugPrint('[Repo] Subscribing to realtime for circle $circleId');
+    return _client
+        .channel('group_$circleId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'circle_id',
+            value: circleId,
+          ),
+          callback: (payload) =>
+              onMessageReceived(payload.newRecord),
+        )
+        .subscribe();
+  }
 }

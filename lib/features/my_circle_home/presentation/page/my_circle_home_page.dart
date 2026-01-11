@@ -18,7 +18,6 @@ import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_ci
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
 import 'package:senior_circle/core/common/widgets/search_bar_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_starred_message_widget.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MyCircleHomePage extends StatefulWidget {
   const MyCircleHomePage({super.key});
@@ -28,7 +27,6 @@ class MyCircleHomePage extends StatefulWidget {
 }
 
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
-  //add this function whenever focus need to be removed when navigating from any screen
   @override
   void initState() {
     super.initState();
@@ -41,7 +39,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
   }
 
   void navigateToChatRoom(MyCircle chat) {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId = context.read<MyCircleBloc>().repository.currentUserId;
     final isAdmin = chat.adminId == currentUserId;
 
     Navigator.of(context).push(
@@ -50,7 +48,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
           if (chat.isGroup) {
             return BlocProvider(
           create: (_) => ChatBloc(
-            repository: GroupChatRepository(Supabase.instance.client),
+            repository: GroupChatRepository(),
           )..add(LoadGroupMessages(chatId: chat.id)),
           child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
         );
@@ -64,7 +62,11 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
           }
         },
       ),
-    );
+    ).then((_) {
+      if (mounted) {
+        context.read<MyCircleBloc>().add(LoadMyCircleChats());
+      }
+    });
   }
 
   @override
@@ -88,18 +90,15 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
                 if (state is MyCircleChatLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
                 if (state is MyCircleChatLoaded) {
                   return ChatListWidget(
                     foundResults: state.chats,
                     onChatTap: navigateToChatRoom,
                   );
                 }
-
                 if (state is MyCircleChatError) {
                   return Center(child: Text(state.message));
                 }
-
                 return const SizedBox.shrink();
               },
             ),

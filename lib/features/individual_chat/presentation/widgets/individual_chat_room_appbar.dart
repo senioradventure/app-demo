@@ -11,7 +11,7 @@ class MyCircleIndividualAppBar extends StatelessWidget
     required this.userId,
   });
   final String userName;
-  final String profileUrl;
+  final String? profileUrl;
   final String userId;
 
   @override
@@ -29,7 +29,16 @@ class MyCircleIndividualAppBar extends StatelessWidget
         },
         child: Row(
           children: [
-            CircleAvatar(backgroundImage: NetworkImage(profileUrl), radius: 16),
+            CircleAvatar(
+              radius: 16,
+              backgroundImage:
+                  profileUrl != null && profileUrl!.isNotEmpty
+                      ? NetworkImage(profileUrl!)
+                      : null,
+              child: profileUrl == null || profileUrl!.isEmpty
+                  ? const Icon(Icons.person, size: 16)
+                  : null,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

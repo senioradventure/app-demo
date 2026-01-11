@@ -4,7 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ViewFriendsRepository {
   final SupabaseClient supabase;
 
-  ViewFriendsRepository(this.supabase);
+  ViewFriendsRepository([SupabaseClient? client])
+      : supabase = client ?? Supabase.instance.client;
 
   Future<List<Friend>> getFriends(String userId) async {
     final response = await supabase.rpc(
@@ -26,4 +27,6 @@ class ViewFriendsRepository {
 
     return friends.values.toList();
   }
+
+  String? get currentUserId => supabase.auth.currentUser?.id;
 }

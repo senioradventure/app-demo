@@ -53,8 +53,8 @@ class _MyCircleIndividualChatPageState
     return Scaffold(
       appBar: MyCircleIndividualAppBar(
         userName: widget.chat.name,
-        profileUrl: widget.chat.imageUrl!,
-        userId: widget.chat.otherUserId!,
+        profileUrl: widget.chat.imageUrl,
+        userId: widget.chat.otherUserId ?? '',
       ),
 
       /// 🔥 GLOBAL LISTENER FOR SNACKBARS

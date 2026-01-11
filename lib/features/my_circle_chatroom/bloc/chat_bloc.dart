@@ -54,7 +54,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     SendGroupMessage event,
     Emitter<ChatState> emit,
   ) async {
-    final currentUser = Supabase.instance.client.auth.currentUser;
+    final currentUser = repository.currentUserId;
 
     if (currentUser == null) {
       debugPrint('🟥 [ChatBloc] User not logged in');
@@ -361,38 +361,26 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     _groupChannel?.unsubscribe();
 
-    debugPrint('🟦 [ChatBloc] Subscribing to realtime for circle $circleId');
+    _groupChannel = repository.subscribeToGroupMessages(
+      circleId: circleId,
+      onMessageReceived: (payload) {
+        debugPrint('[Realtime] New group message received');
 
-    _groupChannel = Supabase.instance.client
-        .channel('group_$circleId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
-          schema: 'public',
-          table: 'messages',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'circle_id',
-            value: circleId,
-          ),
-          callback: (payload) {
-            debugPrint('[Realtime] New group message received');
+        final newMessage = GroupMessage.fromSupabase(
+          messageRow: payload,
+          reactions: const [],
+          replies: const [],
+        );
 
-            final newMessage = GroupMessage.fromSupabase(
-              messageRow: payload.newRecord,
-              reactions: const [],
-              replies: const [],
-            );
+        final exists = state.groupMessages.any(
+          (m) => m.id == newMessage.id,
+        );
 
-            final exists = state.groupMessages.any(
-              (m) => m.id == newMessage.id,
-            );
-
-            if (!exists) {
-              add(GroupMessageInserted(newMessage));
-            }
-          },
-        )
-        .subscribe();
+        if (!exists) {
+          add(GroupMessageInserted(newMessage));
+        }
+      },
+    );
   }
 }
 
