@@ -72,3 +72,22 @@ class DeleteMessageForMe extends IndividualChatEvent {
   @override
   List<Object> get props => [messageId];
 }
+
+class PickMessageFile extends IndividualChatEvent {
+  final String path;
+  const PickMessageFile(this.path);
+
+  @override
+  List<Object?> get props => [path];
+}
+
+class RemovePickedFile extends IndividualChatEvent {}
+
+class SendVoiceMessage extends IndividualChatEvent {
+  final File audioFile;
+
+  const SendVoiceMessage({required this.audioFile});
+
+  @override
+  List<Object?> get props => [audioFile.path];
+}
