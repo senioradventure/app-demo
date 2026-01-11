@@ -20,6 +20,9 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     on<ChatTypingChanged>(_onTypingChanged);
     on<ChatImageSelected>(_onImageSelected);
     on<ChatImageCleared>(_onImageCleared);
+    on<FriendRequestSent>(_onFriendRequestSent);
+    on<FriendRemoveRequested>(_onFriendRemoveRequested);
+    on<FriendStatusRequested>(_onFriendStatusRequested);
   }
 
 
@@ -48,12 +51,99 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
   }
 
 
+
   void _onTypingChanged(
     ChatTypingChanged event,
     Emitter<ChatRoomState> emit,
   ) {
     emit(state.copyWith(isTyping: event.isTyping));
   }
+
+Future<void> _onFriendStatusRequested(
+  FriendStatusRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  emit(state.copyWith(friendStatus: FriendStatus.loading));
+
+  try {
+    final data = await _repository.getFriendRequest(event.otherUserId);
+
+    if (data == null) {
+      emit(state.copyWith(friendStatus: FriendStatus.none));
+      return;
+    }
+
+    if (data['status'] == 'accepted') {
+      emit(state.copyWith(friendStatus: FriendStatus.accepted,friendRequestId: data['id'],));
+      return;
+    }
+
+    if (data['status'] == 'pending') {
+      final currentUserId = _repository.currentUserId;
+      final isSender = data['sender_id'] == currentUserId;
+
+      emit(
+        state.copyWith(
+          friendStatus: isSender
+              ? FriendStatus.pendingSent
+              : FriendStatus.pendingReceived,
+          friendRequestId: data['id'],
+        ),
+      );
+    }
+  } catch (e) {
+    emit(state.copyWith(error: e.toString()));
+  }
+}
+
+Future<void> _onFriendRequestSent(
+  FriendRequestSent event,
+  Emitter<ChatRoomState> emit,
+) async {
+  try {
+    await _repository.sendFriendRequest(event.otherUserId);
+
+    if (!isClosed) {
+      emit(state.copyWith(
+        friendStatus: FriendStatus.pendingSent,
+        error: null,
+      ));
+    }
+  } catch (e) {
+    if (!isClosed) {
+      emit(state.copyWith(
+        error: e.toString(),
+      ));
+    }
+  }
+}
+
+Future<void> _onFriendRemoveRequested(
+  FriendRemoveRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  try {
+    await _repository.removeFriend(event.requestId);
+
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          friendStatus: FriendStatus.none, 
+          friendRequestId: null,
+          error: null,
+        ),
+      );
+    }
+  } catch (e) {
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          error: e.toString(),
+        ),
+      );
+    }
+  }
+}
 
 
   Future<void> _onSendMessage(
@@ -78,6 +168,7 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
       emit(state.copyWith(error: e.toString()));
     }
   }
+
 
 
   void _onStarted(
@@ -115,7 +206,6 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
           },
         );
   }
-
 
   @override
   Future<void> close() {

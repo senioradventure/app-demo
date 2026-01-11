@@ -15,6 +15,7 @@ class ChatRoomStarted extends ChatRoomEvent {
   @override
   List<Object?> get props => [roomId];
 }
+
 class ChatMessageSendRequested extends ChatRoomEvent {
   final String text;
 
@@ -23,6 +24,7 @@ class ChatMessageSendRequested extends ChatRoomEvent {
   @override
   List<Object?> get props => [text];
 }
+
 class ChatTypingChanged extends ChatRoomEvent {
   final bool isTyping;
   const ChatTypingChanged(this.isTyping);
@@ -30,6 +32,7 @@ class ChatTypingChanged extends ChatRoomEvent {
   @override
   List<Object?> get props => [isTyping];
 }
+
 class ChatImageSelected extends ChatRoomEvent {
   final String imagePath;
   const ChatImageSelected(this.imagePath);
@@ -42,4 +45,26 @@ class ChatImageCleared extends ChatRoomEvent {
   const ChatImageCleared();
 }
 
+class FriendRequestSent extends ChatRoomEvent {
+  final String otherUserId;
+  const FriendRequestSent(this.otherUserId);
 
+  @override
+  List<Object?> get props => [otherUserId];
+}
+
+class FriendRemoveRequested extends ChatRoomEvent {
+  final String requestId;
+  const FriendRemoveRequested(this.requestId);
+
+  @override
+  List<Object?> get props => [requestId];
+}
+
+class FriendStatusRequested extends ChatRoomEvent {
+  final String otherUserId;
+  const FriendStatusRequested(this.otherUserId);
+
+  @override
+  List<Object?> get props => [otherUserId];
+}

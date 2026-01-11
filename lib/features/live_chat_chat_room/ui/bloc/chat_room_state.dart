@@ -1,15 +1,17 @@
 import 'package:equatable/equatable.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 
+enum FriendStatus { none, loading, pendingSent, pendingReceived, accepted }
+
 class ChatRoomState extends Equatable {
-  
   final List<ChatMessage> messages;
   final bool isLoading;
   final bool isTyping;
   final String? pendingImage;
   final String? error;
   final String roomId;
-
+  final FriendStatus friendStatus;
+  final String? friendRequestId;
 
   const ChatRoomState({
     required this.roomId,
@@ -18,6 +20,8 @@ class ChatRoomState extends Equatable {
     this.isTyping = false,
     this.pendingImage,
     this.error,
+    this.friendStatus = FriendStatus.none,
+    this.friendRequestId,
   });
 
   ChatRoomState copyWith({
@@ -28,19 +32,32 @@ class ChatRoomState extends Equatable {
     String? pendingImage,
     bool clearPendingImage = false,
     String? error,
+    FriendStatus? friendStatus,
+    String? friendRequestId,
   }) {
     return ChatRoomState(
       roomId: roomId ?? this.roomId,
       messages: messages ?? this.messages,
       isLoading: isLoading ?? this.isLoading,
       pendingImage: clearPendingImage
-        ? null
-        : (pendingImage ?? this.pendingImage),
+          ? null
+          : (pendingImage ?? this.pendingImage),
       isTyping: isTyping ?? this.isTyping,
       error: error,
+      friendStatus: friendStatus ?? this.friendStatus,
+      friendRequestId: friendRequestId ?? this.friendRequestId,
     );
   }
 
   @override
-  List<Object?> get props => [roomId,messages, isLoading,isTyping,pendingImage, error];
+  List<Object?> get props => [
+    roomId,
+    messages,
+    isLoading,
+    isTyping,
+    pendingImage,
+    error,
+    friendStatus,
+    friendRequestId,
+  ];
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_event.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
 
 class UserProfileBottomSheet extends StatefulWidget {
   final ChatMessage msg;
-  final String otherUserId; 
+  final String otherUserId;
 
   const UserProfileBottomSheet({
     super.key,
@@ -13,50 +16,14 @@ class UserProfileBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<UserProfileBottomSheet> createState() =>
-      _UserProfileBottomSheetState();
+  State<UserProfileBottomSheet> createState() => _UserProfileBottomSheetState();
 }
 
 class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
-  final supabase = Supabase.instance.client;
-
-  late final String currentUserId;
-
   @override
   void initState() {
     super.initState();
-    currentUserId = supabase.auth.currentUser!.id;
-  }
-
-  Future<Map<String, dynamic>?> getFriendRequest() async {
-    return await supabase
-        .from('friend_requests')
-        .select()
-        .or(
-          'and(sender_id.eq.$currentUserId,receiver_id.eq.${widget.otherUserId}),'
-          'and(sender_id.eq.${widget.otherUserId},receiver_id.eq.$currentUserId)',
-        )
-        .maybeSingle();
-  }
-
-  Future<void> sendFriendRequest() async {
-    await supabase.from('friend_requests').insert({
-      'sender_id': currentUserId,
-      'receiver_id': widget.otherUserId,
-      'status': 'pending',
-    });
-    setState(() {});
-  }
-
-  Future<void> removeFriend() async {
-    await supabase
-        .from('friend_requests')
-        .delete()
-        .or(
-          'and(sender_id.eq.$currentUserId,receiver_id.eq.${widget.otherUserId}),'
-          'and(sender_id.eq.${widget.otherUserId},receiver_id.eq.$currentUserId)',
-        );
-    setState(() {});
+    context.read<ChatRoomBloc>().add(FriendStatusRequested(widget.otherUserId));
   }
 
   @override
@@ -65,102 +32,103 @@ class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
 
     final ImageProvider avatarImage =
         (msg.profileAsset != null && msg.profileAsset!.isNotEmpty)
-            ? AssetImage(msg.profileAsset!)
-            : const AssetImage('assets/images/chat_profile.png');
+        ? AssetImage(msg.profileAsset!)
+        : const AssetImage('assets/images/chat_profile.png');
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () => Navigator.pop(context),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(color: Colors.transparent),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
             ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 45,
-                        backgroundImage: avatarImage,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        msg.name ?? '',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        CircleAvatar(radius: 45, backgroundImage: avatarImage),
+                        const SizedBox(height: 10),
+                        Text(
+                          msg.name ?? '',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F1F1),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Text(
+                            "From Malappuram",
+                            style: TextStyle(fontSize: 12, color: Colors.black),
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F1F1),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: const Text(
-                          "From Malappuram",
-                          style: TextStyle(fontSize: 12,color: Colors.black),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
+                  BlocBuilder<ChatRoomBloc, ChatRoomState>(
+                    builder: (context, state) {
+                      switch (state.friendStatus) {
+                        case FriendStatus.loading:
+                          return _bottomContainer("LOADING...", Colors.grey);
 
-                FutureBuilder<Map<String, dynamic>?>(
-                  future: getFriendRequest(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData || snapshot.data == null) {
-                      return _addFriendButton();
-                    }
+                        case FriendStatus.none:
+                          return _addFriendButton();
 
-                    final request = snapshot.data!;
+                        case FriendStatus.pendingSent:
+                          return _bottomContainer(
+                            "WAITING FOR APPROVAL",
+                            Colors.black,
+                          );
 
-                    if (request['status'] == 'pending') {
-                      final isSender =
-                          request['sender_id'] == currentUserId;
+                        case FriendStatus.pendingReceived:
+                          return _bottomContainer(
+                            "RESPOND IN NOTIFICATIONS",
+                            Colors.black,
+                          );
 
-                      return _bottomContainer(
-                        isSender
-                            ? "WAITING FOR APPROVAL"
-                            : "RESPOND IN NOTIFICATIONS",
-                        Colors.black,
-                      );
-                    }
+                        case FriendStatus.accepted:
+                          return _friendActions(state.friendRequestId!);
 
-                    if (request['status'] == 'accepted') {
-                      return _friendActions();
-                    }
-
-                    return _addFriendButton();
-                  },
-                ),
-              ],
+                        default:
+                          return _addFriendButton();
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _friendActions() {
+  Widget _friendActions(String requestId) {
     return Container(
       height: 60,
       decoration: const BoxDecoration(
@@ -171,9 +139,10 @@ class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
         children: [
           Expanded(
             child: InkWell(
-              onTap: () async {
-                await removeFriend();
-                Navigator.pop(context);
+              onTap: () {
+                context.read<ChatRoomBloc>().add(
+                  FriendRemoveRequested(requestId),
+                );
               },
               child: const Center(
                 child: Text(
@@ -185,12 +154,12 @@ class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
                 ),
               ),
             ),
-          ),const VerticalDivider(
-  width: 1,
-  thickness: 1,
-  color: Color(0xFFE3E3E3),
-),
-
+          ),
+          const VerticalDivider(
+            width: 1,
+            thickness: 1,
+            color: Color(0xFFE3E3E3),
+          ),
           Expanded(
             child: InkWell(
               onTap: () => Navigator.pop(context),
@@ -212,7 +181,10 @@ class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
 
   Widget _addFriendButton() {
     return InkWell(
-      onTap: sendFriendRequest,
+      onTap: () {
+        context.read<ChatRoomBloc>().add(FriendRequestSent(widget.otherUserId));
+      },
+
       child: _bottomContainer("ADD FRIEND", Colors.blue),
     );
   }
