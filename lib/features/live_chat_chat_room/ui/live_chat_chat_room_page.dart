@@ -95,6 +95,7 @@ void initState() {
                 color: Colors.white,
               ),
               ChatHeaderWidget(
+                liveChatRoomId: _liveChatRoomId,
                 title: widget.title,
                 imageUrl: widget.imageUrl,
                 isAdmin: widget.isAdmin,
