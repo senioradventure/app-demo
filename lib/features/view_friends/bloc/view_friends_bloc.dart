@@ -45,22 +45,25 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
   }
 
   Future<void> _onStartChatWithFriend(
-  StartChatWithFriend event,
-  Emitter<ViewFriendsState> emit,
-) async {
-  try {
-    final MyCircle chat =
-        await repository.getOrCreateIndividualChatWithFriend(event.friendId);
+    StartChatWithFriend event,
+    Emitter<ViewFriendsState> emit,
+  ) async {
+    try {
+      final MyCircle chat = await repository
+          .getOrCreateIndividualChatWithFriend(event.friendId);
 
-    if (chat != null) {
-      emit(ViewFriendsNavigateToChat(chat));
+      if (chat != null) {
+        emit(ViewFriendsNavigateToChat(chat));
 
-      // restore list state so UI doesn’t break
-      emit(ViewFriendsLoaded(_allFriends));
+        // restore list state so UI doesn’t break
+        emit(ViewFriendsLoaded(_allFriends));
+      }
+    } catch (e) {
+      emit(ViewFriendsError('Failed to start chat'));
     }
-  } catch (e) {
-    emit(ViewFriendsError('Failed to start chat'));
   }
-}
 
+  Future<MyCircle> startChat(String friendId) async {
+    return await repository.getOrCreateIndividualChatWithFriend(friendId);
+  }
 }

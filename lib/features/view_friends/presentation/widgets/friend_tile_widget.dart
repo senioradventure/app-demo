@@ -5,12 +5,8 @@ import 'package:senior_circle/core/common/widgets/individual_profile_icon.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
-import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
-import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
-import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FriendTile extends StatelessWidget {
   final Friend friend;
@@ -21,10 +17,6 @@ class FriendTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool hasImage =
         friend.profileImage != null && friend.profileImage!.isNotEmpty;
-
-    final viewFriendsRepository = ViewFriendsRepository(
-      Supabase.instance.client,
-    );
 
     return Material(
       color: Colors.white,
@@ -83,9 +75,21 @@ class FriendTile extends StatelessWidget {
                   height: 24,
                   child: SvgPicture.asset('assets/icons/message_circle.svg'),
                 ),
-                onPressed: () {
-                  context.read<ViewFriendsBloc>().add(
-                    StartChatWithFriend(friend.id),
+                onPressed: () async {
+                  final chat = await context
+                      .read<ViewFriendsBloc>()
+                      .repository
+                      .getOrCreateIndividualChatWithFriend(friend.id);
+
+                  context.read<IndividualChatBloc>().add(
+                    LoadConversationMessages(chat.id),
+                  );
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MyCircleIndividualChatPage(chat: chat),
+                    ),
                   );
                 },
               ),

@@ -6,10 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 import 'package:senior_circle/core/common/widgets/image_preview.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/individual_chat/presentation/widgets/attachment_picker_widget.dart';
+import 'package:senior_circle/core/common/widgets/message_input_widget/attachment_picker_widget.dart';
 
-class IndividualMessageInputField extends StatefulWidget {
-  const IndividualMessageInputField({
+class MessageInputFieldWidget extends StatefulWidget {
+  const MessageInputFieldWidget({
     super.key,
     required this.replyTo,
     required this.imagePath,
@@ -44,12 +44,12 @@ class IndividualMessageInputField extends StatefulWidget {
   final void Function(File audioFile) onSendVoice;
 
   @override
-  State<IndividualMessageInputField> createState() =>
-      _IndividualMessageInputFieldState();
+  State<MessageInputFieldWidget> createState() =>
+      _MessageInputFieldWidgetState();
 }
 
-class _IndividualMessageInputFieldState
-    extends State<IndividualMessageInputField> {
+class _MessageInputFieldWidgetState
+    extends State<MessageInputFieldWidget> {
   final TextEditingController _controller = TextEditingController();
   final AudioRecorder _recorder = AudioRecorder();
 

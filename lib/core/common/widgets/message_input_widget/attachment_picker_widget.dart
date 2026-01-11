@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/individual_chat/presentation/widgets/attachment_tile_widget.dart';
+import 'package:senior_circle/core/common/widgets/message_input_widget/attachment_tile_widget.dart';
 
 void showAttachmentPicker(
   BuildContext context,

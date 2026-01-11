@@ -74,6 +74,7 @@ class SeniorCircleApp extends StatelessWidget {
             ..add(FetchLocationsEvent())
             ..add(FetchRoomsEvent()),
         ),
+        BlocProvider(create: (context) => IndividualChatBloc(IndividualChatRepository())),
         BlocProvider(
           create: (_) => CreateCircleBloc(
             repository: CreateCircleRepository(
