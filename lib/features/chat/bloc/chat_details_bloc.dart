@@ -1,3 +1,4 @@
+//import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../repositories/chat_details_repository.dart';
@@ -42,6 +43,13 @@ class ChatDetailsBloc extends Bloc<ChatDetailsEvent, ChatDetailsState> {
         );
         isAdmin = member.isAdmin;
       }
+
+      // DEBUG LOGGING
+      /*debugPrint('🟦 [ChatDetailsBloc] DEBUG INFO:');
+      debugPrint('   Current User ID: $currentUserId');
+      debugPrint('   Chat Admin ID: ${details.adminId}');
+      debugPrint('   Calculated IsAdmin: $isAdmin');
+      debugPrint('   Chat Type: ${details.type}');*/
 
       emit(
         ChatDetailsLoaded(

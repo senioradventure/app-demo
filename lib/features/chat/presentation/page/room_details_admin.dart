@@ -167,7 +167,7 @@ class _ChatDetailsView extends StatelessWidget {
                             ),
                         ],
 
-                        if (isAdmin && type == ChatType.room) ...[
+                        if (isAdmin) ...[
                           //Reported messages section
                           const SizedBox(height: 24),
                           const Padding(
@@ -269,7 +269,7 @@ class _ChatDetailsView extends StatelessWidget {
             ),
           );
 
-          if (isAdmin && type == ChatType.room) {
+          if (isAdmin) {
             return BlocProvider(
               create: (context) => AdminReportsBloc(
                 AdminReportsRepository(Supabase.instance.client),
