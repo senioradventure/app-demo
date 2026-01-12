@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/empty_chat.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/linked_message.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/receiver_message_bubble.dart';
@@ -50,9 +52,12 @@ class ChatMessageList extends StatelessWidget {
                     context: context,
                     backgroundColor: Colors.transparent,
                     isScrollControlled: true,
-                    builder: (_) => UserProfileBottomSheet(
-                      msg: msg,
-                      otherUserId: msg.senderId!,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<ChatRoomBloc>(),
+                      child: UserProfileBottomSheet(
+                        msg: msg,
+                        otherUserId: msg.senderId!,
+                      ),
                     ),
                   );
                 },
@@ -73,9 +78,12 @@ class ChatMessageList extends StatelessWidget {
                   context: context,
                   backgroundColor: Colors.transparent,
                   isScrollControlled: true,
-                  builder: (_) => UserProfileBottomSheet(
-                    msg: msg,
-                    otherUserId: msg.senderId!,
+                  builder: (_) => BlocProvider.value(
+                    value: context.read<ChatRoomBloc>(),
+                    child: UserProfileBottomSheet(
+                      msg: msg,
+                      otherUserId: msg.senderId!,
+                    ),
                   ),
                 );
               },

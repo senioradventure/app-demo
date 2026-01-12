@@ -6,7 +6,7 @@ class ChatRoomRepository {
   final SupabaseClient _supabase;
 
   ChatRoomRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? Supabase.instance.client;
+    : _supabase = supabase ?? Supabase.instance.client;
 
   String? get currentUserId => _supabase.auth.currentUser?.id;
 
@@ -25,9 +25,7 @@ class ChatRoomRepository {
     });
   }
 
-  Stream<List<ChatMessage>> streamMessages({
-    required String roomId,
-  }) {
+  Stream<List<ChatMessage>> streamMessages({required String roomId}) {
     final userId = currentUserId ?? '';
 
     return _supabase
@@ -36,9 +34,36 @@ class ChatRoomRepository {
         .eq('live_chat_room_id', roomId)
         .order('created_at')
         .map(
-          (rows) => rows
-              .map((row) => ChatMessage.fromMap(row, userId))
-              .toList(),
+          (rows) =>
+              rows.map((row) => ChatMessage.fromMap(row, userId)).toList(),
         );
+  }
+
+  Future<void> sendFriendRequest(String otherUserId) async {
+    final userId = currentUserId;
+    if (userId == null) throw Exception('User not logged in');
+
+    await _supabase.from('friend_requests').insert({
+      'sender_id': currentUserId,
+      'receiver_id': otherUserId,
+      'status': 'pending',
+    });
+  }
+
+  Future<void> removeFriend(String requestId) async {
+    await _supabase.from('friend_requests').delete().eq('id', requestId);
+  }
+
+  Future<Map<String, dynamic>?> getFriendRequest(String otherUserId) async {
+    final userId = currentUserId;
+    if (userId == null) return null;
+    return await _supabase
+        .from('friend_requests')
+        .select()
+        .or(
+          'and(sender_id.eq.$currentUserId,receiver_id.eq.$otherUserId),'
+          'and(sender_id.eq.$otherUserId,receiver_id.eq.$currentUserId)',
+        )
+        .maybeSingle();
   }
 }

@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_event.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/widget/image_preview.dart';
 
 class ChatInputBar extends StatelessWidget {
   final ImagePicker picker;
@@ -86,21 +84,18 @@ class ChatInputBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                 GestureDetector(
-  onTap: showSend ? onSend : null,
-  child: SizedBox(
-    width: 50,
-    height: 50,
-    child: Image.asset(
-      showSend
-          ? 'assets/icons/fab2.png'
-          : 'assets/icons/fab.png',
-    ),
-  ),
-),
-
-
-
+                  GestureDetector(
+                    onTap: showSend ? onSend : null,
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: Image.asset(
+                        showSend
+                            ? 'assets/icons/fab2.png'
+                            : 'assets/icons/fab.png',
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

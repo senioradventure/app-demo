@@ -42,17 +42,20 @@ class _ChatroomState extends State<Chatroom> {
 
 
 
-
- @override
+@override
 void initState() {
   super.initState();
 
   _liveChatRoomId = widget.roomId!;
 
-  context.read<ChatRoomBloc>().add(
-    ChatRoomStarted(_liveChatRoomId),
-  );
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!mounted) return;
+    context.read<ChatRoomBloc>().add(
+      ChatRoomStarted(_liveChatRoomId),
+    );
+  });
 }
+
 
 
   @override
