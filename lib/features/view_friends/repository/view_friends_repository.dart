@@ -18,8 +18,14 @@ class ViewFriendsRepository {
     }
 
     final data = response as List;
+    final Map<String, Friend> friends = {};
 
-    return data.map((e) => Friend.fromJson(e)).toList();
+    for (var e in data) {
+      final friend = Friend.fromJson(e);
+      friends[friend.id] = friend;
+    }
+
+    return friends.values.toList();
   }
 
   Future<MyCircle> getOrCreateIndividualChatWithFriend(String friendId) async {
@@ -40,10 +46,6 @@ class ViewFriendsRepository {
         matchingConversation as Map<String, dynamic>,
       );
     }
-    final createResponse = await _client.rpc(
-      'create_conversation',
-      params: {'p_other_user_id': friendId},
-    );
     final refreshedResponse = await _client.rpc(
       'get_all_conversations',
       params: {'p_user_id': userId},
@@ -59,4 +61,9 @@ class ViewFriendsRepository {
       newConversation as Map<String, dynamic>,
     );
   }
+
+  Future<String> getCurrentUserId() async {
+    return _client.auth.currentUser!.id;
+  }
+  
 }

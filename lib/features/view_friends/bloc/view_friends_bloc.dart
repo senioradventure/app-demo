@@ -3,7 +3,6 @@ import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dar
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_state.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../repository/view_friends_repository.dart';
 
 class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
@@ -24,7 +23,7 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
     emit(ViewFriendsLoading());
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser!.id;
+      final userId = await repository.getCurrentUserId();
 
       _allFriends = await repository.getFriends(userId);
 
@@ -49,13 +48,11 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
     Emitter<ViewFriendsState> emit,
   ) async {
     try {
-      final MyCircle chat = await repository
+      final MyCircle conversation = await repository
           .getOrCreateIndividualChatWithFriend(event.friendId);
 
-      if (chat != null) {
-        emit(ViewFriendsNavigateToChat(chat));
-
-        // restore list state so UI doesn’t break
+      if (conversation != null) {
+        emit(ViewFriendsNavigateToChat(conversation));
         emit(ViewFriendsLoaded(_allFriends));
       }
     } catch (e) {

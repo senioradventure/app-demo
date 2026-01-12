@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:path/path.dart';
 
 class IndividualChatRepository {
   final SupabaseClient _client = Supabase.instance.client;
@@ -36,18 +39,64 @@ class IndividualChatRepository {
         .toList();
   }
 
-  Future<void> sendMessage({
-    required String conversationId,
-    required String text,
-    String? imagePath,
+  /// Upload any media (image / file / voice)
+  Future<String> uploadMedia({
+    required File file,
+    required String folder, // images | files | voice
   }) async {
-    await _client.from('messages').insert({
-      'conversation_id': conversationId,
-      'sender_id': _client.auth.currentUser!.id,
-      'content': text,
-      'media_url': imagePath,
-      'media_type': imagePath == null ? 'text' : 'image',
-    });
+    final fileName =
+        'messages/$folder/${DateTime.now().millisecondsSinceEpoch}_${basename(file.path)}';
+
+    await _client.storage.from('media').upload(fileName, file);
+
+    return _client.storage.from('media').getPublicUrl(fileName);
+  }
+
+  /// Insert message row
+  Future<IndividualChatMessageModel> insertMessage({
+    required String conversationId,
+    required String mediaType,
+    String content = '',
+    String? mediaUrl,
+    String? replyToMessageId,
+  }) async {
+    final response = await _client
+        .from('messages')
+        .insert({
+          'conversation_id': conversationId,
+          'sender_id': _client.auth.currentUser!.id,
+          'content': content,
+          'media_url': mediaUrl,
+          'media_type': mediaType,
+          'reply_to_message_id': replyToMessageId,
+        })
+        .select()
+        .single();
+
+    return IndividualChatMessageModel.fromSupabase(response);
+  }
+
+  Future<IndividualChatMessageModel> sendMessage({
+    required String conversationId,
+    required String content,
+    required String mediaType,
+    String? mediaUrl,
+    String? replyToMessageId,
+  }) async {
+    final response = await _client
+        .from('messages')
+        .insert({
+          'conversation_id': conversationId,
+          'sender_id': _client.auth.currentUser!.id,
+          'content': content,
+          'media_url': mediaUrl,
+          'media_type': mediaType,
+          'reply_to_message_id': replyToMessageId,
+        })
+        .select()
+        .single();
+
+    return IndividualChatMessageModel.fromSupabase(response);
   }
 
   Future<void> addReaction({
@@ -122,4 +171,8 @@ class IndividualChatRepository {
   }
 
   Future<dynamic> getOrCreateIndividualChatWithFriend(String friendId) async {}
+
+  Future<String> getCurrentUserId() async {
+    return _client.auth.currentUser!.id;
+  }
 }

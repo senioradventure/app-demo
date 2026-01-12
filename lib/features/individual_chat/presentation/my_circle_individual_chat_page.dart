@@ -5,7 +5,7 @@ import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_chat_room_appbar.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_card.dart';
-import 'package:senior_circle/features/individual_chat/presentation/widgets/individual_message_input_field.dart';
+import 'package:senior_circle/core/common/widgets/message_input_widget/message_input_field.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -221,7 +221,7 @@ class _MyCircleIndividualChatPageState
                     return const SizedBox.shrink();
                   }
 
-                  return IndividualMessageInputField(
+                  return MessageInputFieldWidget(
                     replyTo: state.replyTo,
                     imagePath: state.imagePath,
                     isSending: state.isSending,

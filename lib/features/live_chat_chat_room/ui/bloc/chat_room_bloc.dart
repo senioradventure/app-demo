@@ -1,141 +1,28 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
-
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
-
-part 'chat_room_event.dart';
-part 'chat_room_state.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/repository/live_chat_repository.dart';
+import 'chat_room_event.dart';
+import 'chat_room_state.dart';
 
 class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
-  final SupabaseClient _supabase;
-  final _uuid = const Uuid();
+  final ChatRoomRepository _repository;
+  StreamSubscription<List<ChatMessage>>? _sub;
 
-  StreamSubscription<List<Map<String, dynamic>>>? _messagesSub;
-
-  ChatRoomBloc({SupabaseClient? supabase})
-      : _supabase = supabase ?? Supabase.instance.client,
-        super(const ChatRoomState(isLoading: true)) {
+  ChatRoomBloc({required ChatRoomRepository repository})
+      : _repository = repository,
+        super(const ChatRoomState(
+          roomId: '',
+          isLoading: true,
+        )) {
     on<ChatRoomStarted>(_onStarted);
     on<ChatMessageSendRequested>(_onSendMessage);
+    on<ChatTypingChanged>(_onTypingChanged);
     on<ChatImageSelected>(_onImageSelected);
     on<ChatImageCleared>(_onImageCleared);
-    on<ChatMessagesUpdated>(_onMessagesUpdated);
-    on<ChatRoomErrorOccurred>(_onError);
-  }
-
- 
-  Future<void> _onStarted(
-  ChatRoomStarted event,
-  Emitter<ChatRoomState> emit,
-) async {
-  emit(state.copyWith(isLoading: true));
-
-  await _messagesSub?.cancel();
-
-  final currentUserId = _supabase.auth.currentUser?.id ?? '';
-
-  _messagesSub = _supabase
-      .from('messages')
-      .stream(primaryKey: ['id'])
-      .eq('live_chat_room_id', event.roomId)
-      .order('created_at')
-      .listen(
-    (rows) {
-      final incoming = rows
-          .map((row) => ChatMessage.fromMap(row, currentUserId))
-          .toList();
-
-      add(ChatMessagesUpdated(incoming));
-    },
-    onError: (e) {
-      add(ChatRoomErrorOccurred(e.toString()));
-    },
-  );
-}
-
-
-  void _onMessagesUpdated(
-    ChatMessagesUpdated event,
-    Emitter<ChatRoomState> emit,
-  ) {
-    final merged = <ChatMessage>[];
-
-
-    for (final local in state.messages) {
-      final exists =
-          event.messages.any((server) => server.id == local.id);
-      if (!exists) merged.add(local);
-    }
-
-    merged.addAll(event.messages);
-
-    emit(state.copyWith(
-      messages: merged,
-      isLoading: false,
-    ));
-  }
-  Future<void> _onSendMessage(
-    ChatMessageSendRequested event,
-    Emitter<ChatRoomState> emit,
-  ) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-
-    final tempId = _uuid.v4();
-    final now = DateTime.now();
-
-    final optimistic = ChatMessage(
-      id: tempId,
-      isSender: true,
-      text: event.text,
-      time: _formatTime(now),
-      imageFile: event.imagePath,
-      name: 'You',
-      profileAsset: null,
-    );
-
-    emit(state.copyWith(
-      messages: [...state.messages, optimistic],
-      isSending: true,
-      pendingImage: null,
-    ));
-
-    try {
-      String? mediaUrl;
-      String mediaType = 'text';
-
-      if (event.imagePath != null) {
-        final file = File(event.imagePath!);
-        final ext = event.imagePath!.split('.').last;
-        final name = 'messages/${_uuid.v4()}.$ext';
-
-        await _supabase.storage.from('media').upload(name, file);
-        mediaUrl = _supabase.storage.from('media').getPublicUrl(name);
-        mediaType = 'image';
-      }
-
-      await _supabase.from('messages').insert({
-        'id': tempId,
-        'sender_id': user.id,
-        'content': event.text,
-        'media_type': mediaType,
-        'media_url': mediaUrl,
-      });
-
-      emit(state.copyWith(isSending: false));
-    } catch (e) {
-      emit(state.copyWith(
-        isSending: false,
-        messages:
-            state.messages.where((m) => m.id != tempId).toList(),
-        error: e.toString(),
-      ));
-    }
+    on<FriendRequestSent>(_onFriendRequestSent);
+    on<FriendRemoveRequested>(_onFriendRemoveRequested);
+    on<FriendStatusRequested>(_onFriendStatusRequested);
   }
 
 
@@ -143,38 +30,186 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     ChatImageSelected event,
     Emitter<ChatRoomState> emit,
   ) {
-    emit(state.copyWith(pendingImage: event.imagePath));
+    emit(
+      state.copyWith(
+        pendingImage: event.imagePath,
+        isTyping: true,
+      ),
+    );
   }
-
 
   void _onImageCleared(
     ChatImageCleared event,
     Emitter<ChatRoomState> emit,
   ) {
-    emit(state.copyWith(pendingImage: null));
+    emit(
+      state.copyWith(
+        clearPendingImage: true,
+        isTyping: false,
+      ),
+    );
   }
 
 
-  void _onError(
-    ChatRoomErrorOccurred event,
+
+  void _onTypingChanged(
+    ChatTypingChanged event,
     Emitter<ChatRoomState> emit,
   ) {
-    emit(state.copyWith(error: event.message));
+    emit(state.copyWith(isTyping: event.isTyping));
+  }
+
+Future<void> _onFriendStatusRequested(
+  FriendStatusRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  emit(state.copyWith(friendStatus: FriendStatus.loading));
+
+  try {
+    final data = await _repository.getFriendRequest(event.otherUserId);
+
+    if (data == null) {
+      emit(state.copyWith(friendStatus: FriendStatus.none));
+      return;
+    }
+
+    if (data['status'] == 'accepted') {
+      emit(state.copyWith(friendStatus: FriendStatus.accepted,friendRequestId: data['id'],));
+      return;
+    }
+
+    if (data['status'] == 'pending') {
+      final currentUserId = _repository.currentUserId;
+      final isSender = data['sender_id'] == currentUserId;
+
+      emit(
+        state.copyWith(
+          friendStatus: isSender
+              ? FriendStatus.pendingSent
+              : FriendStatus.pendingReceived,
+          friendRequestId: data['id'],
+        ),
+      );
+    }
+  } catch (e) {
+    emit(state.copyWith(error: e.toString()));
+  }
+}
+
+Future<void> _onFriendRequestSent(
+  FriendRequestSent event,
+  Emitter<ChatRoomState> emit,
+) async {
+  try {
+    await _repository.sendFriendRequest(event.otherUserId);
+
+    if (!isClosed) {
+      emit(state.copyWith(
+        friendStatus: FriendStatus.pendingSent,
+        error: null,
+      ));
+    }
+  } catch (e) {
+    if (!isClosed) {
+      emit(state.copyWith(
+        error: e.toString(),
+      ));
+    }
+  }
+}
+
+Future<void> _onFriendRemoveRequested(
+  FriendRemoveRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  try {
+    await _repository.removeFriend(event.requestId);
+
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          friendStatus: FriendStatus.none, 
+          friendRequestId: null,
+          error: null,
+        ),
+      );
+    }
+  } catch (e) {
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          error: e.toString(),
+        ),
+      );
+    }
+  }
+}
+
+
+  Future<void> _onSendMessage(
+    ChatMessageSendRequested event,
+    Emitter<ChatRoomState> emit,
+  ) async {
+    try {
+      if (event.text.trim().isEmpty && state.pendingImage == null) return;
+
+      await _repository.sendTextMessage(
+        roomId: state.roomId,
+        text: event.text.trim(),
+      );
+
+      emit(
+        state.copyWith(
+          isTyping: false,
+          pendingImage: null,
+        ),
+      );
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+
+
+  void _onStarted(
+    ChatRoomStarted event,
+    Emitter<ChatRoomState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        roomId: event.roomId,
+        isLoading: true,
+        error: null,
+      ),
+    );
+
+    _sub?.cancel();
+
+    _sub = _repository
+        .streamMessages(roomId: event.roomId)
+        .listen(
+          (messages) {
+            emit(
+              state.copyWith(
+                messages: messages,
+                isLoading: false,
+              ),
+            );
+          },
+          onError: (e) {
+            emit(
+              state.copyWith(
+                isLoading: false,
+                error: e.toString(),
+              ),
+            );
+          },
+        );
   }
 
   @override
   Future<void> close() {
-    _messagesSub?.cancel();
+    _sub?.cancel();
     return super.close();
-  }
-
-
-  String _formatTime(DateTime dateTime) {
-    final local = dateTime.toLocal();
-    final hour =
-        local.hour > 12 ? local.hour - 12 : (local.hour == 0 ? 12 : local.hour);
-    final minute = local.minute.toString().padLeft(2, '0');
-    final period = local.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
   }
 }

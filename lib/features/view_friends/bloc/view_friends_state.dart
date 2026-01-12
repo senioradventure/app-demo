@@ -22,6 +22,6 @@ class ViewFriendsError extends ViewFriendsState {
 }
 
 class ViewFriendsNavigateToChat extends ViewFriendsState {
-  final MyCircle chat;
-  ViewFriendsNavigateToChat(this.chat);
+  final MyCircle conversation;
+  ViewFriendsNavigateToChat(this.conversation);
 }

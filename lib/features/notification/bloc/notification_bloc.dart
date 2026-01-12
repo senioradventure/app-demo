@@ -39,42 +39,30 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     );
   }
 }
-void _onAcceptRequest(
-  AcceptRequest event,
-  Emitter<NotificationState> emit,
-) async {
-  if (state is! NotificationLoaded) return;
+  void _onAcceptRequest(
+    AcceptRequest event,
+    Emitter<NotificationState> emit,
+  ) async {
+    if (state is! NotificationLoaded) return;
 
-  final current = state as NotificationLoaded;
+    final current = state as NotificationLoaded;
 
-  try {
-    await repository.acceptRequest(event.requestId);
+    try {
+      await repository.acceptRequest(event.requestId);
 
-    final updatedReceived =
-        current.received.where((e) => e.id != event.requestId).toList();
+      final updatedReceived =
+          current.received.where((e) => e.id != event.requestId).toList();
 
-    final updatedSent = [
-      ...current.sent,
-      SentRequestModel(
-        id: event.requestId,
-        name: event.userName,
-        imageUrl: event.imageUrl,
-        status: RequestStatus.accepted,
-        time: 'Just now',
-      ),
-    ];
-
-    emit(
-      current.copyWith(
-        received: updatedReceived,
-        sent: updatedSent,
-      ),
-    );
-  } catch (e) {
-    emit(const NotificationError('Failed to accept request'));
-    emit(current); // restore state
+      emit(
+        current.copyWith(
+          received: updatedReceived,
+        ),
+      );
+    } catch (e) {
+      emit(const NotificationError('Failed to accept request'));
+      emit(current); // restore state
+    }
   }
-}
 
 
 

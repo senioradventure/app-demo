@@ -100,21 +100,37 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   Future<void> _onDeleteGroupMessage(
-    DeleteGroupMessage event,
-    Emitter<ChatState> emit,
-  ) async {
-    final updatedMessages = _removeMessageRecursive(state.groupMessages, event.messageId);
-    emit(state.copyWith(groupMessages: updatedMessages));
+  DeleteGroupMessage event,
+  Emitter<ChatState> emit,
+) async {
+  final previousState = state;
 
+  final updatedMessages =
+      _removeMessageRecursive(state.groupMessages, event.messageId);
+
+  emit(state.copyWith(groupMessages: updatedMessages));
+
+  try {
     if (event.forEveryone) {
-      try {
-        await repository.deleteGroupMessage(event.messageId);
-        debugPrint('🗑️ [ChatBloc] Deleted message ${event.messageId} for everyone');
-      } catch (e) {
-        debugPrint('🟥 [ChatBloc] Delete failed: $e');
-      }
+      // Delete for everyone
+      await repository.deleteGroupMessage(event.messageId);
+      debugPrint(
+        '[ChatBloc] Deleted message ${event.messageId} for everyone',
+      );
+    } else {
+      // Delete for me 
+      await repository.deleteGroupMessageForMe(event.messageId);
+      debugPrint(
+        '[ChatBloc] Deleted message ${event.messageId} for me',
+      );
     }
+  } catch (e) {
+    debugPrint('[ChatBloc] Delete failed: $e');
+
+    emit(previousState);
   }
+}
+
 
   void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
     if (event.type == ChatMessageType.individual) return;

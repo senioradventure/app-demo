@@ -1,20 +1,25 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_event.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
 
 class SelectedImagePreview extends StatelessWidget {
-  final ValueNotifier<String?> imageNotifier;
-
-  const SelectedImagePreview({
-    super.key,
-    required this.imageNotifier,
-  });
+  const SelectedImagePreview({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<String?>(
-      valueListenable: imageNotifier,
-      builder: (context, path, _) {
-        if (path == null) return const SizedBox.shrink();
+
+    return BlocBuilder<ChatRoomBloc, ChatRoomState>(
+      buildWhen: (prev, curr) =>
+          prev.pendingImage != curr.pendingImage,
+      builder: (context, state) {
+        final path = state.pendingImage;
+
+        if (path == null) {
+          return const SizedBox.shrink();
+        }
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
@@ -33,7 +38,11 @@ class SelectedImagePreview extends StatelessWidget {
                 top: 6,
                 right: 6,
                 child: GestureDetector(
-                  onTap: () => imageNotifier.value = null,
+                  onTap: () {
+                    context.read<ChatRoomBloc>().add(
+                      const ChatImageCleared(),
+                    );
+                  },
                   child: const CircleAvatar(
                     radius: 12,
                     backgroundColor: Colors.black54,
