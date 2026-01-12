@@ -21,10 +21,18 @@ class UserProfileBottomSheet extends StatefulWidget {
 
 class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
   @override
-  void initState() {
-    super.initState();
-    context.read<ChatRoomBloc>().add(FriendStatusRequested(widget.otherUserId));
-  }
+void initState() {
+  super.initState();
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!mounted) return;
+    context.read<ChatRoomBloc>().add(
+      FriendStatusRequested(widget.otherUserId),
+    );
+  });
+}
+
+
 
   @override
   Widget build(BuildContext context) {
