@@ -59,6 +59,7 @@ class ChatMessageList extends StatelessWidget {
                       child: UserProfileBottomSheet(
                         msg: msg,
                         otherUserId: msg.senderId!,
+                        
                       ),
                     ),
                   );
@@ -66,6 +67,7 @@ class ChatMessageList extends StatelessWidget {
                 onLinkTap: onOpenLink,
               );
             },
+            currentUserId: currentUserId,
           );
         }
 

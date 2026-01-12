@@ -90,7 +90,27 @@ Future<ChatUserProfile?> getUserProfile(String userId) async {
   locationName: data['locations']?['name']?.toString(),
 );
  }
+Future<void> deleteMessageForMe(String messageId) async {
+  await _supabase.rpc(
+    'delete_message_for_me',
+    params: {
+      'p_message_id': messageId,
+    },
+  );
+}
 
+Future<void> deleteMessageForEveryone(String messageId) async {
+  try {
+    await _supabase.rpc(
+      'delete_message_for_everyone',
+      params: {
+        'p_message_id': messageId,
+      },
+    );
+  } catch (e) {
+    throw Exception('Failed to delete message: $e');
+  }
+}
 
 
 }

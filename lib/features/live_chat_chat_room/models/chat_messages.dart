@@ -19,6 +19,9 @@ class ChatMessage {
   final String? imageAsset;
   final String? imageFile;
   final bool isFriend;
+  final DateTime? createdAt;
+final bool isLocal;
+
 
   ChatMessage({
     this.id,
@@ -31,6 +34,8 @@ class ChatMessage {
     this.imageAsset,
     this.imageFile,
     this.isFriend = false,
+    this.createdAt,
+  this.isLocal = false,
   });
 
   factory ChatMessage.fromMap(Map<String, dynamic> map, String currentUserId) {

@@ -77,14 +77,24 @@ class UserProfileRequested extends ChatRoomEvent {
 }
 class ChatMessageDeleteRequested extends ChatRoomEvent {
   final String messageId;
-  final bool forEveryone;
 
   const ChatMessageDeleteRequested({
     required this.messageId,
-    required this.forEveryone,
   });
 
   @override
-  List<Object?> get props => [messageId, forEveryone];
+  List<Object?> get props => [messageId];
 }
+
+class ChatMessageDeleteForMeRequested extends ChatRoomEvent {
+  final String messageId;
+
+  const ChatMessageDeleteForMeRequested({
+    required this.messageId,
+  });
+
+  @override
+  List<Object?> get props => [messageId];
+}
+
 

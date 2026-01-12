@@ -7,7 +7,6 @@ import 'chat_room_state.dart';
 
 class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
   final ChatRoomRepository _repository;
-  StreamSubscription<List<ChatMessage>>? _sub;
 
   ChatRoomBloc({required ChatRoomRepository repository})
       : _repository = repository,
@@ -24,7 +23,55 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     on<FriendRemoveRequested>(_onFriendRemoveRequested);
     on<FriendStatusRequested>(_onFriendStatusRequested);
     on<UserProfileRequested>(_onUserProfileRequested);
+    on<ChatMessageDeleteRequested>(_onMessageDeleteRequested);
+    on<ChatMessageDeleteForMeRequested>(_onDeleteForMe);
+
+
   }
+  Future<void> _onDeleteForMe(
+  ChatMessageDeleteForMeRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  // ✅ instant UI update
+  final updatedMessages = state.messages
+      .where((m) => m.id != event.messageId)
+      .toList();
+
+  emit(state.copyWith(messages: updatedMessages));
+
+  try {
+    await _repository.deleteMessageForMe(event.messageId);
+  } catch (e) {
+    emit(state.copyWith(error: e.toString()));
+  }
+}
+
+String _formatTime(DateTime dateTime) {
+  final hour = dateTime.hour > 12
+      ? dateTime.hour - 12
+      : (dateTime.hour == 0 ? 12 : dateTime.hour);
+  final minute = dateTime.minute.toString().padLeft(2, '0');
+  final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+  return '$hour:$minute $period';
+}
+ Future<void> _onMessageDeleteRequested(
+  ChatMessageDeleteRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  final updatedMessages = state.messages
+      .where((m) => m.id != event.messageId)
+      .toList();
+
+  emit(state.copyWith(messages: updatedMessages));
+
+  try {
+    await _repository.deleteMessageForEveryone(event.messageId);
+  } catch (e) {
+    emit(state.copyWith(error: e.toString()));
+  }
+}
+
+
 Future<void> _onUserProfileRequested(
   UserProfileRequested event,
   Emitter<ChatRoomState> emit,
@@ -160,27 +207,43 @@ Future<void> _onFriendRemoveRequested(
 
 
   Future<void> _onSendMessage(
-    ChatMessageSendRequested event,
-    Emitter<ChatRoomState> emit,
-  ) async {
-    try {
-      if (event.text.trim().isEmpty && state.pendingImage == null) return;
+  ChatMessageSendRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  if (event.text.trim().isEmpty && state.pendingImage == null) return;
 
-      await _repository.sendTextMessage(
-        roomId: state.roomId,
-        text: event.text.trim(),
-      );
+  final now = DateTime.now();
 
-      emit(
-        state.copyWith(
-          isTyping: false,
-          pendingImage: null,
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(error: e.toString()));
-    }
+
+  final localMessage = ChatMessage(
+    id: now.millisecondsSinceEpoch.toString(),
+    senderId: _repository.currentUserId,
+    isSender: true,
+    text: event.text.trim(),
+    time: _formatTime(now),
+    createdAt: now,
+    isLocal: true,
+  );
+
+
+  emit(
+    state.copyWith(
+      messages: List<ChatMessage>.from(state.messages)..add(localMessage),
+      isTyping: false,
+      pendingImage: null,
+    ),
+  );
+
+  try {
+    await _repository.sendTextMessage(
+      roomId: state.roomId,
+      text: event.text.trim(),
+    );
+  } catch (e) {
+    emit(state.copyWith(error: e.toString()));
   }
+}
+
 
 
 
@@ -213,7 +276,6 @@ Future<void> _onFriendRemoveRequested(
 
   @override
   Future<void> close() {
-    _sub?.cancel();
     return super.close();
   }
 }
