@@ -15,6 +15,7 @@ class IndividualChatBloc
     extends Bloc<IndividualChatEvent, IndividualChatState> {
   final SupabaseClient _client = Supabase.instance.client;
   final IndividualChatRepository _repository;
+  final String _userId = Supabase.instance.client.auth.currentUser!.id;
 
   late String _conversationId;
   RealtimeChannel? _channel;
@@ -127,42 +128,34 @@ class IndividualChatBloc
     final current = state as IndividualChatLoaded;
 
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    String? uploadedMediaUrl;
+
+    String? mediaUrl;
     String mediaType = 'text';
 
     try {
       emit(current.copyWith(isSending: true));
 
-      /// ───────── IMAGE UPLOAD ─────────
+      /// ───────── MEDIA HANDLING ─────────
       if (current.imagePath != null) {
-        final file = File(current.imagePath!);
-        final fileName =
-            'messages/images/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
-
-        await _client.storage.from('media').upload(fileName, file);
-        uploadedMediaUrl = _client.storage.from('media').getPublicUrl(fileName);
-
+        mediaUrl = await _repository.uploadMedia(
+          file: File(current.imagePath!),
+          folder: 'images',
+        );
         mediaType = 'image';
-      }
-
-      /// ───────── FILE UPLOAD ─────────
-      if (current.filePath != null) {
-        final file = File(current.filePath!);
-        final fileName =
-            'messages/files/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
-
-        await _client.storage.from('media').upload(fileName, file);
-        uploadedMediaUrl = _client.storage.from('media').getPublicUrl(fileName);
-
+      } else if (current.filePath != null) {
+        mediaUrl = await _repository.uploadMedia(
+          file: File(current.filePath!),
+          folder: 'files',
+        );
         mediaType = 'file';
       }
 
       /// ───────── OPTIMISTIC MESSAGE ─────────
       final optimisticMessage = IndividualChatMessageModel(
         id: tempId,
-        senderId: _client.auth.currentUser!.id,
+        senderId: _userId,
         content: event.text,
-        mediaUrl: uploadedMediaUrl,
+        mediaUrl: mediaUrl,
         mediaType: mediaType,
         createdAt: DateTime.now(),
         replyToMessageId:
@@ -181,21 +174,14 @@ class IndividualChatBloc
         ),
       );
 
-      /// ───────── INSERT REAL MESSAGE ─────────
-      final response = await _client
-          .from('messages')
-          .insert({
-            'conversation_id': _conversationId,
-            'sender_id': _client.auth.currentUser!.id,
-            'content': event.text,
-            'media_url': uploadedMediaUrl,
-            'media_type': mediaType,
-            'reply_to_message_id': optimisticMessage.replyToMessageId,
-          })
-          .select()
-          .single();
-
-      final realMessage = IndividualChatMessageModel.fromSupabase(response);
+      /// ───────── SEND REAL MESSAGE ─────────
+      final realMessage = await _repository.sendMessage(
+        conversationId: _conversationId,
+        content: event.text,
+        mediaType: mediaType,
+        mediaUrl: mediaUrl,
+        replyToMessageId: optimisticMessage.replyToMessageId,
+      );
 
       if (state is IndividualChatLoaded) {
         final live = state as IndividualChatLoaded;
