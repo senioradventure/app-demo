@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path/path.dart' as path;
-import 'package:senior_circle/features/individual_chat/model/individual_chat_delete_enum.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
 import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
@@ -14,8 +13,8 @@ part 'individual_chat_state.dart';
 
 class IndividualChatBloc
     extends Bloc<IndividualChatEvent, IndividualChatState> {
-  final SupabaseClient _client = Supabase.instance.client;
   final IndividualChatRepository _repository;
+  final SupabaseClient _client = Supabase.instance.client;
 
   late String _conversationId;
   RealtimeChannel? _channel;
@@ -24,6 +23,8 @@ class IndividualChatBloc
     on<LoadConversationMessages>(_onLoadMessages);
     on<PickMessageImage>(_onPickImage);
     on<RemovePickedImage>(_onRemoveImage);
+    on<PickMessageFile>(_onPickFile);
+    on<RemovePickedFile>(_onRemoveFile);
     on<PickReplyMessage>(_onPickReply);
     on<ClearReplyMessage>(_onClearReply);
     on<SendConversationMessage>(_onSendMessage);
@@ -31,6 +32,7 @@ class IndividualChatBloc
     on<StarMessage>(_onStarMessage);
     on<DeleteMessageForEveryone>(_onDeleteMessageForEveryone);
     on<DeleteMessageForMe>(_onDeleteMessageForMe);
+    on<SendVoiceMessage>(_onSendVoiceMessage);
   }
 
   // ---------------------------------------------------------------------------
@@ -50,6 +52,7 @@ class IndividualChatBloc
         IndividualChatLoaded(
           messages: messages,
           imagePath: null,
+          filePath: null,
           replyTo: null,
           isSending: false,
         ),
@@ -57,7 +60,6 @@ class IndividualChatBloc
 
       _subscribeToRealtime();
     } catch (e) {
-      print(e.toString());
       emit(IndividualChatError(e.toString()));
     }
   }
@@ -67,12 +69,38 @@ class IndividualChatBloc
   // ---------------------------------------------------------------------------
   void _onPickImage(PickMessageImage event, Emitter emit) {
     if (state is! IndividualChatLoaded) return;
-    emit((state as IndividualChatLoaded).copyWith(imagePath: event.imagePath));
+    emit(
+      (state as IndividualChatLoaded).copyWith(
+        imagePath: event.imagePath,
+        clearFilePath: true,
+      ),
+    );
   }
 
   void _onRemoveImage(RemovePickedImage event, Emitter emit) {
     if (state is! IndividualChatLoaded) return;
     emit((state as IndividualChatLoaded).copyWith(clearImagePath: true));
+  }
+
+  // ---------------------------------------------------------------------------
+  // FILE STATE
+  // ---------------------------------------------------------------------------
+  void _onPickFile(PickMessageFile event, Emitter emit) {
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    emit(
+      current.copyWith(
+        filePath: event.path,
+        clearImagePath: true, // optional: prevent both
+      ),
+    );
+  }
+
+  void _onRemoveFile(RemovePickedFile event, Emitter emit) {
+    if (state is! IndividualChatLoaded) return;
+
+    emit((state as IndividualChatLoaded).copyWith(clearFilePath: true));
   }
 
   // ---------------------------------------------------------------------------
@@ -98,29 +126,37 @@ class IndividualChatBloc
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
+    final userId = await _repository.getCurrentUserId();
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-    String? uploadedImageUrl;
+
+    String? mediaUrl;
+    String mediaType = 'text';
 
     try {
       emit(current.copyWith(isSending: true));
 
-      // IMAGE UPLOAD
+      /// ───────── MEDIA HANDLING ─────────
       if (current.imagePath != null) {
-        final file = File(current.imagePath!);
-        final fileName =
-            'messages/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
-
-        await _client.storage.from('media').upload(fileName, file);
-        uploadedImageUrl = _client.storage.from('media').getPublicUrl(fileName);
+        mediaUrl = await _repository.uploadMedia(
+          file: File(current.imagePath!),
+          folder: 'images',
+        );
+        mediaType = 'image';
+      } else if (current.filePath != null) {
+        mediaUrl = await _repository.uploadMedia(
+          file: File(current.filePath!),
+          folder: 'files',
+        );
+        mediaType = 'file';
       }
 
-      // OPTIMISTIC MESSAGE
+      /// ───────── OPTIMISTIC MESSAGE ─────────
       final optimisticMessage = IndividualChatMessageModel(
         id: tempId,
-        senderId: _client.auth.currentUser!.id,
+        senderId: userId,
         content: event.text,
-        mediaUrl: uploadedImageUrl,
-        mediaType: uploadedImageUrl == null ? 'text' : 'image',
+        mediaUrl: mediaUrl,
+        mediaType: mediaType,
         createdAt: DateTime.now(),
         replyToMessageId:
             current.replyTo != null && !current.replyTo!.id.startsWith('temp_')
@@ -132,25 +168,20 @@ class IndividualChatBloc
         current.copyWith(
           messages: [...current.messages, optimisticMessage],
           clearImagePath: true,
+          clearFilePath: true,
           clearReplyTo: true,
+          version: current.version + 1,
         ),
       );
 
-      // INSERT REAL MESSAGE
-      final response = await _client
-          .from('messages')
-          .insert({
-            'conversation_id': _conversationId,
-            'sender_id': _client.auth.currentUser!.id,
-            'content': event.text,
-            'media_url': uploadedImageUrl,
-            'media_type': uploadedImageUrl == null ? 'text' : 'image',
-            'reply_to_message_id': optimisticMessage.replyToMessageId,
-          })
-          .select()
-          .single();
-
-      final realMessage = IndividualChatMessageModel.fromSupabase(response);
+      /// ───────── SEND REAL MESSAGE ─────────
+      final realMessage = await _repository.sendMessage(
+        conversationId: _conversationId,
+        content: event.text,
+        mediaType: mediaType,
+        mediaUrl: mediaUrl,
+        replyToMessageId: optimisticMessage.replyToMessageId,
+      );
 
       if (state is IndividualChatLoaded) {
         final live = state as IndividualChatLoaded;
@@ -165,6 +196,76 @@ class IndividualChatBloc
         );
       }
     } catch (e) {
+      emit(current.copyWith(isSending: false));
+      emit(IndividualChatError(e.toString()));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // SEND VOICE MESSAGE
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onSendVoiceMessage(
+    SendVoiceMessage event,
+    Emitter<IndividualChatState> emit,
+  ) async {
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+    final userId = await _repository.getCurrentUserId();
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+
+    emit(current.copyWith(isSending: true));
+
+    try {
+      /// ───── UPLOAD VOICE ─────
+      final mediaUrl = await _repository.uploadMedia(
+        file: event.audioFile,
+        folder: 'voice',
+      );
+
+      /// ───── OPTIMISTIC MESSAGE ─────
+      final optimistic = IndividualChatMessageModel(
+        id: tempId,
+        senderId: userId,
+        content: '',
+        mediaUrl: mediaUrl,
+        mediaType: 'audio',
+        createdAt: DateTime.now(),
+        replyToMessageId:
+            current.replyTo != null && !current.replyTo!.id.startsWith('temp_')
+            ? current.replyTo!.id
+            : null,
+      );
+
+      emit(
+        current.copyWith(
+          messages: [...current.messages, optimistic],
+          clearReplyTo: true,
+          version: current.version + 1,
+        ),
+      );
+
+      /// ───── REAL MESSAGE ─────
+      final realMessage = await _repository.insertMessage(
+        conversationId: _conversationId,
+        mediaType: 'audio',
+        mediaUrl: mediaUrl,
+        replyToMessageId: optimistic.replyToMessageId,
+      );
+
+      final live = state as IndividualChatLoaded;
+
+      emit(
+        live.copyWith(
+          messages: live.messages
+              .map((m) => m.id == tempId ? realMessage : m)
+              .toList(),
+          isSending: false,
+          version: live.version + 1,
+        ),
+      );
+    } catch (e) {
+      emit(current.copyWith(isSending: false));
       emit(IndividualChatError(e.toString()));
     }
   }
@@ -179,9 +280,7 @@ class IndividualChatBloc
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
-    final userId = _client.auth.currentUser!.id;
-
-    /// 🔥 UPDATE UI IMMEDIATELY
+    final userId = await _repository.getCurrentUserId();
     final updatedMessages = current.messages.map((m) {
       if (m.id != event.messageId) return m;
 
@@ -210,7 +309,6 @@ class IndividualChatBloc
 
     emit(current.copyWith(messages: updatedMessages));
 
-    /// 🔥 THEN UPDATE DATABASE
     await _repository.addReaction(
       messageId: event.messageId,
       reaction: event.reaction,
@@ -224,16 +322,14 @@ class IndividualChatBloc
     StarMessage event,
     Emitter<IndividualChatState> emit,
   ) async {
-    if (state is! IndividualChatLoaded) return; // Ensure we have chat loaded
+    if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
     try {
       await _repository.starMessage(message: event.message);
 
-      // Emit ONE-TIME snackbar without replacing the chat state
       emit(StarMessageSuccess('Message starred ⭐'));
 
-      // Immediately restore chat state so UI doesn't break
       emit(current.copyWith());
     } catch (e) {
       emit(StarMessageFailure('Failed to star message'));
@@ -259,10 +355,7 @@ class IndividualChatBloc
     emit(current.copyWith(messages: updatedMessages));
 
     try {
-      await _client
-          .from('messages')
-          .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', event.message.id);
+      await _repository.deleteMessageForEveryone(event.message.id);
 
       emit(DeleteMessageSuccess('Message deleted'));
       emit(current.copyWith(messages: updatedMessages));
@@ -283,7 +376,6 @@ class IndividualChatBloc
 
     final current = state as IndividualChatLoaded;
 
-    // Optimistically remove from UI
     final updatedMessages = current.messages
         .where((m) => m.id != event.messageId)
         .toList();
@@ -292,14 +384,9 @@ class IndividualChatBloc
 
     try {
       await _repository.deleteMessageForMe(event.messageId);
-      // Success - no need to emit again since UI already updated
     } catch (e) {
-      print('Delete error: $e'); // Debug logging
-      // Rollback on failure
       emit(DeleteMessageFailure('Failed to delete message: ${e.toString()}'));
-      emit(
-        current.copyWith(),
-      ); // Restore original messages with version increment
+      emit(current.copyWith());
     }
   }
 

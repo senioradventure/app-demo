@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/common/widgets/individual_profile_icon.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
+import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
+import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 
 class FriendTile extends StatelessWidget {
@@ -17,14 +21,16 @@ class FriendTile extends StatelessWidget {
     return Material(
       color: Colors.white,
       child: InkWell(
-        onTap: () {},
+        onTap: () {}, // optional
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              individualProfileIcon(hasImage, friend.profileImage!),
+              individualProfileIcon(hasImage, friend.profileImage),
+
               const SizedBox(width: 12),
 
+              /// 🔹 Name + online status
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,12 +42,17 @@ class FriendTile extends StatelessWidget {
                         color: AppColors.textDarkGray,
                       ),
                     ),
-                    if (friend.isOnline!) ...[
+
+                    if (friend.isOnline == true) ...[
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.circle, size: 14, color: AppColors.green),
-                          SizedBox(width: 6),
+                          const Icon(
+                            Icons.circle,
+                            size: 12,
+                            color: AppColors.green,
+                          ),
+                          const SizedBox(width: 6),
                           Text(
                             'Online',
                             style: Theme.of(context).textTheme.labelSmall!
@@ -57,13 +68,30 @@ class FriendTile extends StatelessWidget {
                 ),
               ),
 
+              /// 🔹 Message button
               IconButton(
-                onPressed: () {},
                 icon: SizedBox(
                   width: 24,
                   height: 24,
                   child: SvgPicture.asset('assets/icons/message_circle.svg'),
                 ),
+                onPressed: () async {
+                  final conversation = await context
+                      .read<ViewFriendsBloc>()
+                      .repository
+                      .getOrCreateIndividualChatWithFriend(friend.id);
+
+                  context.read<IndividualChatBloc>().add(
+                    LoadConversationMessages(conversation.id),
+                  );
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MyCircleIndividualChatPage(chat: conversation),
+                    ),
+                  );
+                },
               ),
 
               IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
@@ -73,6 +101,4 @@ class FriendTile extends StatelessWidget {
       ),
     );
   }
-
-
 }

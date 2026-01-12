@@ -13,49 +13,63 @@ class IndividualChatLoading extends IndividualChatState {}
 
 class IndividualChatLoaded extends IndividualChatState {
   final List<IndividualChatMessageModel> messages;
-  final String? imagePath;
   final bool isSending;
   final IndividualChatMessageModel? replyTo;
+  final String? imagePath;
+  final String? filePath;
+  final String? voicePath;
 
-  /// 🔥 VERSION FOR FORCING UI REBUILD
   final int version;
 
   const IndividualChatLoaded({
     required this.messages,
-    this.imagePath,
-    this.isSending = false,
+    required this.isSending,
     this.replyTo,
+    this.imagePath,
+    this.filePath,
+    this.voicePath,
     this.version = 0,
   });
 
-  bool get canSend => imagePath != null;
-
   IndividualChatLoaded copyWith({
     List<IndividualChatMessageModel>? messages,
-    String? imagePath,
     bool? isSending,
     IndividualChatMessageModel? replyTo,
-    bool clearImagePath = false,
     bool clearReplyTo = false,
+    String? imagePath,
+    bool clearImagePath = false,
+
+    /// ✅ ADD
+    String? filePath,
+    String? voicePath,
+    bool clearFilePath = false,
+    bool clearVoicePath = false,
+
+    int? version,
   }) {
     return IndividualChatLoaded(
       messages: messages ?? this.messages,
-      imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
       isSending: isSending ?? this.isSending,
-      replyTo: clearReplyTo ? null : (replyTo ?? this.replyTo),
+      replyTo: clearReplyTo ? null : replyTo ?? this.replyTo,
+      imagePath: clearImagePath ? null : imagePath ?? this.imagePath,
 
-      /// 🔥 FORCE REBUILD
-      version: version + 1,
+      /// ✅ ADD
+      filePath: clearFilePath ? null : filePath ?? this.filePath,
+      voicePath: clearVoicePath ? null : voicePath ?? this.voicePath,
+
+      version: version ?? this.version,
     );
   }
 
   @override
   List<Object?> get props => [
-    version, // 🔥 MUST BE FIRST
+    version,
     messages,
-    imagePath,
     isSending,
     replyTo,
+    imagePath,
+    filePath,
+    voicePath,
   ];
 }
 
@@ -86,6 +100,7 @@ class IndividualChatError extends IndividualChatState {
   @override
   List<Object?> get props => [message];
 }
+
 class DeleteMessageSuccess extends IndividualChatState {
   final String message;
   const DeleteMessageSuccess(this.message);
