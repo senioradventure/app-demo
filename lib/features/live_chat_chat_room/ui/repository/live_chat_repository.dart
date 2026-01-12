@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
-import 'package:senior_circle/features/live_chat_chat_room/models/user_profiles.dart';
+import 'package:senior_circle/features/live_chat_chat_room/models/user_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 
@@ -72,6 +72,27 @@ Stream<List<ChatMessage>> streamMessages({required String roomId}) {
         )
         .maybeSingle();
   }
+Future<ChatUserProfile?> getUserProfile(String userId) async {
+
+  final data = await _supabase
+      .from('users')
+      .select('id, username, full_name, avatar_url, locations(name)')
+      .eq('id', userId)
+      .maybeSingle();
+
+  if (data == null) return null;
+
+ return ChatUserProfile(
+  id: data['id']?.toString() ?? '',
+  username: data['username']?.toString() ?? '',
+  fullName: data['full_name']?.toString(),
+  avatarUrl: data['avatar_url']?.toString(),
+  locationName: data['locations']?['name']?.toString(),
+);
+ }
+
+
+
 Future<ChatUserProfile?> getUserProfile(String userId) async {
 
   final data = await _supabase

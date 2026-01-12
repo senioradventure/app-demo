@@ -42,6 +42,7 @@ class _ChatroomState extends State<Chatroom> {
 
 
 
+
 @override
 void initState() {
   super.initState();
@@ -50,9 +51,8 @@ void initState() {
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (!mounted) return;
-    context.read<ChatRoomBloc>().add(
-      ChatRoomStarted(_liveChatRoomId),
-    );
+    final bloc = context.read<ChatRoomBloc>();
+    bloc.add(ChatRoomStarted(_liveChatRoomId));
   });
 }
 

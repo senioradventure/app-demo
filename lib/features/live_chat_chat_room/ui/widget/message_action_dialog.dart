@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
-import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_event.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MessageActionDialog {
   static void show(
-    BuildContext context, {
-    required String messageId,
-    required String currentUserId,
-  }) {
+  BuildContext context, {
+  required String messageId,
+  required String currentUserId,
+}) {
+
     showDialog(
       context: context,
       barrierColor: Colors.black26,
@@ -40,35 +39,30 @@ class MessageActionDialog {
                     fontWeight: FontWeight.w600,
                   ),
                   _divider(),
-                  _textOnlyItem(
-                    context,
-                    'SHARE',
-                    onTap: () {
+                  _textOnlyItem(context, 'SHARE',onTap: () {
+                      // local delete only (UI / state based)
                       Navigator.pop(context);
-                    },
-                  ),
+                    },),
                   _divider(),
-                  _textOnlyItem(
-                    context,
-                    'DELETE FOR ME',
-                    onTap: () {
-                      context.read<ChatRoomBloc>().add(
-                        ChatMessageDeleteForMeRequested(messageId: messageId),
-                      );
-
+                  _textOnlyItem(context, 'DELETE FOR ME',
+                  onTap: () {
+                      // local delete only (UI / state based)
                       Navigator.pop(context);
-                    },
-                  ),
-
+                    },),
                   _divider(),
                   _textOnlyItem(
                     context,
                     'DELETE FOR EVERYONE',
                     fontWeight: FontWeight.w600,
-                    onTap: () {
-                      context.read<ChatRoomBloc>().add(
-                        ChatMessageDeleteRequested(messageId: messageId),
-                      );
+                    onTap: () async {
+                      try {
+                        await Supabase.instance.client.rpc(
+                          'delete_message_for_everyone',
+                          params: {
+                            'p_message_id': messageId,
+                          },
+                        );
+                      } catch (_) {}
 
                       Navigator.pop(context);
                     },
