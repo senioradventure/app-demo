@@ -8,3 +8,7 @@ class SearchFriends extends ViewFriendsEvent {
   SearchFriends(this.query);
 }
 
+class StartChatWithFriend extends ViewFriendsEvent {
+  final String friendId;
+  StartChatWithFriend(this.friendId);
+}
