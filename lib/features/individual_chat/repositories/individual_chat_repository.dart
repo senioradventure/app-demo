@@ -171,4 +171,8 @@ class IndividualChatRepository {
   }
 
   Future<dynamic> getOrCreateIndividualChatWithFriend(String friendId) async {}
+
+  Future<String> getCurrentUserId() async {
+    return _client.auth.currentUser!.id;
+  }
 }

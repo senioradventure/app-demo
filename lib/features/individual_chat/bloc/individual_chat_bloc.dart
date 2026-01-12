@@ -13,9 +13,8 @@ part 'individual_chat_state.dart';
 
 class IndividualChatBloc
     extends Bloc<IndividualChatEvent, IndividualChatState> {
-  final SupabaseClient _client = Supabase.instance.client;
   final IndividualChatRepository _repository;
-  final String _userId = Supabase.instance.client.auth.currentUser!.id;
+  final SupabaseClient _client = Supabase.instance.client;
 
   late String _conversationId;
   RealtimeChannel? _channel;
@@ -127,6 +126,7 @@ class IndividualChatBloc
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
+    final userId = await _repository.getCurrentUserId();
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
     String? mediaUrl;
@@ -153,7 +153,7 @@ class IndividualChatBloc
       /// ───────── OPTIMISTIC MESSAGE ─────────
       final optimisticMessage = IndividualChatMessageModel(
         id: tempId,
-        senderId: _userId,
+        senderId: userId,
         content: event.text,
         mediaUrl: mediaUrl,
         mediaType: mediaType,
@@ -211,7 +211,7 @@ class IndividualChatBloc
   ) async {
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
-
+    final userId = await _repository.getCurrentUserId();
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
     emit(current.copyWith(isSending: true));
@@ -226,7 +226,7 @@ class IndividualChatBloc
       /// ───── OPTIMISTIC MESSAGE ─────
       final optimistic = IndividualChatMessageModel(
         id: tempId,
-        senderId: _userId,
+        senderId: userId,
         content: '',
         mediaUrl: mediaUrl,
         mediaType: 'audio',
@@ -280,7 +280,7 @@ class IndividualChatBloc
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
-    final userId = _client.auth.currentUser!.id;
+    final userId = await _repository.getCurrentUserId();
     final updatedMessages = current.messages.map((m) {
       if (m.id != event.messageId) return m;
 
