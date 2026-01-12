@@ -8,6 +8,7 @@ import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.
 import 'package:senior_circle/features/live_chat_chat_room/ui/live_chat_chat_room_page.dart';
 import 'package:senior_circle/features/preview/models/preview_details_model.dart';
 import 'package:senior_circle/features/preview/presentation/widgets/preview_screen_caution_container.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PreviewScreen extends StatelessWidget {
   PreviewScreen({super.key});
@@ -60,7 +61,7 @@ class PreviewScreen extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (_) =>
-                  Chatroom(title: details.name, isAdmin: true, isNewRoom: true),
+                  Chatroom(title: details.name, adminId: Supabase.instance.client.auth.currentUser!.id, isNewRoom: true),
             ),
           );
         },

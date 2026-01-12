@@ -80,7 +80,7 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
         builder: (innerContext) {
           return Chatroom(
             title: widget.previewDetails.name,
-            isAdmin: true,
+            adminId: user.id,
             isNewRoom: true,
             imageFile: widget.previewDetails.imageFile,
             roomId: roomId,

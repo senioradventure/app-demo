@@ -5,6 +5,8 @@ import 'package:senior_circle/features/live_chat_chat_room/models/user_profiles.
 
 enum FriendStatus { none, loading, pendingSent, pendingReceived, accepted }
 
+enum MessageAction { star, report, share, deleteForMe, deleteForEveryone }
+
 class ChatRoomState extends Equatable {
   final List<ChatMessage> messages;
   final bool isLoading;
@@ -15,7 +17,6 @@ class ChatRoomState extends Equatable {
   final FriendStatus friendStatus;
   final String? friendRequestId;
   final ChatUserProfile? otherUserProfile;
-
 
   const ChatRoomState({
     required this.roomId,
@@ -39,8 +40,7 @@ class ChatRoomState extends Equatable {
     String? error,
     FriendStatus? friendStatus,
     String? friendRequestId,
-    ChatUserProfile? otherUserProfile
-
+    ChatUserProfile? otherUserProfile,
   }) {
     return ChatRoomState(
       roomId: roomId ?? this.roomId,

@@ -65,6 +65,7 @@ class ContactRoomList extends StatelessWidget {
               title: room.name,
               imageUrl: room.image_url,
               roomId: room.id,
+              adminId: room.admin_id!,
             );
           },
         );
