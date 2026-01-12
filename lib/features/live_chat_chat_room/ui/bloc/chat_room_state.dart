@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
+import 'package:senior_circle/features/live_chat_chat_room/models/user_profiles.dart';
 
 enum FriendStatus { none, loading, pendingSent, pendingReceived, accepted }
 
@@ -12,6 +14,8 @@ class ChatRoomState extends Equatable {
   final String roomId;
   final FriendStatus friendStatus;
   final String? friendRequestId;
+  final ChatUserProfile? otherUserProfile;
+
 
   const ChatRoomState({
     required this.roomId,
@@ -22,6 +26,7 @@ class ChatRoomState extends Equatable {
     this.error,
     this.friendStatus = FriendStatus.none,
     this.friendRequestId,
+    this.otherUserProfile,
   });
 
   ChatRoomState copyWith({
@@ -34,6 +39,8 @@ class ChatRoomState extends Equatable {
     String? error,
     FriendStatus? friendStatus,
     String? friendRequestId,
+    ChatUserProfile? otherUserProfile
+
   }) {
     return ChatRoomState(
       roomId: roomId ?? this.roomId,
@@ -46,6 +53,7 @@ class ChatRoomState extends Equatable {
       error: error,
       friendStatus: friendStatus ?? this.friendStatus,
       friendRequestId: friendRequestId ?? this.friendRequestId,
+      otherUserProfile: otherUserProfile ?? this.otherUserProfile,
     );
   }
 
@@ -59,5 +67,6 @@ class ChatRoomState extends Equatable {
     error,
     friendStatus,
     friendRequestId,
+    otherUserProfile,
   ];
 }

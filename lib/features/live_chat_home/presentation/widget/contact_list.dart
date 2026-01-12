@@ -53,14 +53,26 @@ class ContactRoomList extends StatelessWidget {
 
         return InkWell(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) =>
-                    Chatroom(title: room.name, imageUrl: room.image_url, roomId: room.id),
-              ),
+  debugPrint('👉 Opening chat with roomId: ${room.id}');
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) {
+        return Builder(
+          builder: (innerContext) {
+            return Chatroom(
+              title: room.name,
+              imageUrl: room.image_url,
+              roomId: room.id,
             );
           },
+        );
+      },
+    ),
+  );
+},
+
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             child: Row(

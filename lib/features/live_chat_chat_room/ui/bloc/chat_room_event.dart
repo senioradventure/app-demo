@@ -68,3 +68,11 @@ class FriendStatusRequested extends ChatRoomEvent {
   @override
   List<Object?> get props => [otherUserId];
 }
+class UserProfileRequested extends ChatRoomEvent {
+  final String userId;
+  const UserProfileRequested(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
+}
+

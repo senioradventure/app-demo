@@ -23,7 +23,11 @@ class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatRoomBloc>().add(FriendStatusRequested(widget.otherUserId));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    final bloc = context.read<ChatRoomBloc>();
+    bloc.add(FriendStatusRequested(widget.otherUserId));
+    bloc.add(UserProfileRequested(widget.otherUserId)); 
+  });
   }
 
   @override

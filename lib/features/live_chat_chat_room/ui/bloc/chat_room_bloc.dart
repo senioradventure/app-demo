@@ -23,7 +23,20 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     on<FriendRequestSent>(_onFriendRequestSent);
     on<FriendRemoveRequested>(_onFriendRemoveRequested);
     on<FriendStatusRequested>(_onFriendStatusRequested);
+    on<UserProfileRequested>(_onUserProfileRequested);
   }
+Future<void> _onUserProfileRequested(
+  UserProfileRequested event,
+  Emitter<ChatRoomState> emit,
+) async {
+  try {
+    final profile = await _repository.getUserProfile(event.userId);
+
+    emit(state.copyWith(otherUserProfile: profile));
+  } catch (e) {
+    emit(state.copyWith(error: e.toString()));
+  }
+}
 
 
   void _onImageSelected(
@@ -171,41 +184,32 @@ Future<void> _onFriendRemoveRequested(
 
 
 
-  void _onStarted(
-    ChatRoomStarted event,
-    Emitter<ChatRoomState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        roomId: event.roomId,
-        isLoading: true,
-        error: null,
-      ),
-    );
+  Future<void> _onStarted(
+  ChatRoomStarted event,
+  Emitter<ChatRoomState> emit,
+) async {
+  emit(state.copyWith(
+    roomId: event.roomId,
+    error: null,
+  ));
 
-    _sub?.cancel();
+  await emit.forEach<List<ChatMessage>>(
+    _repository.streamMessages(roomId: event.roomId),
+    onData: (messages) {
+      return state.copyWith(
+        messages: messages,
+        isLoading: false,
+      );
+    },
+    onError: (error, stackTrace) {
+      return state.copyWith(
+        isLoading: false,
+        error: error.toString(),
+      );
+    },
+  );
+}
 
-    _sub = _repository
-        .streamMessages(roomId: event.roomId)
-        .listen(
-          (messages) {
-            emit(
-              state.copyWith(
-                messages: messages,
-                isLoading: false,
-              ),
-            );
-          },
-          onError: (e) {
-            emit(
-              state.copyWith(
-                isLoading: false,
-                error: e.toString(),
-              ),
-            );
-          },
-        );
-  }
 
   @override
   Future<void> close() {
