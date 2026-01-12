@@ -27,19 +27,23 @@ class ChatRoomRepository {
     });
   }
 
-  Stream<List<ChatMessage>> streamMessages({required String roomId}) {
-    final userId = currentUserId ?? '';
+Stream<List<ChatMessage>> streamMessages({required String roomId}) {
+  final userId = currentUserId ?? '';
 
-    return _supabase
-        .from('messages')
-        .stream(primaryKey: ['id'])
-        .eq('live_chat_room_id', roomId)
-        .order('created_at')
-        .map(
-          (rows) =>
-              rows.map((row) => ChatMessage.fromMap(row, userId)).toList(),
-        );
-  }
+  return _supabase
+      .from('messages')
+      .stream(primaryKey: ['id'])
+      .map((rows) {
+        return rows
+            .where((row) =>
+                row['live_chat_room_id'] == roomId &&
+                row['deleted_at'] == null) 
+            .map((row) => ChatMessage.fromMap(row, userId))
+            .toList();
+      });
+}
+
+
 
   Future<void> sendFriendRequest(String otherUserId) async {
     final userId = currentUserId;

@@ -123,6 +123,7 @@ void initState() {
         messages: state.messages,
         scrollController: _scrollController,
         onOpenLink: _openLink,
+        currentUserId: currentUserId!,
       );
     },
   ),

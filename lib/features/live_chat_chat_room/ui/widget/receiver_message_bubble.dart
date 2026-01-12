@@ -9,11 +9,13 @@ import 'package:senior_circle/features/live_chat_chat_room/ui/widget/user_bottom
 class ReceiverMessageBubble extends StatelessWidget {
   final ChatMessage msg;
   final Widget Function(BuildContext, ChatMessage) buildMessageText;
+  final String currentUserId;
 
   const ReceiverMessageBubble({
     super.key,
     required this.msg,
     required this.buildMessageText,
+    required this.currentUserId,
   });
 
   @override
@@ -33,7 +35,10 @@ class ReceiverMessageBubble extends StatelessWidget {
                       context: context,
                       backgroundColor: Colors.transparent,
                       isScrollControlled: true,
-                      builder: (_) => UserProfileBottomSheet(msg: msg,otherUserId: msg.senderId!,),
+                      builder: (_) => UserProfileBottomSheet(
+                        msg: msg,
+                        otherUserId: msg.senderId!,
+                      ),
                     );
                   },
                   child: CircleAvatar(
@@ -61,8 +66,16 @@ class ReceiverMessageBubble extends StatelessWidget {
                     GestureDetector(
                       onLongPress: () {
                         FocusScope.of(context).unfocus();
-                        MessageActionDialog.show(context);
+
+                        if (msg.id == null) return;
+
+                        MessageActionDialog.show(
+                          context,
+                          messageId: msg.id!, // ✅ PASS MESSAGE ID
+                          currentUserId: currentUserId,
+                        );
                       },
+
                       child: Container(
                         constraints: BoxConstraints(
                           maxWidth:
