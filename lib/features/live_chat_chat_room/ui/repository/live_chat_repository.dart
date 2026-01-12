@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
+import 'package:senior_circle/features/live_chat_chat_room/models/user_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 
@@ -25,19 +27,23 @@ class ChatRoomRepository {
     });
   }
 
-  Stream<List<ChatMessage>> streamMessages({required String roomId}) {
-    final userId = currentUserId ?? '';
+Stream<List<ChatMessage>> streamMessages({required String roomId}) {
+  final userId = currentUserId ?? '';
 
-    return _supabase
-        .from('messages')
-        .stream(primaryKey: ['id'])
-        .eq('live_chat_room_id', roomId)
-        .order('created_at')
-        .map(
-          (rows) =>
-              rows.map((row) => ChatMessage.fromMap(row, userId)).toList(),
-        );
-  }
+  return _supabase
+      .from('messages')
+      .stream(primaryKey: ['id'])
+      .map((rows) {
+        return rows
+            .where((row) =>
+                row['live_chat_room_id'] == roomId &&
+                row['deleted_at'] == null) 
+            .map((row) => ChatMessage.fromMap(row, userId))
+            .toList();
+      });
+}
+
+
 
   Future<void> sendFriendRequest(String otherUserId) async {
     final userId = currentUserId;
@@ -66,4 +72,25 @@ class ChatRoomRepository {
         )
         .maybeSingle();
   }
+Future<ChatUserProfile?> getUserProfile(String userId) async {
+
+  final data = await _supabase
+      .from('users')
+      .select('id, username, full_name, avatar_url, locations(name)')
+      .eq('id', userId)
+      .maybeSingle();
+
+  if (data == null) return null;
+
+ return ChatUserProfile(
+  id: data['id']?.toString() ?? '',
+  username: data['username']?.toString() ?? '',
+  fullName: data['full_name']?.toString(),
+  avatarUrl: data['avatar_url']?.toString(),
+  locationName: data['locations']?['name']?.toString(),
+);
+ }
+
+
+
 }
