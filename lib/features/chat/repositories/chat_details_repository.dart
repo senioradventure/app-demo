@@ -97,4 +97,9 @@ class ChatDetailsRepository {
           .toList();
     }
   }
+
+  Future<List<Friend>> getMyFriends() async {
+    final userId = _supabase.auth.currentUser!.id;
+    return getFriends(userId);
+  }
 }
