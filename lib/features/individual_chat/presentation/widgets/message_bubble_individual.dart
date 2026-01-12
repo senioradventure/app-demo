@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
+import 'package:senior_circle/features/individual_chat/presentation/widgets/message_file_bubble.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/message_image.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/message_time.dart';
+import 'package:senior_circle/features/individual_chat/presentation/widgets/message_voice_bubble.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/replied_message_preview.dart';
 
 class MessageBubbleIndividual extends StatelessWidget {
@@ -41,12 +43,23 @@ class MessageBubbleIndividual extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  /// ---------------- REPLY PREVIEW ----------------
                   if (message.replyToMessageId != null)
                     RepliedMessagePreview(message: message, isMe: isMe),
 
+                  /// ---------------- IMAGE ----------------
                   if (message.mediaType == 'image' && message.mediaUrl != null)
                     MessageImage(url: message.mediaUrl!),
 
+                  /// ---------------- FILE ----------------
+                  if (message.mediaType == 'file' && message.mediaUrl != null)
+                    MessageFileBubble(fileUrl: message.mediaUrl!, isMe: isMe),
+
+                  /// ---------------- VOICE ----------------
+                  if (message.mediaType == 'audio' && message.mediaUrl != null)
+                    MessageVoiceBubble(audioUrl: message.mediaUrl!, isMe: isMe),
+
+                  /// ---------------- TEXT ----------------
                   if (message.content.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
@@ -67,7 +80,7 @@ class MessageBubbleIndividual extends StatelessWidget {
           ),
         ),
 
-        /// 🔥 SHOW REACTIONS IF PRESENT
+        /// ---------------- REACTIONS ----------------
         if (message.reactions.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 6),
@@ -97,6 +110,8 @@ class MessageBubbleIndividual extends StatelessWidget {
     );
   }
 }
+
+/// ================= REACTION GROUPING =================
 
 Map<String, int> groupReactions(List<MessageReaction> reactions) {
   final Map<String, int> map = {};

@@ -12,12 +12,14 @@ class ChatMessageList extends StatelessWidget {
   final List<ChatMessage> messages;
   final ScrollController scrollController;
   final Function(String url) onOpenLink;
+  final String currentUserId;
 
   const ChatMessageList({
     super.key,
     required this.messages,
     required this.scrollController,
     required this.onOpenLink,
+    required this.currentUserId,
   });
 
   @override
@@ -28,7 +30,7 @@ class ChatMessageList extends StatelessWidget {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (scrollController.hasClients) {
-        scrollController.jumpTo(0);
+        scrollController.jumpTo(scrollController.position.minScrollExtent);
       }
     });
 
@@ -52,9 +54,13 @@ class ChatMessageList extends StatelessWidget {
                     context: context,
                     backgroundColor: Colors.transparent,
                     isScrollControlled: true,
-                    builder: (_) => UserProfileBottomSheet(
-                      msg: msg,
-                      otherUserId: msg.senderId!,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<ChatRoomBloc>(),
+                      child: UserProfileBottomSheet(
+                        msg: msg,
+                        otherUserId: msg.senderId!,
+                        
+                      ),
                     ),
                   );
                 },
@@ -85,8 +91,11 @@ class ChatMessageList extends StatelessWidget {
                 );
               },
               onLinkTap: onOpenLink,
+
             );
           },
+                        
+          currentUserId: currentUserId,
         );
       },
     );

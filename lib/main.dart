@@ -9,6 +9,8 @@ import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/repository/live_chat_repository.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_bloc.dart';
@@ -58,6 +60,11 @@ class SeniorCircleApp extends StatelessWidget {
               ViewFriendsBloc(ViewFriendsRepository(Supabase.instance.client))
                 ..add(LoadFriends()),
         ),
+        BlocProvider(
+          create: (_) => ChatRoomBloc(
+            repository: ChatRoomRepository(supabase: Supabase.instance.client,),
+          ),
+        ),
 
         BlocProvider(
           create: (_) =>
@@ -66,13 +73,15 @@ class SeniorCircleApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) =>
-              MyCircleBloc(repository: MyCircleRepository())..add(LoadMyCircleChats()),
+              MyCircleBloc(repository: MyCircleRepository())
+                ..add(LoadMyCircleChats()),
         ),
         BlocProvider(
           create: (context) => LiveChatHomeBloc(LiveChatHomeRepository())
             ..add(FetchLocationsEvent())
             ..add(FetchRoomsEvent()),
         ),
+        BlocProvider(create: (context) => IndividualChatBloc(IndividualChatRepository())),
         BlocProvider(
           create: (_) => CreateCircleBloc(
             repository: CreateCircleRepository(

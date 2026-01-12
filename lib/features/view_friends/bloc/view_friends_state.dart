@@ -1,4 +1,4 @@
-
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 
 abstract class ViewFriendsState {}
@@ -21,4 +21,7 @@ class ViewFriendsError extends ViewFriendsState {
   ViewFriendsError(this.message);
 }
 
-
+class ViewFriendsNavigateToChat extends ViewFriendsState {
+  final MyCircle conversation;
+  ViewFriendsNavigateToChat(this.conversation);
+}

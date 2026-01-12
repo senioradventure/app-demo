@@ -13,7 +13,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Chatroom extends StatefulWidget {
   final String? title;
-  final bool isAdmin;
+  final String adminId;
   final String? imageUrl;
   final bool isNewRoom;
   final File? imageFile;
@@ -23,7 +23,7 @@ class Chatroom extends StatefulWidget {
     super.key,
     this.title,
     this.imageUrl,
-    this.isAdmin = true,
+    required this.adminId,
     this.isNewRoom = false,
     this.imageFile,
     this.roomId,
@@ -43,16 +43,19 @@ class _ChatroomState extends State<Chatroom> {
 
 
 
- @override
+@override
 void initState() {
   super.initState();
 
   _liveChatRoomId = widget.roomId!;
 
-  context.read<ChatRoomBloc>().add(
-    ChatRoomStarted(_liveChatRoomId),
-  );
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!mounted) return;
+    final bloc = context.read<ChatRoomBloc>();
+    bloc.add(ChatRoomStarted(_liveChatRoomId));
+  });
 }
+
 
 
   @override
@@ -73,7 +76,11 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId =
+      Supabase.instance.client.auth.currentUser?.id;
 
+  final bool isAdmin =
+      currentUserId != null && currentUserId == widget.adminId;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
@@ -98,7 +105,7 @@ void initState() {
                 liveChatRoomId: _liveChatRoomId,
                 title: widget.title,
                 imageUrl: widget.imageUrl,
-                isAdmin: widget.isAdmin,
+                isAdmin: isAdmin,
               ),
 
               Expanded(
@@ -116,6 +123,7 @@ void initState() {
         messages: state.messages,
         scrollController: _scrollController,
         onOpenLink: _openLink,
+        currentUserId: currentUserId!,
       );
     },
   ),

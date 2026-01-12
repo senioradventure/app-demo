@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MessageActionDialog {
-  static void show(BuildContext context) {
+  static void show(
+  BuildContext context, {
+  required String messageId,
+  required String currentUserId,
+}) {
+
     showDialog(
       context: context,
       barrierColor: Colors.black26,
@@ -33,14 +39,33 @@ class MessageActionDialog {
                     fontWeight: FontWeight.w600,
                   ),
                   _divider(),
-                  _textOnlyItem(context, 'SHARE'),
+                  _textOnlyItem(context, 'SHARE',onTap: () {
+                      // local delete only (UI / state based)
+                      Navigator.pop(context);
+                    },),
                   _divider(),
-                  _textOnlyItem(context, 'DELETE FOR ME'),
+                  _textOnlyItem(context, 'DELETE FOR ME',
+                  onTap: () {
+                      // local delete only (UI / state based)
+                      Navigator.pop(context);
+                    },),
                   _divider(),
                   _textOnlyItem(
                     context,
                     'DELETE FOR EVERYONE',
                     fontWeight: FontWeight.w600,
+                    onTap: () async {
+                      try {
+                        await Supabase.instance.client.rpc(
+                          'delete_message_for_everyone',
+                          params: {
+                            'p_message_id': messageId,
+                          },
+                        );
+                      } catch (_) {}
+
+                      Navigator.pop(context);
+                    },
                   ),
                 ],
               ),
@@ -92,9 +117,10 @@ class MessageActionDialog {
     BuildContext context,
     String label, {
     FontWeight fontWeight = FontWeight.w500,
+    required VoidCallback onTap,
   }) {
     return InkWell(
-      onTap: () => Navigator.pop(context),
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Row(

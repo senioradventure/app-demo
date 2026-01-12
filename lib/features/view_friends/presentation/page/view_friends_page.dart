@@ -18,14 +18,16 @@ class ViewFriendsPage extends StatelessWidget {
       body: Column(
         children: [
           const SizedBox(height: 12),
+
           SearchBarWidget(
             hintText: 'Search Friends',
             onChanged: (value) {
               context.read<ViewFriendsBloc>().add(SearchFriends(value));
             },
           ),
+
           const SizedBox(height: 12),
-    
+
           Expanded(
             child: BlocBuilder<ViewFriendsBloc, ViewFriendsState>(
               builder: (context, state) {
@@ -33,12 +35,12 @@ class ViewFriendsPage extends StatelessWidget {
                     state is ViewFriendsInitial) {
                   return const Center(child: CircularProgressIndicator());
                 }
-    
+
                 if (state is ViewFriendsLoaded) {
                   if (state.friends.isEmpty) {
                     return const Center(child: Text('No friends found'));
                   }
-    
+
                   return ListView.separated(
                     itemCount: state.friends.length,
                     separatorBuilder: (_, __) =>
@@ -48,11 +50,11 @@ class ViewFriendsPage extends StatelessWidget {
                     },
                   );
                 }
-    
+
                 if (state is ViewFriendsError) {
                   return Center(child: Text(state.message));
                 }
-    
+
                 return const SizedBox.shrink();
               },
             ),
