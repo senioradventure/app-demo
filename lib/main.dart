@@ -63,6 +63,11 @@ class SeniorCircleApp extends StatelessWidget {
               ViewFriendsBloc(ViewFriendsRepository(Supabase.instance.client))
                 ..add(LoadFriends()),
         ),
+        BlocProvider(
+          create: (_) => ChatRoomBloc(
+            repository: ChatRoomRepository(supabase: Supabase.instance.client,),
+          ),
+        ),
 
         BlocProvider(
           create: (_) =>

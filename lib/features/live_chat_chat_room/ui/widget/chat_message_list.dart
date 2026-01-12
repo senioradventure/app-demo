@@ -59,7 +59,6 @@ class ChatMessageList extends StatelessWidget {
                       child: UserProfileBottomSheet(
                         msg: msg,
                         otherUserId: msg.senderId!,
-                        
                       ),
                     ),
                   );
