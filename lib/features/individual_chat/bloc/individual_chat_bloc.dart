@@ -226,7 +226,7 @@ class IndividualChatBloc
       /// ───── OPTIMISTIC MESSAGE ─────
       final optimistic = IndividualChatMessageModel(
         id: tempId,
-        senderId: _client.auth.currentUser!.id,
+        senderId: _userId,
         content: '',
         mediaUrl: mediaUrl,
         mediaType: 'audio',
