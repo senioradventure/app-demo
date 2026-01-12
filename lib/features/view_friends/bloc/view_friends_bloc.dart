@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_state.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
@@ -13,6 +14,7 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
   ViewFriendsBloc(this.repository) : super(ViewFriendsInitial()) {
     on<LoadFriends>(_onLoadFriends);
     on<SearchFriends>(_onSearchFriends);
+    on<StartChatWithFriend>(_onStartChatWithFriend);
   }
 
   Future<void> _onLoadFriends(
@@ -22,8 +24,7 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
     emit(ViewFriendsLoading());
 
     try {
-      final userId =
-          Supabase.instance.client.auth.currentUser!.id;
+      final userId = Supabase.instance.client.auth.currentUser!.id;
 
       _allFriends = await repository.getFriends(userId);
 
@@ -33,10 +34,7 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
     }
   }
 
-  void _onSearchFriends(
-    SearchFriends event,
-    Emitter<ViewFriendsState> emit,
-  ) {
+  void _onSearchFriends(SearchFriends event, Emitter<ViewFriendsState> emit) {
     final query = event.query.toLowerCase();
 
     final filtered = _allFriends.where((friend) {
@@ -45,6 +43,27 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
 
     emit(ViewFriendsLoaded(filtered));
   }
+
+  Future<void> _onStartChatWithFriend(
+    StartChatWithFriend event,
+    Emitter<ViewFriendsState> emit,
+  ) async {
+    try {
+      final MyCircle conversation = await repository
+          .getOrCreateIndividualChatWithFriend(event.friendId);
+
+      if (conversation != null) {
+        emit(ViewFriendsNavigateToChat(conversation));
+
+        // restore list state so UI doesn’t break
+        emit(ViewFriendsLoaded(_allFriends));
+      }
+    } catch (e) {
+      emit(ViewFriendsError('Failed to start chat'));
+    }
+  }
+
+  Future<MyCircle> startChat(String friendId) async {
+    return await repository.getOrCreateIndividualChatWithFriend(friendId);
+  }
 }
-
-
