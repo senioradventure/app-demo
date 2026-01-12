@@ -52,9 +52,12 @@ class ChatMessageList extends StatelessWidget {
                     context: context,
                     backgroundColor: Colors.transparent,
                     isScrollControlled: true,
-                    builder: (_) => UserProfileBottomSheet(
-                      msg: msg,
-                      otherUserId: msg.senderId!,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<ChatRoomBloc>(),
+                      child: UserProfileBottomSheet(
+                        msg: msg,
+                        otherUserId: msg.senderId!,
+                      ),
                     ),
                   );
                 },
