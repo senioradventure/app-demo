@@ -21,12 +21,14 @@ class AdminReportsBloc extends Bloc<AdminReportsEvent, AdminReportsState> {
     LoadAdminReports event,
     Emitter<AdminReportsState> emit,
   ) async {
-    debugPrint('🟦 [AdminReportsBloc] Loading reports for live chat room: ${event.liveChatRoomId}');
+    /*debugPrint(
+      '🟦 [AdminReportsBloc] Loading reports for chat: ${event.chatId}',
+    );*/
     emit(AdminReportsLoading());
 
     try {
       final reports = await _repository.fetchReportedMessages(
-        liveChatRoomId: event.liveChatRoomId,
+        chatId: event.chatId,
       );
 
       emit(AdminReportsLoaded(reports));
@@ -34,16 +36,16 @@ class AdminReportsBloc extends Bloc<AdminReportsEvent, AdminReportsState> {
       // Subscribe to real-time updates
       _reportsSubscription?.unsubscribe();
       _reportsSubscription = _repository.subscribeToReports(
-        liveChatRoomId: event.liveChatRoomId,
+        chatId: event.chatId,
         onReportsUpdated: (updatedReports) {
           add(AdminReportsUpdated(updatedReports));
         },
       );
 
-      debugPrint('🟩 [AdminReportsBloc] Reports loaded: ${reports.length}');
+      /*debugPrint('🟩 [AdminReportsBloc] Reports loaded: ${reports.length}');*/
     } catch (e, stack) {
-      debugPrint('🟥 [AdminReportsBloc] Error loading reports: $e');
-      debugPrint('🟥 [AdminReportsBloc] STACKTRACE:\n$stack');
+      /*debugPrint('🟥 [AdminReportsBloc] Error loading reports: $e');
+      debugPrint('🟥 [AdminReportsBloc] STACKTRACE:\n$stack');*/
       emit(AdminReportsError(e.toString()));
     }
   }
@@ -52,7 +54,9 @@ class AdminReportsBloc extends Bloc<AdminReportsEvent, AdminReportsState> {
     AdminReportsUpdated event,
     Emitter<AdminReportsState> emit,
   ) {
-    debugPrint('🟨 [AdminReportsBloc] Reports updated: ${event.reports.length}');
+    /*debugPrint(
+      '🟨 [AdminReportsBloc] Reports updated: ${event.reports.length}',
+    );*/
     emit(AdminReportsLoaded(event.reports));
   }
 
@@ -60,12 +64,19 @@ class AdminReportsBloc extends Bloc<AdminReportsEvent, AdminReportsState> {
     DismissAdminReport event,
     Emitter<AdminReportsState> emit,
   ) async {
-    debugPrint('🟦 [AdminReportsBloc] Dismissing report for message: ${event.reportedMessageId}');
+    /*debugPrint(
+      '🟦 [AdminReportsBloc] Dismissing report for message: ${event.reportedMessageId}',
+    );*/
 
     final currentState = state;
     if (currentState is! AdminReportsLoaded) return;
 
-    emit(AdminReportActionInProgress(currentState.reports, event.reportedMessageId));
+    emit(
+      AdminReportActionInProgress(
+        currentState.reports,
+        event.reportedMessageId,
+      ),
+    );
 
     try {
       await _repository.dismissReport(
@@ -91,7 +102,9 @@ class AdminReportsBloc extends Bloc<AdminReportsEvent, AdminReportsState> {
     DeleteAdminReportedMessage event,
     Emitter<AdminReportsState> emit,
   ) async {
-    debugPrint('🟦 [AdminReportsBloc] Deleting reported message: ${event.messageId}');
+    /*debugPrint(
+      '🟦 [AdminReportsBloc] Deleting reported message: ${event.messageId}',
+    );*/
 
     final currentState = state;
     if (currentState is! AdminReportsLoaded) return;
@@ -99,9 +112,7 @@ class AdminReportsBloc extends Bloc<AdminReportsEvent, AdminReportsState> {
     emit(AdminReportActionInProgress(currentState.reports, event.messageId));
 
     try {
-      await _repository.deleteReportedMessage(
-        messageId: event.messageId,
-      );
+      await _repository.deleteReportedMessage(messageId: event.messageId);
 
       // Remove the deleted message's report from the list
       final updatedReports = currentState.reports

@@ -7,12 +7,12 @@ class AdminReportsRepository {
 
   AdminReportsRepository(this._client);
 
-  /// Fetch all reported messages for a specific live chat room
+  /// Fetch all reported messages for a specific chat (Room or Circle)
   /// Groups reports by message_id and counts them
   Future<List<ReportModel>> fetchReportedMessages({
-    required String liveChatRoomId,
+    required String chatId,
   }) async {
-    debugPrint('🟦 [AdminReportsRepo] Fetching reports for liveChatRoomId: $liveChatRoomId');
+    //debugPrint('🟦 [AdminReportsRepo] Fetching reports for chatId: $chatId');
 
     try {
       // Fetch reports with message and user details
@@ -32,6 +32,7 @@ class AdminReportsRepository {
               content,
               sender_id,
               live_chat_room_id,
+              circle_id,
               profiles!messages_sender_id_fkey (
                 id,
                 full_name,
@@ -44,15 +45,18 @@ class AdminReportsRepository {
 
       debugPrint('🟩 [AdminReportsRepo] Reports fetched: ${reportRows.length}');
 
- 
       final Map<String, List<Map<String, dynamic>>> groupedReports = {};
-      
+
       for (final row in reportRows) {
         final messageData = row['messages'] as Map<String, dynamic>?;
         if (messageData == null) continue;
-        
-        final messageLiveChatRoomId = messageData['live_chat_room_id'] as String?;
-        if (messageLiveChatRoomId != liveChatRoomId) continue;
+
+        final messageLiveChatRoomId =
+            messageData['live_chat_room_id'] as String?;
+        final messageCircleId = messageData['circle_id'] as String?;
+
+        if (messageLiveChatRoomId != chatId && messageCircleId != chatId)
+          continue;
 
         final messageId = row['reported_message_id'] as String;
         groupedReports.putIfAbsent(messageId, () => []);
@@ -60,18 +64,17 @@ class AdminReportsRepository {
       }
 
       final List<ReportModel> reports = [];
-      
+
       for (final entry in groupedReports.entries) {
         final messageId = entry.key;
         final reportList = entry.value;
-        
+
         if (reportList.isEmpty) continue;
 
         final firstReport = reportList.first;
         final messageData = firstReport['messages'] as Map<String, dynamic>;
         final profileData = messageData['profiles'] as Map<String, dynamic>?;
-        
-        
+
         final report = ReportModel(
           id: firstReport['id'] as String? ?? '',
           reporterId: firstReport['reporter_id'] as String? ?? '',
@@ -79,15 +82,18 @@ class AdminReportsRepository {
           reportedMessageId: messageId,
           reason: firstReport['reason'] as String? ?? '',
           status: firstReport['status'] as String? ?? 'pending',
-          createdAt: DateTime.tryParse(firstReport['created_at'] as String? ?? '') ?? DateTime.now(),
-          updatedAt: DateTime.tryParse(firstReport['updated_at'] as String? ?? '') ?? DateTime.now(),
+          createdAt:
+              DateTime.tryParse(firstReport['created_at'] as String? ?? '') ??
+              DateTime.now(),
+          updatedAt:
+              DateTime.tryParse(firstReport['updated_at'] as String? ?? '') ??
+              DateTime.now(),
           reportedUserName: profileData?['full_name'] as String? ?? 'Unknown',
           reportedUserAvatar: profileData?['avatar_url'] as String?,
           messageContent: messageData['content'] as String? ?? '',
           reportCount: reportList.length,
         );
-        
-        
+
         reports.add(report);
       }
 
@@ -101,17 +107,17 @@ class AdminReportsRepository {
   }
 
   /// Dismiss a report (soft delete by setting deleted_at)
-  Future<void> dismissReport({
-    required String reportedMessageId,
-  }) async {
-    debugPrint('🟦 [AdminReportsRepo] Dismissing reports for message: $reportedMessageId');
+  Future<void> dismissReport({required String reportedMessageId}) async {
+    /*debugPrint(
+      '🟦 [AdminReportsRepo] Dismissing reports for message: $reportedMessageId',
+    );*/
 
     try {
       await _client
           .from('reports')
           .update({
             'deleted_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String()
+            'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('reported_message_id', reportedMessageId)
           .eq('status', 'pending');
@@ -125,9 +131,7 @@ class AdminReportsRepository {
   }
 
   /// Delete a reported message (soft delete by setting deleted_at)
-  Future<void> deleteReportedMessage({
-    required String messageId,
-  }) async {
+  Future<void> deleteReportedMessage({required String messageId}) async {
     debugPrint('🟦 [AdminReportsRepo] Deleting message: $messageId');
 
     try {
@@ -142,7 +146,7 @@ class AdminReportsRepository {
           .from('reports')
           .update({
             'deleted_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String()
+            'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('reported_message_id', messageId)
           .eq('status', 'pending');
@@ -157,13 +161,15 @@ class AdminReportsRepository {
 
   /// Subscribe to real-time updates for reports
   RealtimeChannel subscribeToReports({
-    required String liveChatRoomId,
+    required String chatId,
     required Function(List<ReportModel>) onReportsUpdated,
   }) {
-    debugPrint('🟦 [AdminReportsRepo] Subscribing to reports for live chat room: $liveChatRoomId');
+    /*debugPrint(
+      '🟦 [AdminReportsRepo] Subscribing to reports for chat: $chatId',
+    );*/
 
     final channel = _client
-        .channel('admin_reports_$liveChatRoomId')
+        .channel('admin_reports_$chatId')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
@@ -171,7 +177,7 @@ class AdminReportsRepository {
           callback: (payload) async {
             debugPrint('🟨 [AdminReportsRepo] Real-time update received');
             // Refetch reports when any change occurs
-            final reports = await fetchReportedMessages(liveChatRoomId: liveChatRoomId);
+            final reports = await fetchReportedMessages(chatId: chatId);
             onReportsUpdated(reports);
           },
         )
