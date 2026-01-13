@@ -307,12 +307,26 @@ class IndividualChatBloc
       return m.copyWith(reactions: updatedReactions);
     }).toList();
 
-    emit(current.copyWith(messages: updatedMessages));
-
-    await _repository.addReaction(
-      messageId: event.messageId,
-      reaction: event.reaction,
+    // ✅ Increment version to trigger UI rebuild
+    emit(
+      current.copyWith(messages: updatedMessages, version: current.version + 1),
     );
+
+    try {
+      await _repository.addReaction(
+        messageId: event.messageId,
+        reaction: event.reaction,
+      );
+    } catch (e) {
+      // Optional: handle error and revert optimistic update
+      if (state is IndividualChatLoaded) {
+        emit(
+          (state as IndividualChatLoaded).copyWith(
+            version: (state as IndividualChatLoaded).version + 1,
+          ),
+        );
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -384,9 +398,11 @@ class IndividualChatBloc
 
     try {
       await _repository.deleteMessageForMe(event.messageId);
+      emit(DeleteMessageSuccess('Message deleted'));
+      emit(current.copyWith(messages: updatedMessages));
     } catch (e) {
-      emit(DeleteMessageFailure('Failed to delete message: ${e.toString()}'));
-      emit(current.copyWith());
+      emit(DeleteMessageFailure('Failed to delete message'));
+      emit(current);
     }
   }
 
