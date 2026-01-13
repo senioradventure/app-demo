@@ -93,24 +93,7 @@ Future<ChatUserProfile?> getUserProfile(String userId) async {
 
 
 
-Future<ChatUserProfile?> getUserProfile(String userId) async {
 
-  final data = await _supabase
-      .from('users')
-      .select('id, username, full_name, avatar_url, locations(name)')
-      .eq('id', userId)
-      .maybeSingle();
-
-  if (data == null) return null;
-
- return ChatUserProfile(
-  id: data['id']?.toString() ?? '',
-  username: data['username']?.toString() ?? '',
-  fullName: data['full_name']?.toString(),
-  avatarUrl: data['avatar_url']?.toString(),
-  locationName: data['locations']?['name']?.toString(),
-);
- }
 Future<void> deleteMessageForMe(String messageId) async {
   await _supabase.rpc(
     'delete_message_for_me',

@@ -22,7 +22,6 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
     on<FriendRequestSent>(_onFriendRequestSent);
     on<FriendRemoveRequested>(_onFriendRemoveRequested);
     on<FriendStatusRequested>(_onFriendStatusRequested);
-    on<UserProfileRequested>(_onUserProfileRequested);
     on<ChatMessageDeleteRequested>(_onMessageDeleteRequested);
     on<ChatMessageDeleteForMeRequested>(_onDeleteForMe);
 
@@ -72,18 +71,7 @@ String _formatTime(DateTime dateTime) {
 }
 
 
-Future<void> _onUserProfileRequested(
-  UserProfileRequested event,
-  Emitter<ChatRoomState> emit,
-) async {
-  try {
-    final profile = await _repository.getUserProfile(event.userId);
 
-    emit(state.copyWith(otherUserProfile: profile));
-  } catch (e) {
-    emit(state.copyWith(error: e.toString()));
-  }
-}
 
 
   void _onImageSelected(
