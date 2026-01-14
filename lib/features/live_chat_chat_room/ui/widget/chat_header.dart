@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:senior_circle/features/chat/presentation/page/room_details.dart';
 import 'package:senior_circle/features/chat/presentation/page/room_details_admin.dart';
+import 'package:senior_circle/features/chat/models/chat_details_models.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
 import 'package:senior_circle/features/tab/tab.dart';
 
@@ -20,20 +20,15 @@ class ChatHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return InkWell(
       onTap: () {
-        if (!isAdmin) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ChatDetailsScreen()),
-          );
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ChatDetailsScreenadmin(liveChatRoomId: liveChatRoomId,)),
-          );
-        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                ChatDetailsScreen(chatId: liveChatRoomId, type: ChatType.room),
+          ),
+        );
       },
       child: Container(
         height: 60,
