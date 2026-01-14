@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import '../../../core/enum/chat_message_type.dart';
 
 abstract class ChatEvent extends Equatable {
   const ChatEvent();
@@ -87,17 +86,15 @@ class ToggleReaction extends ChatEvent {
   final String messageId;
   final String emoji;
   final String userId;
-  final ChatMessageType type;
 
   const ToggleReaction({
     required this.messageId,
     required this.emoji,
     required this.userId,
-    required this.type,
   });
 
   @override
-  List<Object?> get props => [messageId, emoji, userId, type];
+  List<Object?> get props => [messageId, emoji, userId];
 }
 
 class ToggleGroupThread extends ChatEvent {
@@ -148,4 +145,35 @@ class ForwardToSingleUser extends ChatEvent {
   final String text;
 
   const ForwardToSingleUser({required this.text});
+}
+
+class ClearForwardingState extends ChatEvent {}
+
+// Media handling events
+class PickMessageImage extends ChatEvent {
+  final String imagePath;
+  const PickMessageImage(this.imagePath);
+  
+  @override
+  List<Object?> get props => [imagePath];
+}
+
+class PickMessageFile extends ChatEvent {
+  final String filePath;
+  const PickMessageFile(this.filePath);
+  
+  @override
+  List<Object?> get props => [filePath];
+}
+
+class RemovePickedImage extends ChatEvent {}
+
+class RemovePickedFile extends ChatEvent {}
+
+class SendVoiceMessage extends ChatEvent {
+  final String audioFile;
+  const SendVoiceMessage({required this.audioFile});
+  
+  @override
+  List<Object?> get props => [audioFile];
 }

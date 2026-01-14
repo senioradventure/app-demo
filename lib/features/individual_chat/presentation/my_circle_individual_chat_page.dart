@@ -211,7 +211,8 @@ class _MyCircleIndividualChatPageState
                     return previous.isSending != current.isSending ||
                         previous.replyTo != current.replyTo ||
                         previous.imagePath != current.imagePath ||
-                        previous.filePath != current.filePath;
+                        previous.filePath != current.filePath ||
+                        previous.prefilledInputText != current.prefilledInputText;
                   }
 
                   return false;
@@ -222,6 +223,7 @@ class _MyCircleIndividualChatPageState
                   }
 
                   return MessageInputFieldWidget(
+                    initialText: state.prefilledInputText,
                     replyTo: state.replyTo,
                     imagePath: state.imagePath,
                     isSending: state.isSending,

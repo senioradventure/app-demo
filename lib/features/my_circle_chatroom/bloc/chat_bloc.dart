@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:senior_circle/core/enum/chat_message_type.dart';
+import 'package:senior_circle/core/constants/media_type.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_extensions.dart';
 import 'package:senior_circle/core/utils/reaction_utils.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
+import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
@@ -17,18 +17,58 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   ChatBloc({required this.repository})
     : super(const ChatState(groupMessages: [])) {
+    // Message Management
     on<LoadGroupMessages>(_onLoadGroupMessages);
     on<GroupMessageInserted>(_onGroupMessageInserted);
     on<SendGroupMessage>(_onSendGroupMessage);
     on<DeleteGroupMessage>(_onDeleteGroupMessage);
+    
+    // Message Interactions
     on<GroupReactionChanged>(_onGroupReactionChanged);
     on<ToggleReaction>(_onToggleReaction);
     on<ToggleGroupThread>(_onToggleGroupThread);
     on<ToggleReplyInput>(_onToggleReplyInput);
     on<ToggleStar>(_onToggleStar);
+    
+    // Message Forwarding
     on<ForwardMessage>(_onForwardMessage);
+    on<ClearForwardingState>(_onClearForwardingState); 
+    
+    // Media Handling
+    on<PickMessageImage>(_onPickMessageImage);
+    on<PickMessageFile>(_onPickMessageFile);
+    on<RemovePickedImage>(_onRemovePickedImage);
+    on<RemovePickedFile>(_onRemovePickedFile);
+    on<SendVoiceMessage>(_onSendVoiceMessage);
 
   }
+
+  // ==================== Helper Methods ====================
+  
+  /// Upload media from state and return URL with type
+  Future<(String url, String type)?> _uploadMedia() async {
+    if (state.imagePath != null) {
+      final url = await repository.uploadCircleImage(File(state.imagePath!));
+      return (url, MediaType.image);
+    }
+    if (state.filePath != null) {
+      final url = await repository.uploadFile(File(state.filePath!));
+      return (url, MediaType.file);
+    }
+    return null;
+  }
+
+  /// Clear all media-related state fields
+  ChatState _clearMediaState(ChatState currentState) {
+    return currentState.copyWith(
+      imagePath: null,
+      filePath: null,
+      prefilledInputText: null,
+      prefilledMedia: null,
+    );
+  }
+
+  // ==================== Event Handlers ====================
 
   Future<void> _onLoadGroupMessages(
     LoadGroupMessages event,
@@ -75,41 +115,38 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     try {
       emit(state.copyWith(isSending: true));
-      String? imageUrl;
 
-      if (event.imagePath != null) {
-        if (event.imagePath!.startsWith('http')) {
-          debugPrint('🟨 [ChatBloc] imagePath is a URL, skipping upload');
-          imageUrl = event.imagePath;
-        } else {
-          debugPrint('🟨 [ChatBloc] Uploading image...');
-          imageUrl = await repository.uploadCircleImage(File(event.imagePath!));
-          debugPrint('🟩 [ChatBloc] Image uploaded: $imageUrl');
-        }
+      String? mediaUrl;
+      String mediaType = MediaType.text;
+
+      // Upload media from state if present
+      final uploadedMedia = await _uploadMedia();
+      if (uploadedMedia != null) {
+        mediaUrl = uploadedMedia.$1;
+        mediaType = uploadedMedia.$2;
       }
-
-      debugPrint('🟨 [ChatBloc] Sending message to database');
+      // Use event imagePath if provided (for forwarding/prefilled)
+      else if (event.imagePath != null) {
+        mediaUrl = event.imagePath;
+        mediaType = event.mediaType ?? MediaType.image;
+      }
 
       final newMessage = await repository.sendGroupMessage(
         circleId: circleId,
         content: event.text ?? '',
-        mediaUrl: imageUrl,
-        mediaType: imageUrl != null ? 'image' : 'text',
+        mediaUrl: mediaUrl,
+        mediaType: mediaType,
         replyToMessageId: event.replyToMessageId,
       );
 
       debugPrint('🟩 [ChatBloc] Message sent successfully');
-      emit(state.copyWith(
-        isSending: false,
-        prefilledInputText: null, // Clear after successful send
-        prefilledMedia: null,      // Clear after successful send
-      ));
+      emit(_clearMediaState(state.copyWith(isSending: false)));
       add(GroupMessageInserted(newMessage));
       
     } catch (e, st) {
       debugPrint('🟥 [ChatBloc] Error sending message: $e');
       debugPrintStack(stackTrace: st);
-      emit(state.copyWith(isSending: false, error: 'Failed to send message'));
+      emit(state.copyWith(isSending: false, error: 'Failed to send message: ${e.toString()}'));
     }
   }
 
@@ -139,9 +176,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
-    if (event.type == ChatMessageType.individual) return;
-
-    final updatedMessages = _updateMessageInList(
+      final updatedMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
       (msg) => msg.updateReaction(
@@ -381,6 +416,77 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         }
       },
     );
+  }
+  void _onClearForwardingState(
+    ClearForwardingState event,
+    Emitter<ChatState> emit,
+  ) {
+    emit(state.copyWith(
+      prefilledInputText: null,
+      prefilledMedia: null,
+    ));
+  }
+
+  // ==================== Media Handlers ====================
+  
+  void _onPickMessageImage(
+    PickMessageImage event,
+    Emitter<ChatState> emit,
+  ) {
+    emit(state.copyWith(imagePath: event.imagePath));
+  }
+
+  void _onPickMessageFile(
+    PickMessageFile event,
+    Emitter<ChatState> emit,
+  ) {
+    emit(state.copyWith(filePath: event.filePath));
+  }
+
+  void _onRemovePickedImage(
+    RemovePickedImage event,
+    Emitter<ChatState> emit,
+  ) {
+    emit(state.copyWith(imagePath: null));
+  }
+
+  void _onRemovePickedFile(
+    RemovePickedFile event,
+    Emitter<ChatState> emit,
+  ) {
+    emit(state.copyWith(filePath: null));
+  }
+
+  Future<void> _onSendVoiceMessage(
+    SendVoiceMessage event,
+    Emitter<ChatState> emit,
+  ) async {
+    final circleId = _circleId;
+    if (circleId == null) {
+      debugPrint('🟥 [ChatBloc] circleId is NULL');
+      return;
+    }
+
+    try {
+      emit(state.copyWith(isSending: true));
+      
+      // Upload audio file
+      final audioUrl = await repository.uploadAudio(File(event.audioFile));
+      
+      // Send message with audio
+      final newMessage = await repository.sendGroupMessage(
+        circleId: circleId,
+        content: '',
+        mediaUrl: audioUrl,
+        mediaType: MediaType.audio,
+      );
+
+      emit(state.copyWith(isSending: false));
+      add(GroupMessageInserted(newMessage));
+    } catch (e) {
+      debugPrint('🟥 [ChatBloc] Error sending voice message: $e');
+      emit(state.copyWith(isSending: false, error: 'Failed to send voice message: ${e.toString()}'));
+    }
   }
 }
 

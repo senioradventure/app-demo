@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/utils/list_filter_utils.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/my_circle_home/repository/my_circle_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -45,16 +46,11 @@ class MyCircleBloc extends Bloc<MyCirleEvent, MyCircleState> {
   }
 
   void _onFilterMyCircleChats(FilterMyCircleChats event, Emitter<MyCircleState> emit) {
-    if (event.query.isEmpty) {
-      emit(MyCircleChatLoaded(_allMyCircleChats));
-      return;
-    }
-
-    final filtered = _allMyCircleChats
-        .where(
-          (chat) => chat.name.toLowerCase().contains(event.query.toLowerCase()),
-        )
-        .toList();
+    final filtered = filterByName(
+      items: _allMyCircleChats,
+      query: event.query,
+      nameExtractor: (chat) => chat.name,
+    );
 
     emit(MyCircleChatLoaded(filtered));
   }

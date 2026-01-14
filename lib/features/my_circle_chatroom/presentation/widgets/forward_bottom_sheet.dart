@@ -4,7 +4,6 @@ import 'package:senior_circle/core/common/widgets/bottom_button.dart';
 import 'package:senior_circle/core/common/widgets/search_bar_widget.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
-import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_bloc.dart';
@@ -12,7 +11,6 @@ import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_event.dar
 import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_state.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
 
 class ForwardBottomSheet extends StatefulWidget {
   final GroupMessage message;
@@ -54,11 +52,15 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
             circleIds: [state.chat.id],
           ));
 
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => MyCircleGroupChatPage(chat: state.chat, isAdmin: state.isAdmin),
-            ),
-          );
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => MyCircleGroupChatPage(
+                  chat: state.chat,
+                  isAdmin: state.isAdmin,
+                  isForwarding: true,
+                ),
+              ),
+            );
         } else if (state is ForwardNavigateToIndividual) {
           Navigator.pop(context);
 

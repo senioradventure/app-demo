@@ -41,11 +41,13 @@ class _MessageInputFieldState extends State<MessageInputField> {
   @override
   void didUpdateWidget(covariant MessageInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialText != oldWidget.initialText && widget.initialText != null) {
-      _controller.text = widget.initialText!;
+    if (widget.initialText != oldWidget.initialText) {
+      _controller.text = widget.initialText ?? '';
     }
-    if (widget.initialMediaUrl != oldWidget.initialMediaUrl && widget.initialMediaUrl != null) {
-      _prefilledImageUrl = widget.initialMediaUrl;
+    if (widget.initialMediaUrl != oldWidget.initialMediaUrl) {
+      setState(() {
+        _prefilledImageUrl = widget.initialMediaUrl;
+      });
     }
   }
 

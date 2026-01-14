@@ -44,7 +44,6 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
         messageId: widget.grpmessage.id,
         emoji: emoji,
         userId: userId,
-        type: ChatMessageType.group,
       ),
     );
   }
@@ -65,14 +64,15 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   }
 
   void _handleStar() {
+    context.read<ChatBloc>().add(
       ToggleStar(
         messageId: widget.grpmessage.id,
         userId: context.read<ChatBloc>().repository.currentUserId!,
-      );
+      ),
+    );
   }
 
   void _handleForward() {
-    final chatBloc = context.read<ChatBloc>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

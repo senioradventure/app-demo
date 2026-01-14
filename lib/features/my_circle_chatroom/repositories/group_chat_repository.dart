@@ -251,6 +251,53 @@ class GroupChatRepository {
     }
   }
 
+  Future<String> uploadFile(File file) async {
+    debugPrint('🟦 [Upload File] Starting upload');
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+    final storagePath = 'circle_files/$fileName';
+
+    try {
+      await _client.storage.from('media').upload(
+            storagePath,
+            file,
+            fileOptions: const FileOptions(upsert: false),
+          );
+
+      final publicUrl = _client.storage.from('media').getPublicUrl(storagePath);
+      debugPrint('🟩 [Upload File] Success: $publicUrl');
+      return publicUrl;
+    } catch (e, st) {
+      debugPrint('🟥 [Upload File] FAILED: $e');
+      debugPrintStack(stackTrace: st);
+      rethrow;
+    }
+  }
+
+  Future<String> uploadAudio(File file) async {
+    debugPrint('🟦 [Upload Audio] Starting upload');
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+    final storagePath = 'circle_audio/$fileName';
+
+    try {
+      await _client.storage.from('media').upload(
+            storagePath,
+            file,
+            fileOptions: const FileOptions(upsert: false),
+          );
+
+      final publicUrl = _client.storage.from('media').getPublicUrl(storagePath);
+      debugPrint('🟩 [Upload Audio] Success: $publicUrl');
+      return publicUrl;
+    } catch (e, st) {
+      debugPrint('🟥 [Upload Audio] FAILED: $e');
+      debugPrintStack(stackTrace: st);
+      rethrow;
+    }
+  }
+
+
   Future<void> deleteGroupMessage(String messageId) async {
     try {
       await _client

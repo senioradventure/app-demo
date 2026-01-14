@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/utils/list_filter_utils.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_state.dart';
@@ -38,11 +39,11 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
   }
 
   void _onSearchFriends(SearchFriends event, Emitter<ViewFriendsState> emit) {
-    final query = event.query.toLowerCase();
-
-    final filtered = _allFriends.where((friend) {
-      return friend.name.toLowerCase().contains(query);
-    }).toList();
+    final filtered = filterByName(
+      items: _allFriends,
+      query: event.query,
+      nameExtractor: (friend) => friend.name,
+    );
 
     emit(ViewFriendsLoaded(filtered));
   }
@@ -52,13 +53,11 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
     Emitter<ViewFriendsState> emit,
   ) async {
     try {
-      final MyCircle conversation = await repository
+      final conversation = await repository
           .getOrCreateIndividualChatWithFriend(event.friendId);
 
-      if (conversation != null) {
-        emit(ViewFriendsNavigateToChat(conversation));
-        emit(ViewFriendsLoaded(_allFriends));
-      }
+      emit(ViewFriendsNavigateToChat(conversation));
+      emit(ViewFriendsLoaded(_allFriends));
     } catch (e) {
       emit(ViewFriendsError('Failed to start chat'));
     }

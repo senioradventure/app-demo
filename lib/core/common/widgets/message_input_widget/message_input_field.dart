@@ -11,6 +11,7 @@ import 'package:senior_circle/core/common/widgets/message_input_widget/attachmen
 class MessageInputFieldWidget extends StatefulWidget {
   const MessageInputFieldWidget({
     super.key,
+    this.initialText,
     required this.replyTo,
     required this.imagePath,
     required this.filePath,
@@ -25,6 +26,7 @@ class MessageInputFieldWidget extends StatefulWidget {
     required this.onSendVoice,
   });
 
+  final String? initialText;
   final dynamic replyTo;
   final String? imagePath;
   final String? filePath;
@@ -67,7 +69,16 @@ class _MessageInputFieldWidgetState
   @override
   void initState() {
     super.initState();
+    _controller.text = widget.initialText ?? '';
     _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(MessageInputFieldWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialText != oldWidget.initialText) {
+      _controller.text = widget.initialText ?? '';
+    }
   }
 
   @override

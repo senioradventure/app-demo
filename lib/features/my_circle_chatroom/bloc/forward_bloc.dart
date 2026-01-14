@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/core/utils/list_filter_utils.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/forward_item_model.dart';
 import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
+import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_repository.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/my_circle_home/repository/my_circle_repository.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
@@ -104,11 +105,12 @@ class ForwardBloc extends Bloc<ForwardEvent, ForwardState> {
   ) {
     if (state is ForwardLoaded) {
       final currentState = state as ForwardLoaded;
-      final query = event.query.toLowerCase();
 
-      final filtered = currentState.allItems
-          .where((e) => e.name.toLowerCase().contains(query))
-          .toList();
+      final filtered = filterByName(
+        items: currentState.allItems,
+        query: event.query,
+        nameExtractor: (item) => item.name,
+      );
 
       emit(currentState.copyWith(filteredItems: filtered));
     }

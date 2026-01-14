@@ -15,7 +15,7 @@ import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_cha
 import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
+import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_repository.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/my_circle_repository.dart';
