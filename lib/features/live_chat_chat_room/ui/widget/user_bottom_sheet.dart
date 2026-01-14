@@ -5,7 +5,6 @@ import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_blo
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_event.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserProfileBottomSheet extends StatefulWidget {
   final ChatMessage msg;
@@ -149,8 +148,6 @@ class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
                         case FriendStatus.accepted:
                           return _friendActions(state.friendRequestId!);
 
-                        default:
-                          return _addFriendButton();
                       }
                     },
                   ),

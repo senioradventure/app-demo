@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
@@ -8,7 +6,6 @@ import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_blo
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/message_action_dialog.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/user_bottom_sheet.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ReceiverMessageBubble extends StatelessWidget {
   final ChatMessage msg;
