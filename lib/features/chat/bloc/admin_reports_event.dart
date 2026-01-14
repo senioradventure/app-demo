@@ -9,12 +9,12 @@ abstract class AdminReportsEvent extends Equatable {
 }
 
 class LoadAdminReports extends AdminReportsEvent {
-  final String liveChatRoomId;
+  final String chatId;
 
-  const LoadAdminReports(this.liveChatRoomId);
+  const LoadAdminReports(this.chatId);
 
   @override
-  List<Object?> get props => [liveChatRoomId];
+  List<Object?> get props => [chatId];
 }
 
 class AdminReportsUpdated extends AdminReportsEvent {

@@ -57,8 +57,6 @@ class ViewFriendsBloc extends Bloc<ViewFriendsEvent, ViewFriendsState> {
 
       if (conversation != null) {
         emit(ViewFriendsNavigateToChat(conversation));
-
-        // restore list state so UI doesn’t break
         emit(ViewFriendsLoaded(_allFriends));
       }
     } catch (e) {
