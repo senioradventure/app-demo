@@ -80,10 +80,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => BlocProvider.value(
-        value: chatBloc,
-        child: ForwardBottomSheet(message: widget.grpmessage),
-      ),
+      builder: (_) => ForwardBottomSheet(message: widget.grpmessage),
     );
   }
 
