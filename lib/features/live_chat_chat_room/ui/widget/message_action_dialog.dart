@@ -33,7 +33,7 @@ class MessageActionDialog {
                 children: [
                   BlocBuilder<ChatRoomBloc, ChatRoomState>(
                     builder: (context, state) {
-                      final msg = state.messages
+                      final ChatMessage? msg = state.messages
                           .cast<ChatMessage?>()
                           .firstWhere(
                             (m) => m?.id == messageId,
@@ -44,42 +44,38 @@ class MessageActionDialog {
                         return const SizedBox.shrink();
                       }
 
+                      final showStar = !msg.isStarred;
+                      final showReport = !msg.isReported;
+                      final hasTopActions = showStar || showReport;
+
                       return Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _actionItem(
-                            context,
-                            icon: 'assets/icons/star.png',
-                            label: msg.isStarred ? 'UNSTAR' : 'STAR',
-                            fontWeight: FontWeight.w600,
-                            onTap: () {
-                              context.read<ChatRoomBloc>().add(
-                                ChatMessageStarToggled(messageId: messageId),
-                              );
-                              Navigator.pop(context);
-                            },
-                          ),
-
-                          _divider(),
-
-                          _actionItem(
-                            context,
-                            icon: 'assets/icons/flag.png',
-                            label: msg.isReported ? 'UNREPORT' : 'REPORT',
-                            fontWeight: FontWeight.w600,
-                            onTap: () async {
-                              final bloc = context.read<ChatRoomBloc>();
-
-                              Navigator.pop(context);
-
-                              if (msg.isReported) {
-                                bloc.add(
-                                  ChatMessageReportToggled(
-                                    messageId: messageId,
-                                    reportedUserId: msg.senderId!,
-                                  ),
+                          if (showStar)
+                            _actionItem(
+                              context,
+                              icon: 'assets/icons/star.png',
+                              label: 'STAR',
+                              fontWeight: FontWeight.w600,
+                              onTap: () {
+                                context.read<ChatRoomBloc>().add(
+                                  ChatMessageStarToggled(messageId: messageId),
                                 );
-                              } else {
+                                Navigator.pop(context);
+                              },
+                            ),
+
+                          if (showStar && showReport) _divider(),
+
+                          if (showReport)
+                            _actionItem(
+                              context,
+                              icon: 'assets/icons/flag.png',
+                              label: 'REPORT',
+                              fontWeight: FontWeight.w600,
+                              onTap: () async {
+                                Navigator.pop(context);
+
                                 final reason = await _askReportReason(
                                   Navigator.of(
                                     context,
@@ -88,22 +84,24 @@ class MessageActionDialog {
                                 );
                                 if (reason == null) return;
 
-                                bloc.add(
+                                context.read<ChatRoomBloc>().add(
                                   ChatMessageReportToggled(
                                     messageId: messageId,
                                     reportedUserId: msg.senderId!,
                                     reason: reason,
                                   ),
                                 );
-                              }
-                            },
-                          ),
+                              },
+                            ),
+
+                          if (hasTopActions) _divider(),
                         ],
                       );
                     },
                   ),
 
                   _divider(),
+
                   _textOnlyItem(
                     context,
                     'FORWARD',
@@ -113,22 +111,21 @@ class MessageActionDialog {
                         context,
                         rootNavigator: true,
                       ).context;
-
                       Navigator.pop(context);
-
                       _showForwardBottomSheet(rootContext, messageId);
                     },
                   ),
 
                   _divider(),
+
                   _textOnlyItem(
                     context,
                     'SHARE',
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => Navigator.pop(context),
                   ),
+
                   _divider(),
+
                   _textOnlyItem(
                     context,
                     'DELETE FOR ME',
@@ -136,9 +133,12 @@ class MessageActionDialog {
                       context.read<ChatRoomBloc>().add(
                         ChatMessageDeleteForMeRequested(messageId: messageId),
                       );
+                      Navigator.pop(context);
                     },
                   ),
+
                   _divider(),
+
                   _textOnlyItem(
                     context,
                     'DELETE FOR EVERYONE',
@@ -147,7 +147,6 @@ class MessageActionDialog {
                       context.read<ChatRoomBloc>().add(
                         ChatMessageDeleteRequested(messageId: messageId),
                       );
-
                       Navigator.pop(context);
                     },
                   ),
