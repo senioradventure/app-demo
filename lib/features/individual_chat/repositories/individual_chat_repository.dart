@@ -1,42 +1,73 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart';
+import 'package:path/path.dart';
+import 'package:senior_circle/core/local_db/app_database.dart'; // Adjust path if needed
+import 'package:senior_circle/core/local_db/tables/individual_messages_table.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:path/path.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+import 'package:senior_circle/core/local_db/daos/individual_messages_dao.dart';
 
 class IndividualChatRepository {
-  final SupabaseClient _client = Supabase.instance.client;
+  final supabase.SupabaseClient _client = supabase.Supabase.instance.client;
+  final IndividualMessagesDao _dao = AppDatabase.instance.individualMessagesDao;
 
+  /// Loads messages from Supabase, syncs them to Drift, and returns the list.
+  /// Used for initial load.
   Future<List<IndividualChatMessageModel>> loadMessages(
     String conversationId,
   ) async {
-    final userId = _client.auth.currentUser!.id;
+    try {
+      final userId = _client.auth.currentUser!.id;
 
-    final response = await _client
-        .from('messages')
-        .select('''
-        *,
-        message_reactions(*),
-        hidden_messages!left(
-          message_id,
-          user_id
-        )
-      ''')
-        .eq('conversation_id', conversationId)
-        .isFilter('deleted_at', null)
-        .or('expires_at.is.null,expires_at.gt.${DateTime.now().toUtc()}')
-        .eq('hidden_messages.user_id', userId)
-        .order('created_at', ascending: true);
+      // 1. Fetch from Supabase
+      final response = await _client
+          .from('messages')
+          .select('''
+          *,
+          message_reactions(*),
+          hidden_messages!left(
+            message_id,
+            user_id
+          )
+        ''')
+          .eq('conversation_id', conversationId)
+          .isFilter('deleted_at', null)
+          .or('expires_at.is.null,expires_at.gt.${DateTime.now().toUtc()}')
+          .eq('hidden_messages.user_id', userId)
+          .order('created_at', ascending: true);
 
-    return (response as List)
-        .where(
-          (e) =>
-              e['hidden_messages'] == null ||
-              (e['hidden_messages'] as List).isEmpty,
-        )
-        .map((e) => IndividualChatMessageModel.fromSupabase(e))
-        .toList();
+      final List<dynamic> data = (response as List).where((e) {
+        return e['hidden_messages'] == null ||
+            (e['hidden_messages'] as List).isEmpty;
+      }).toList();
+
+      final models = data
+          .map((e) => IndividualChatMessageModel.fromSupabase(e))
+          .toList();
+
+      for (final msg in models) {
+        await _dao.upsertMessage(_toCompanion(msg, conversationId));
+      }
+
+      return models;
+    } catch (e) {
+      final localMsgs = await _dao.watchMessages(conversationId).first;
+      if (localMsgs.isNotEmpty) {
+        return localMsgs.map(_fromRow).toList();
+      }
+      rethrow;
+    }
+  }
+
+  /// Watch messages from local Drift DB
+  Stream<List<IndividualChatMessageModel>> watchMessages(
+    String conversationId,
+  ) {
+    return _dao.watchMessages(conversationId).map((rows) {
+      return rows.map(_fromRow).toList();
+    });
   }
 
   /// Upload any media (image / file / voice)
@@ -73,7 +104,11 @@ class IndividualChatRepository {
         .select()
         .single();
 
-    return IndividualChatMessageModel.fromSupabase(response);
+    final model = IndividualChatMessageModel.fromSupabase(response);
+    // Sync to Drift
+    await _dao.upsertMessage(_toCompanion(model, conversationId));
+
+    return model;
   }
 
   Future<IndividualChatMessageModel> sendMessage({
@@ -83,20 +118,13 @@ class IndividualChatRepository {
     String? mediaUrl,
     String? replyToMessageId,
   }) async {
-    final response = await _client
-        .from('messages')
-        .insert({
-          'conversation_id': conversationId,
-          'sender_id': _client.auth.currentUser!.id,
-          'content': content,
-          'media_url': mediaUrl,
-          'media_type': mediaType,
-          'reply_to_message_id': replyToMessageId,
-        })
-        .select()
-        .single();
-
-    return IndividualChatMessageModel.fromSupabase(response);
+    return insertMessage(
+      conversationId: conversationId,
+      mediaType: mediaType,
+      content: content,
+      mediaUrl: mediaUrl,
+      replyToMessageId: replyToMessageId,
+    );
   }
 
   Future<void> addReaction({
@@ -129,14 +157,16 @@ class IndividualChatRepository {
       'user_id': userId,
       'reaction': reaction,
     });
+
+    // Note: Reactions are not stored in Drift messages table
   }
 
   Future<void> starMessage({
     required IndividualChatMessageModel message,
   }) async {
-    final userId = Supabase.instance.client.auth.currentUser!.id;
+    final userId = _client.auth.currentUser!.id;
 
-    await Supabase.instance.client.from('saved_messages').insert({
+    await _client.from('saved_messages').insert({
       'user_id': userId,
       'message_id': message.id,
       'sender_id': message.senderId,
@@ -151,6 +181,9 @@ class IndividualChatRepository {
         .from('messages')
         .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
         .eq('id', messageId);
+
+    // Sync to Drift
+    await _dao.softDelete(messageId);
   }
 
   Future<void> deleteMessageForMe(String messageId) async {
@@ -158,6 +191,7 @@ class IndividualChatRepository {
       'delete_message_for_me',
       params: {'p_message_id': messageId},
     );
+    await _dao.softDelete(messageId);
   }
 
   Future<UserProfile> getUserProfile(String userId) async {
@@ -174,5 +208,39 @@ class IndividualChatRepository {
 
   Future<String> getCurrentUserId() async {
     return _client.auth.currentUser!.id;
+  }
+
+  // ---------------------------------------------------------------------------
+  // MAPPERS
+  // ---------------------------------------------------------------------------
+
+  IndividualMessagesCompanion _toCompanion(
+    IndividualChatMessageModel model,
+    String conversationId,
+  ) {
+    return IndividualMessagesCompanion(
+      id: Value(model.id),
+      senderId: Value(model.senderId),
+      content: Value(model.content),
+      mediaUrl: Value(model.mediaUrl),
+      mediaType: Value(model.mediaType),
+      conversationId: Value(conversationId),
+      replyToMessageId: Value(model.replyToMessageId),
+      createdAt: Value(model.createdAt),
+  
+    );
+  }
+
+  IndividualChatMessageModel _fromRow(IndividualMessage row) {
+    return IndividualChatMessageModel(
+      id: row.id,
+      senderId: row.senderId,
+      content: row.content,
+      mediaUrl: row.mediaUrl,
+      mediaType: row.mediaType,
+      createdAt: row.createdAt,
+      replyToMessageId: row.replyToMessageId,
+      reactions: [], // Drift does not store reactions
+    );
   }
 }
