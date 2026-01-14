@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/models/user_profile.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_event.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserProfileBottomSheet extends StatefulWidget {
   final ChatMessage msg;
   final String otherUserId;
+  final UserProfileData? profile;
 
   const UserProfileBottomSheet({
     super.key,
     required this.msg,
     required this.otherUserId,
+    required this.profile,
   });
 
   @override
@@ -21,28 +25,21 @@ class UserProfileBottomSheet extends StatefulWidget {
 
 class _UserProfileBottomSheetState extends State<UserProfileBottomSheet> {
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!mounted) return;
-    context.read<ChatRoomBloc>().add(
-      FriendStatusRequested(widget.otherUserId),
-    );
-  });
-}
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
 
+      final bloc = context.read<ChatRoomBloc>();
 
+      bloc.add(FriendStatusRequested(widget.otherUserId));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final msg = widget.msg;
-
-    final ImageProvider avatarImage =
-        (msg.profileAsset != null && msg.profileAsset!.isNotEmpty)
-        ? AssetImage(msg.profileAsset!)
-        : const AssetImage('assets/images/chat_profile.png');
-
+    final data = widget.profile;
     return Stack(
       children: [
         GestureDetector(
@@ -69,30 +66,60 @@ void initState() {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        CircleAvatar(radius: 45, backgroundImage: avatarImage),
-                        const SizedBox(height: 10),
-                        Text(
-                          msg.name ?? '',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F1F1),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: const Text(
-                            "From Malappuram",
-                            style: TextStyle(fontSize: 12, color: Colors.black),
-                          ),
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: 90,
+                              height: 90,
+                              child: ClipOval(
+                                child:
+                                    data?.avatarUrl != null &&
+                                        data!.avatarUrl!.isNotEmpty
+                                    ? Image.network(
+                                        data.avatarUrl!,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        'assets/images/chat_profile.png',
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            Text(
+                              data?.fullName ?? 'Unknown User',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+
+                            if (data?.locationName != null &&
+                                data!.locationName!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF1F1F1),
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  child: Text(
+                                    'From ${data.locationName!}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ],
                     ),

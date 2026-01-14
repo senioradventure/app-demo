@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
 
 abstract class ChatRoomEvent extends Equatable {
   const ChatRoomEvent();
@@ -68,6 +69,7 @@ class FriendStatusRequested extends ChatRoomEvent {
   @override
   List<Object?> get props => [otherUserId];
 }
+
 class UserProfileRequested extends ChatRoomEvent {
   final String userId;
   const UserProfileRequested(this.userId);
@@ -75,12 +77,11 @@ class UserProfileRequested extends ChatRoomEvent {
   @override
   List<Object?> get props => [userId];
 }
+
 class ChatMessageDeleteRequested extends ChatRoomEvent {
   final String messageId;
 
-  const ChatMessageDeleteRequested({
-    required this.messageId,
-  });
+  const ChatMessageDeleteRequested({required this.messageId});
 
   @override
   List<Object?> get props => [messageId];
@@ -89,12 +90,48 @@ class ChatMessageDeleteRequested extends ChatRoomEvent {
 class ChatMessageDeleteForMeRequested extends ChatRoomEvent {
   final String messageId;
 
-  const ChatMessageDeleteForMeRequested({
-    required this.messageId,
-  });
+  const ChatMessageDeleteForMeRequested({required this.messageId});
 
   @override
   List<Object?> get props => [messageId];
 }
 
+class ChatMessageStarToggled extends ChatRoomEvent {
+  final String messageId;
 
+  ChatMessageStarToggled({required this.messageId});
+}
+
+class ChatMessageForwardRequested extends ChatRoomEvent {
+  final String messageId;
+  final String targetRoomId;
+
+  const ChatMessageForwardRequested({
+    required this.messageId,
+    required this.targetRoomId,
+  });
+}
+
+class ChatMessageReportToggled extends ChatRoomEvent {
+  final String messageId;
+  final String reportedUserId;
+  final String? reason;
+
+  const ChatMessageReportToggled({
+    required this.messageId,
+    required this.reportedUserId,
+    this.reason,
+  });
+
+  @override
+  List<Object?> get props => [messageId, reportedUserId, reason];
+}
+
+class ChatMessagesUpdated extends ChatRoomEvent {
+  final List<ChatMessage> messages;
+
+  const ChatMessagesUpdated(this.messages);
+
+  @override
+  List<Object?> get props => [messages];
+}

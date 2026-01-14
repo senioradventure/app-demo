@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
-final List<ChatMessage> defaultChatMessages = [
-  
-];
+final List<ChatMessage> defaultChatMessages = [];
 
 final ValueNotifier<List<ChatMessage>> chatMessages =
-    ValueNotifier<List<ChatMessage>>([
-    ]);
+    ValueNotifier<List<ChatMessage>>([]);
 
 class ChatMessage {
   final String? id;
@@ -20,7 +17,9 @@ class ChatMessage {
   final String? imageFile;
   final bool isFriend;
   final DateTime? createdAt;
-final bool isLocal;
+  final bool isLocal;
+  final bool isStarred;
+  final bool isReported;
 
 
   ChatMessage({
@@ -35,7 +34,9 @@ final bool isLocal;
     this.imageFile,
     this.isFriend = false,
     this.createdAt,
-  this.isLocal = false,
+    this.isLocal = false,
+    this.isStarred = false,
+    this.isReported = false,
   });
 
   factory ChatMessage.fromMap(Map<String, dynamic> map, String currentUserId) {
@@ -44,7 +45,7 @@ final bool isLocal;
     final content = map['content'] as String? ?? '';
     final createdAt = map['created_at'] as String?;
     final id = map['id']?.toString();
-
+    final isStarred = map['is_starred'] == true;
     String time = '';
     if (createdAt != null) {
       final dateTime = DateTime.tryParse(createdAt);
@@ -58,7 +59,7 @@ final bool isLocal;
         time = '$hour:$minute $period';
       }
     }
-
+    final isReported = map['is_reported'] == true;
     final mediaUrl = map['media_url'] as String?;
 
     return ChatMessage(
@@ -70,6 +71,8 @@ final bool isLocal;
       profileAsset: isSender ? null : 'assets/images/Ellipse 1.png',
       name: isSender ? 'You' : 'User',
       imageFile: mediaUrl,
+      isStarred: isStarred,
+      isReported: isReported,
     );
   }
 
@@ -84,6 +87,8 @@ final bool isLocal;
     String? imageAsset,
     String? imageFile,
     bool? isFriend,
+    bool? isStarred,
+    bool? isReported,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -96,6 +101,8 @@ final bool isLocal;
       imageAsset: imageAsset ?? this.imageAsset,
       imageFile: imageFile ?? this.imageFile,
       isFriend: isFriend ?? this.isFriend,
+      isStarred: isStarred ?? this.isStarred,
+      isReported: isReported ?? this.isReported, 
     );
   }
 }
