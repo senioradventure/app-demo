@@ -1,26 +1,26 @@
 import 'package:equatable/equatable.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 
-abstract class ChatEvent extends Equatable {
-  const ChatEvent();
+abstract class CircleChatEvent extends Equatable {
+  const CircleChatEvent();
 
   @override
   List<Object?> get props => [];
 }
 
-class GroupMessageInserted extends ChatEvent {
-  final GroupMessage message;
+class GroupMessageInserted extends CircleChatEvent {
+  final CircleChatMessage message;
  const GroupMessageInserted(this.message);
 }
 
 
-class LoadGroupMessages extends ChatEvent {
+class LoadGroupMessages extends CircleChatEvent {
   final String chatId;
 
   const LoadGroupMessages({required this.chatId});
 }
 
-class SendMessage extends ChatEvent {
+class SendMessage extends CircleChatEvent {
   final String? text;
   final String? imagePath;
 
@@ -30,7 +30,7 @@ class SendMessage extends ChatEvent {
   List<Object?> get props => [text];
 }
 
-class SendImageMessage extends ChatEvent {
+class SendImageMessage extends CircleChatEvent {
   final String imagePath;
   
 
@@ -38,7 +38,7 @@ class SendImageMessage extends ChatEvent {
 }
 
 
-class DeleteGroupMessage extends ChatEvent {
+class DeleteGroupMessage extends CircleChatEvent {
   final String messageId;
   final bool forEveryone;
 
@@ -51,7 +51,7 @@ class DeleteGroupMessage extends ChatEvent {
   List<Object?> get props => [messageId, forEveryone];
 }
 
-class SendGroupMessage extends ChatEvent {
+class SendGroupMessage extends CircleChatEvent {
   final String? circleId;
   final String? text;
   final String? imagePath;
@@ -67,7 +67,7 @@ class SendGroupMessage extends ChatEvent {
   });
 }
 
-class GroupReactionChanged extends ChatEvent {
+class GroupReactionChanged extends CircleChatEvent {
   final String messageId;
   final String emoji;
   final String userId;
@@ -82,7 +82,7 @@ class GroupReactionChanged extends ChatEvent {
 }
 
 
-class ToggleReaction extends ChatEvent {
+class ToggleReaction extends CircleChatEvent {
   final String messageId;
   final String emoji;
   final String userId;
@@ -97,26 +97,26 @@ class ToggleReaction extends ChatEvent {
   List<Object?> get props => [messageId, emoji, userId];
 }
 
-class ToggleGroupThread extends ChatEvent {
+class ToggleGroupThread extends CircleChatEvent {
   final String messageId;
 
   const ToggleGroupThread({required this.messageId});
 }
 
-class AddGroupReply extends ChatEvent {
+class AddGroupReply extends CircleChatEvent {
   final String parentMessageId;
   final String text;
 
   const AddGroupReply({required this.parentMessageId, required this.text});
 }
 
-class ToggleReplyInput extends ChatEvent {
+class ToggleReplyInput extends CircleChatEvent {
   final String messageId;
 
   const ToggleReplyInput({required this.messageId});
 }
 
-class ToggleStar extends ChatEvent {
+class ToggleStar extends CircleChatEvent {
   final String messageId;
   final String userId;
 
@@ -126,8 +126,8 @@ class ToggleStar extends ChatEvent {
   List<Object?> get props => [messageId, userId];
 }
 
-class ForwardMessage extends ChatEvent {
-  final GroupMessage message;
+class ForwardMessage extends CircleChatEvent {
+  final CircleChatMessage message;
   final List<Map<String, String?>> individualTargets;
   final List<String> circleIds;
 
@@ -141,16 +141,16 @@ class ForwardMessage extends ChatEvent {
   List<Object?> get props => [message, individualTargets, circleIds];
 }
 
-class ForwardToSingleUser extends ChatEvent {
+class ForwardToSingleUser extends CircleChatEvent {
   final String text;
 
   const ForwardToSingleUser({required this.text});
 }
 
-class ClearForwardingState extends ChatEvent {}
+class ClearForwardingState extends CircleChatEvent {}
 
 // Media handling events
-class PickMessageImage extends ChatEvent {
+class PickMessageImage extends CircleChatEvent {
   final String imagePath;
   const PickMessageImage(this.imagePath);
   
@@ -158,7 +158,7 @@ class PickMessageImage extends ChatEvent {
   List<Object?> get props => [imagePath];
 }
 
-class PickMessageFile extends ChatEvent {
+class PickMessageFile extends CircleChatEvent {
   final String filePath;
   const PickMessageFile(this.filePath);
   
@@ -166,11 +166,11 @@ class PickMessageFile extends ChatEvent {
   List<Object?> get props => [filePath];
 }
 
-class RemovePickedImage extends ChatEvent {}
+class RemovePickedImage extends CircleChatEvent {}
 
-class RemovePickedFile extends ChatEvent {}
+class RemovePickedFile extends CircleChatEvent {}
 
-class SendVoiceMessage extends ChatEvent {
+class SendVoiceMessage extends CircleChatEvent {
   final String audioFile;
   const SendVoiceMessage({required this.audioFile});
   

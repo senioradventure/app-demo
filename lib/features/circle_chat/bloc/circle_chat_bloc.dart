@@ -2,21 +2,21 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/constants/media_type.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_extensions.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_extensions.dart';
 import 'package:senior_circle/core/utils/reaction_utils.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_repository.dart';
+import 'package:senior_circle/features/circle_chat/repositories/circle_chat_messages_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'chat_event.dart';
-import 'chat_state.dart';
+import 'circle_chat_event.dart';
+import 'circle_chat_state.dart';
 
-class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final GroupChatRepository repository;
+class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
+  final CircleChatMessagesRepository repository;
   String? _circleId;
   RealtimeChannel? _groupChannel;
 
-  ChatBloc({required this.repository})
-    : super(const ChatState(groupMessages: [])) {
+  CircleChatBloc({required this.repository})
+    : super(const CircleChatState(groupMessages: [])) {
     // Message Management
     on<LoadGroupMessages>(_onLoadGroupMessages);
     on<GroupMessageInserted>(_onGroupMessageInserted);
@@ -59,7 +59,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   /// Clear all media-related state fields
-  ChatState _clearMediaState(ChatState currentState) {
+  CircleChatState _clearMediaState(CircleChatState currentState) {
     return currentState.copyWith(
       imagePath: null,
       filePath: null,
@@ -72,7 +72,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   Future<void> _onLoadGroupMessages(
     LoadGroupMessages event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) async {
     emit(state.copyWith(isLoading: true, error: null));
     _circleId = event.chatId;
@@ -92,7 +92,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   Future<void> _onSendGroupMessage(
     SendGroupMessage event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) async {
     final currentUser = repository.currentUserId;
 
@@ -152,13 +152,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   Future<void> _onDeleteGroupMessage(
     DeleteGroupMessage event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) async {
     final previousState = state;
 
     final updatedMessages = state.groupMessages
         .map((m) => m.removeRecursive(event.messageId))
-        .whereType<GroupMessage>()
+        .whereType<CircleChatMessage>()
         .toList();
 
     emit(state.copyWith(groupMessages: updatedMessages));
@@ -175,7 +175,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
-  void _onToggleReaction(ToggleReaction event, Emitter<ChatState> emit) {
+  void _onToggleReaction(ToggleReaction event, Emitter<CircleChatState> emit) {
       final updatedMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
@@ -196,7 +196,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
   }
 
-  void _onToggleGroupThread(ToggleGroupThread event, Emitter<ChatState> emit) {
+  void _onToggleGroupThread(ToggleGroupThread event, Emitter<CircleChatState> emit) {
     final updatedGroupMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
@@ -213,7 +213,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(state.copyWith(groupMessages: updatedGroupMessages));
   }
 
-  void _onToggleReplyInput(ToggleReplyInput event, Emitter<ChatState> emit) {
+  void _onToggleReplyInput(ToggleReplyInput event, Emitter<CircleChatState> emit) {
     final updatedGroupMessages = _updateMessageInList(
       state.groupMessages,
       event.messageId,
@@ -230,7 +230,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(state.copyWith(groupMessages: updatedGroupMessages));
   }
 
-  Future<void> _onToggleStar(ToggleStar event, Emitter<ChatState> emit) async {
+  Future<void> _onToggleStar(ToggleStar event, Emitter<CircleChatState> emit) async {
     final targetMessage = _findMessageInList(state.groupMessages, event.messageId);
     if (targetMessage == null) return;
 
@@ -256,7 +256,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   Future<void> _onForwardMessage(
     ForwardMessage event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) async {
     debugPrint('🟦 [Forward] ForwardMessage triggered');
 
@@ -324,7 +324,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     debugPrint('🟩 [Forward] Forward process completed');
   }
 
-  Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
+  Map<String, dynamic> _buildForwardPayload(CircleChatMessage message) {
     debugPrint('🟦 [Forward] Building forward payload');
     
     return {
@@ -334,7 +334,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     };
   }
 
-  GroupMessage? _findMessageInList(List<GroupMessage> messages, String id) {
+  CircleChatMessage? _findMessageInList(List<CircleChatMessage> messages, String id) {
     for (final msg in messages) {
       final found = msg.findRecursive(id);
       if (found != null) return found;
@@ -342,10 +342,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     return null;
   }
 
-  List<GroupMessage> _updateMessageInList(
-    List<GroupMessage> messages,
+  List<CircleChatMessage> _updateMessageInList(
+    List<CircleChatMessage> messages,
     String targetId,
-    GroupMessage Function(GroupMessage) updateFn, {
+    CircleChatMessage Function(CircleChatMessage) updateFn, {
     bool clearOthers = false,
   }) {
     return messages
@@ -355,7 +355,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onGroupMessageInserted(
     GroupMessageInserted event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     if (event.message.replyToMessageId == null) {
       emit(state.copyWith(
@@ -372,7 +372,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   void _onGroupReactionChanged(
     GroupReactionChanged event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     final updated = _updateMessageInList(
       state.groupMessages,
@@ -401,7 +401,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       onMessageReceived: (payload) {
         debugPrint('[Realtime] New group message received');
 
-        final newMessage = GroupMessage.fromSupabase(
+        final newMessage = CircleChatMessage.fromSupabase(
           messageRow: payload,
           reactions: const [],
           replies: const [],
@@ -419,7 +419,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
   void _onClearForwardingState(
     ClearForwardingState event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     emit(state.copyWith(
       prefilledInputText: null,
@@ -431,35 +431,35 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   
   void _onPickMessageImage(
     PickMessageImage event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     emit(state.copyWith(imagePath: event.imagePath));
   }
 
   void _onPickMessageFile(
     PickMessageFile event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     emit(state.copyWith(filePath: event.filePath));
   }
 
   void _onRemovePickedImage(
     RemovePickedImage event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     emit(state.copyWith(imagePath: null));
   }
 
   void _onRemovePickedFile(
     RemovePickedFile event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) {
     emit(state.copyWith(filePath: null));
   }
 
   Future<void> _onSendVoiceMessage(
     SendVoiceMessage event,
-    Emitter<ChatState> emit,
+    Emitter<CircleChatState> emit,
   ) async {
     final circleId = _circleId;
     if (circleId == null) {

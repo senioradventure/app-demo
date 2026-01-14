@@ -4,9 +4,9 @@ import 'package:senior_circle/features/chat/presentation/page/room_details_admin
 import 'package:senior_circle/features/chat/models/chat_details_models.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
-class MyCircleChatroomAppBar extends StatelessWidget
+class CircleChatPageAppBar extends StatelessWidget
     implements PreferredSizeWidget {
-  const MyCircleChatroomAppBar({
+  const CircleChatPageAppBar({
     super.key,
     required this.chat,
     this.isAdmin = false,

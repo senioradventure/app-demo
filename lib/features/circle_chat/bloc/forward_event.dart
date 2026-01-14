@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/forward_item_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/forward_item_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 
 abstract class ForwardEvent extends Equatable {
   const ForwardEvent();
@@ -30,7 +30,7 @@ class ToggleSelection extends ForwardEvent {
 }
 
 class SubmitForward extends ForwardEvent {
-  final GroupMessage message;
+  final CircleChatMessage message;
 
   const SubmitForward(this.message);
 

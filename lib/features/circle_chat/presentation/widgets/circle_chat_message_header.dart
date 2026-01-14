@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 import 'package:senior_circle/core/utils/time_utils.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 
-class GroupMessageHeader extends StatelessWidget {
-  final GroupMessage grpmessage;
+class CircleChatMessageHeader extends StatelessWidget {
+  final CircleChatMessage grpmessage;
   final bool isMe;
 
-  const GroupMessageHeader({
+  const CircleChatMessageHeader({
     super.key,
     required this.grpmessage,
     required this.isMe,

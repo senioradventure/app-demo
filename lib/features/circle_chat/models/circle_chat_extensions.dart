@@ -1,7 +1,7 @@
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 
-extension GroupMessageExtensions on GroupMessage {
-  GroupMessage addReply(GroupMessage reply) {
+extension CircleChatExtensions on CircleChatMessage {
+  CircleChatMessage addReply(CircleChatMessage reply) {
     if (id == reply.replyToMessageId) {
       return copyWith(replies: [reply, ...replies]);
     }
@@ -15,7 +15,7 @@ extension GroupMessageExtensions on GroupMessage {
     return this;
   }
 
-  GroupMessage toggleStar(String targetMessageId) {
+  CircleChatMessage toggleStar(String targetMessageId) {
     if (id == targetMessageId) {
       return copyWith(isStarred: !isStarred);
     }
@@ -30,12 +30,12 @@ extension GroupMessageExtensions on GroupMessage {
   }
 
   
-  GroupMessage updateReaction({
+  CircleChatMessage updateReaction({
     required String messageId,
     required String emoji,
     required String userId,
-    required GroupMessage Function({
-      required GroupMessage message,
+    required CircleChatMessage Function({
+      required CircleChatMessage message,
       required String targetMessageId,
       required String emoji,
       required String userId,
@@ -52,12 +52,12 @@ extension GroupMessageExtensions on GroupMessage {
     );
   }
 
-  GroupMessage updateRecursive(
+  CircleChatMessage updateRecursive(
     String targetId,
-    GroupMessage Function(GroupMessage) updateFn, {
+    CircleChatMessage Function(CircleChatMessage) updateFn, {
     bool clearOthers = false,
   }) {
-    GroupMessage updated = this;
+    CircleChatMessage updated = this;
 
     if (id == targetId) {
       updated = updateFn(updated);
@@ -79,7 +79,7 @@ extension GroupMessageExtensions on GroupMessage {
     return updated;
   }
 
-  GroupMessage? findRecursive(String targetId) {
+  CircleChatMessage? findRecursive(String targetId) {
     if (id == targetId) return this;
     for (final reply in replies) {
       final found = reply.findRecursive(targetId);
@@ -88,14 +88,14 @@ extension GroupMessageExtensions on GroupMessage {
     return null;
   }
 
-  GroupMessage? removeRecursive(String targetId) {
+  CircleChatMessage? removeRecursive(String targetId) {
     if (id == targetId) return null;
     if (replies.isEmpty) return this;
 
     return copyWith(
       replies: replies
           .map((r) => r.removeRecursive(targetId))
-          .whereType<GroupMessage>()
+          .whereType<CircleChatMessage>()
           .toList(),
     );
   }

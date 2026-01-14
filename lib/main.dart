@@ -13,9 +13,9 @@ import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_blo
 import 'package:senior_circle/features/live_chat_chat_room/ui/repository/live_chat_repository.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_repository.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/circle_chat/bloc/forward_bloc.dart';
+import 'package:senior_circle/features/circle_chat/repositories/circle_chat_messages_repository.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/my_circle_repository.dart';
@@ -99,7 +99,7 @@ class SeniorCircleApp extends StatelessWidget {
           create: (_) => ForwardBloc(),
         ),
         BlocProvider(
-          create: (_) => ChatBloc(repository: GroupChatRepository()),
+          create: (_) => CircleChatBloc(repository: CircleChatMessagesRepository()),
         ),
       ],
       child: MaterialApp(

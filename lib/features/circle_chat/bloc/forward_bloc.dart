@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/utils/list_filter_utils.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/forward_item_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_repository.dart';
+import 'package:senior_circle/features/circle_chat/models/forward_item_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
+import 'package:senior_circle/features/circle_chat/repositories/circle_chat_messages_repository.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/my_circle_home/repository/my_circle_repository.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
@@ -12,15 +12,15 @@ import 'forward_event.dart';
 import 'forward_state.dart';
 
 class ForwardBloc extends Bloc<ForwardEvent, ForwardState> {
-  final GroupChatRepository _chatRepository;
+  final CircleChatMessagesRepository _chatRepository;
   final ViewFriendsRepository _friendsRepository;
   final MyCircleRepository _circlesRepository;
 
   ForwardBloc({
-    GroupChatRepository? chatRepository,
+    CircleChatMessagesRepository? chatRepository,
     ViewFriendsRepository? friendsRepository,
     MyCircleRepository? circlesRepository,
-  })  : _chatRepository = chatRepository ?? GroupChatRepository(),
+  })  : _chatRepository = chatRepository ?? CircleChatMessagesRepository(),
         _friendsRepository = friendsRepository ?? ViewFriendsRepository(),
         _circlesRepository = circlesRepository ?? MyCircleRepository(),
         super(ForwardInitial()) {
@@ -210,7 +210,7 @@ class ForwardBloc extends Bloc<ForwardEvent, ForwardState> {
 
   Future<void> _handleSingleGroupForward(
     ForwardItem item, 
-    GroupMessage message, 
+    CircleChatMessage message, 
     Emitter<ForwardState> emit
   ) async {
     try {
@@ -232,7 +232,7 @@ class ForwardBloc extends Bloc<ForwardEvent, ForwardState> {
 
   Future<void> _handleSingleIndividualForward(
     ForwardItem item,
-    GroupMessage message,
+    CircleChatMessage message,
     Emitter<ForwardState> emit,
   ) async {
     debugPrint('🟦 [ForwardBloc] Handling single individual forward to ${item.name} (id: ${item.id}, other: ${item.otherUserId})');
@@ -268,7 +268,7 @@ class ForwardBloc extends Bloc<ForwardEvent, ForwardState> {
     }
   }
 
-  Map<String, dynamic> _buildForwardPayload(GroupMessage message) {
+  Map<String, dynamic> _buildForwardPayload(CircleChatMessage message) {
     return {
       'content': message.text,         
       'media_url': message.imagePath,

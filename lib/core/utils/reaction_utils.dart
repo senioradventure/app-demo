@@ -1,6 +1,6 @@
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/reaction_model.dart';
 
 Message toggleReaction({
   required Message message,
@@ -38,8 +38,8 @@ Message toggleReaction({
   return message.copyWith(reactions: newReactions);
 }
 
-GroupMessage applyReaction({
-  required GroupMessage message,
+CircleChatMessage applyReaction({
+  required CircleChatMessage message,
   required String targetMessageId,
   required String emoji,
   required String userId,

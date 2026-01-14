@@ -56,13 +56,13 @@ class PreviewScreen extends StatelessWidget {
           chatMessages.value = [];
 
           // 🔹 Navigate to chat page
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  Chatroom(title: details.name, isAdmin: true, isNewRoom: true),
-            ),
-          );
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) =>
+          //         Chatroom(title: details.name, isAdmin: true, isNewRoom: true),
+          //   ),
+          // );
         },
         buttonText: "CREATE ROOM",
       ),

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/reaction_chip.dart';
+import 'package:senior_circle/features/circle_chat/models/reaction_model.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/reaction_chip.dart';
 
-class MessageActions extends StatelessWidget {
+class CircleChatMessageActions extends StatelessWidget {
   final VoidCallback onReplyTap;
   final VoidCallback onLikeTap;
   final bool isReply;
@@ -16,7 +16,7 @@ class MessageActions extends StatelessWidget {
   final VoidCallback? onAddReactionTap;
   final List<Reaction> reactions;
 
-  const MessageActions({
+  const CircleChatMessageActions({
     super.key,
     required this.onReplyTap,
     required this.onLikeTap,

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/profile_aware_appbar.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createCircle/presentation/circle_creation_screen.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
+import 'package:senior_circle/features/circle_chat/presentation/page/circle_chat_page.dart';
 import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_event.dart';
@@ -41,7 +41,7 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
       MaterialPageRoute(
         builder: (_) {
           if (chat.isGroup) {
-            return MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin);
+            return CircleChatPage(chat: chat, isAdmin: isAdmin);
           } else {
             return MyCircleIndividualChatPage(chat: chat);
           }

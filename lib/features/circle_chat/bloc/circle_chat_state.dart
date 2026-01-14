@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 
-class ChatState extends Equatable {
-  final List<GroupMessage> groupMessages;
+class CircleChatState extends Equatable {
+  final List<CircleChatMessage> groupMessages;
   final bool isLoading;
   final String? error;
   final String? prefilledInputText;
@@ -11,7 +11,7 @@ class ChatState extends Equatable {
   final String? imagePath;
   final String? filePath;
 
-  const ChatState({
+  const CircleChatState({
     this.groupMessages = const [],
     this.isLoading = false,
     this.error,
@@ -22,8 +22,8 @@ class ChatState extends Equatable {
     this.filePath,
   });
 
-  ChatState copyWith({
-    List<GroupMessage>? groupMessages,
+  CircleChatState copyWith({
+    List<CircleChatMessage>? groupMessages,
     bool? isLoading,
     Object? error = _undefined,
     Object? prefilledInputText = _undefined,
@@ -33,7 +33,7 @@ class ChatState extends Equatable {
     Object? filePath = _undefined,
 
   }) {
-    return ChatState(
+    return CircleChatState(
       groupMessages: groupMessages ?? this.groupMessages,
       isLoading: isLoading ?? this.isLoading,
       error: error == _undefined ? this.error : error as String?,

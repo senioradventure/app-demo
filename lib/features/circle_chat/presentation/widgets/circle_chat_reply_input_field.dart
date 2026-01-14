@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_event.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 
-class BuildReplyInputField extends StatelessWidget {
-  const BuildReplyInputField({
+class CircleChatReplyInputField extends StatelessWidget {
+  const CircleChatReplyInputField({
     super.key,
     required TextEditingController replyController,
     required this.grpmessage,
   }) : _replyController = replyController;
 
   final TextEditingController _replyController;
-  final GroupMessage grpmessage;
+  final CircleChatMessage grpmessage;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class BuildReplyInputField extends StatelessWidget {
             onPressed: () {
               if (_replyController.text.trim().isEmpty) return;
 
-              context.read<ChatBloc>().add(
+              context.read<CircleChatBloc>().add(
                 SendGroupMessage(
                   text: _replyController.text.trim(),
                   replyToMessageId: grpmessage.id,
@@ -40,7 +40,7 @@ class BuildReplyInputField extends StatelessWidget {
 
               _replyController.clear();
 
-              context.read<ChatBloc>().add(
+              context.read<CircleChatBloc>().add(
                 ToggleReplyInput(messageId: grpmessage.id),
               );
             },

@@ -3,17 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_state.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_event.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_state.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 import 'package:senior_circle/core/common/widgets/message_input_widget/message_input_field.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_chatroom_app_bar.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_card.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_page_app_bar.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_message_card.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
-class MyCircleGroupChatPage extends StatefulWidget {
-  const MyCircleGroupChatPage({
+class CircleChatPage extends StatefulWidget {
+  const CircleChatPage({
     super.key,
     required this.chat,
     required this.isAdmin,
@@ -24,18 +24,18 @@ class MyCircleGroupChatPage extends StatefulWidget {
   final bool isForwarding;
 
   @override
-  State<MyCircleGroupChatPage> createState() => _MyCircleGroupChatPageState();
+  State<CircleChatPage> createState() => _CircleChatPageState();
 }
 
-class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
+class _CircleChatPageState extends State<CircleChatPage> {
   final ScrollController _scrollController = ScrollController();
   bool _initialScrollDone = false;
-  late final ChatBloc _chatBloc;
+  late final CircleChatBloc _chatBloc;
 
   @override
   void initState() {
     super.initState();
-    _chatBloc = context.read<ChatBloc>();
+    _chatBloc = context.read<CircleChatBloc>();
 
     if (!widget.isForwarding) {
       _chatBloc.add(ClearForwardingState());
@@ -66,13 +66,13 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: MyCircleChatroomAppBar(
+      appBar: CircleChatPageAppBar(
         chat: widget.chat,
         isAdmin: widget.isAdmin,
       ),
       body: Column(
         children: [
-          BlocListener<ChatBloc, ChatState>(
+          BlocListener<CircleChatBloc, CircleChatState>(
             listenWhen: (previous, current) =>
                 previous.groupMessages.length != current.groupMessages.length,
             listener: (context, state) {
@@ -87,7 +87,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
               _scrollToBottom();
             },
             child: Expanded(
-              child: BlocSelector<ChatBloc, ChatState, List<GroupMessage>>(
+              child: BlocSelector<CircleChatBloc, CircleChatState, List<CircleChatMessage>>(
                 selector: (state) => state.groupMessages,
                 builder: (context, messages) {
                   if (messages.isEmpty) {
@@ -107,7 +107,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
 
                       final isLastInGroup = nextMsg == null || nextMsg.senderId != currentMsg.senderId;
 
-                      return GroupMessageCard(
+                      return CircleChatMessageCard(
                         key: ValueKey(currentMsg.id),
                         grpmessage: currentMsg,
                         isContinuation: isContinuation,
@@ -119,7 +119,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
               ),
             ),
           ),
-          BlocBuilder<ChatBloc, ChatState>(
+          BlocBuilder<CircleChatBloc, CircleChatState>(
             buildWhen: (previous, current) {
               return previous.isSending != current.isSending ||
                   previous.imagePath != current.imagePath ||
@@ -144,7 +144,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                     source: ImageSource.gallery,
                   );
                   if (image != null) {
-                    context.read<ChatBloc>().add(
+                    context.read<CircleChatBloc>().add(
                       PickMessageImage(image.path),
                     );
                   }
@@ -155,7 +155,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                     source: ImageSource.camera,
                   );
                   if (image != null) {
-                    context.read<ChatBloc>().add(
+                    context.read<CircleChatBloc>().add(
                       PickMessageImage(image.path),
                     );
                   }
@@ -168,22 +168,22 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                   );
 
                   if (result != null && result.files.single.path != null) {
-                    context.read<ChatBloc>().add(
+                    context.read<CircleChatBloc>().add(
                       PickMessageFile(result.files.single.path!),
                     );
                   }
                 },
 
                 onRemoveFile: () {
-                  context.read<ChatBloc>().add(RemovePickedFile());
+                  context.read<CircleChatBloc>().add(RemovePickedFile());
                 },
 
                 onRemoveImage: () {
-                  context.read<ChatBloc>().add(RemovePickedImage());
+                  context.read<CircleChatBloc>().add(RemovePickedImage());
                 },
 
                 onSend: (text) {
-                  context.read<ChatBloc>().add(
+                  context.read<CircleChatBloc>().add(
                     SendGroupMessage(
                       text: text,
                       circleId: widget.chat.id,
@@ -192,7 +192,7 @@ class _MyCircleGroupChatPageState extends State<MyCircleGroupChatPage> {
                 },
 
                 onSendVoice: (audioFile) {
-                  context.read<ChatBloc>().add(
+                  context.read<CircleChatBloc>().add(
                     SendVoiceMessage(audioFile: audioFile.path),
                   );
                 },

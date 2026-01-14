@@ -4,16 +4,16 @@ import 'package:senior_circle/core/common/widgets/bottom_button.dart';
 import 'package:senior_circle/core/common/widgets/search_bar_widget.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_event.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/forward_state.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_event.dart';
+import 'package:senior_circle/features/circle_chat/bloc/forward_bloc.dart';
+import 'package:senior_circle/features/circle_chat/bloc/forward_event.dart';
+import 'package:senior_circle/features/circle_chat/bloc/forward_state.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
+import 'package:senior_circle/features/circle_chat/presentation/page/circle_chat_page.dart';
 
 class ForwardBottomSheet extends StatefulWidget {
-  final GroupMessage message;
+  final CircleChatMessage message;
 
   const ForwardBottomSheet({super.key, required this.message});
 
@@ -45,7 +45,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
         } else if (state is ForwardNavigateToGroup) {
           Navigator.pop(context);
           
-          final chatBloc = context.read<ChatBloc>();
+          final chatBloc = context.read<CircleChatBloc>();
           chatBloc.add(ForwardMessage(
             message: state.message,
             individualTargets: const [],
@@ -54,7 +54,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
 
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (_) => MyCircleGroupChatPage(
+                builder: (_) => CircleChatPage(
                   chat: state.chat,
                   isAdmin: state.isAdmin,
                   isForwarding: true,
@@ -83,7 +83,7 @@ class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
 }
 
 class _ForwardContent extends StatelessWidget {
-  final GroupMessage message;
+  final CircleChatMessage message;
 
   const _ForwardContent({required this.message});
 

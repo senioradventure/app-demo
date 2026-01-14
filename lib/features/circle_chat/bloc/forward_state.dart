@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/forward_item_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
+import 'package:senior_circle/features/circle_chat/models/forward_item_model.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 
 abstract class ForwardState extends Equatable {
@@ -52,7 +52,7 @@ class ForwardSuccess extends ForwardState {
 
 class ForwardNavigateToGroup extends ForwardState {
   final MyCircle chat;
-  final GroupMessage message;
+  final CircleChatMessage message;
   final bool isAdmin;
 
   const ForwardNavigateToGroup({
@@ -67,7 +67,7 @@ class ForwardNavigateToGroup extends ForwardState {
 
 class ForwardNavigateToIndividual extends ForwardState {
   final MyCircle chat;
-  final GroupMessage message;
+  final CircleChatMessage message;
 
   const ForwardNavigateToIndividual({
     required this.chat,

@@ -72,21 +72,21 @@ class _CreateRoomPreviewPageState extends State<CreateRoomPreviewPage> {
 
       final homeBloc = context.read<LiveChatHomeBloc>();
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) => Chatroom(
-            title: widget.previewDetails.name,
-            isAdmin: true,
-            isNewRoom: true,
-            imageFile: widget.previewDetails.imageFile,
-            roomId: roomId,
-          ),
-        ),
-        (route) => route.isFirst,
-      ).then((_) {
-        homeBloc.add(FetchRoomsEvent());
-      });
+      // Navigator.pushAndRemoveUntil(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (_) => Chatroom(
+      //       title: widget.previewDetails.name,
+      //       isAdmin: true,
+      //       isNewRoom: true,
+      //       imageFile: widget.previewDetails.imageFile,
+      //       roomId: roomId,
+      //     ),
+      //   ),
+      //   (route) => route.isFirst,
+      // ).then((_) {
+      //   homeBloc.add(FetchRoomsEvent());
+      // });
     } catch (e) {
       if (!mounted) return;
 

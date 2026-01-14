@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
-import '../models/group_message_model.dart';
-import '../mappers/reaction_mapper.dart';
+import '../models/circle_chat_message_model.dart';
+import '../mappers/circle_chat_reaction_mapper.dart';
 
-class GroupChatRepository {
+class CircleChatMessagesRepository {
   final SupabaseClient _client;
 
-  GroupChatRepository([SupabaseClient? client])
+  CircleChatMessagesRepository([SupabaseClient? client])
       : _client = client ?? Supabase.instance.client;
 
   String? get currentUserId => _client.auth.currentUser?.id;
 
-  Future<List<GroupMessage>> fetchGroupMessages({
+  Future<List<CircleChatMessage>> fetchGroupMessages({
     required String circleId,
   }) async {
     try {
@@ -105,14 +105,14 @@ class GroupChatRepository {
     return savedRows.map<String>((r) => r['message_id'] as String).toSet();
   }
 
-  List<GroupMessage> _buildMessageTree(
+  List<CircleChatMessage> _buildMessageTree(
     List<Map<String, dynamic>> messageRows,
     Map<String, List<Map<String, dynamic>>> reactionsByMessage,
     Set<String> savedMessageIds,
   ) {
-    final List<GroupMessage> allMessagesList = messageRows.map((row) {
+    final List<CircleChatMessage> allMessagesList = messageRows.map((row) {
       final id = row['id'] as String;
-      return GroupMessage(
+      return CircleChatMessage(
         id: id,
         senderId: row['sender_id'] ?? '',
         senderName: row['profiles']?['full_name'] ?? 'Unknown',
@@ -121,14 +121,14 @@ class GroupChatRepository {
         text: row['content'],
         imagePath: row['media_type'] == 'image' ? row['media_url'] : null,
         time: row['created_at'] as String,
-        reactions: ReactionMapper.aggregate(reactionsByMessage[id] ?? []),
+        reactions: CircleChatReactionMapper.aggregate(reactionsByMessage[id] ?? []),
         replies: const [],
         replyToMessageId: row['reply_to_message_id'] as String?,
         isStarred: savedMessageIds.contains(id),
       );
     }).toList();
 
-    final Map<String, List<GroupMessage>> repliesMap = {};
+    final Map<String, List<CircleChatMessage>> repliesMap = {};
 
     for (var m in allMessagesList) {
       if (m.replyToMessageId != null) {
@@ -145,7 +145,7 @@ class GroupChatRepository {
         .toList();
   }
 
-  Future<GroupMessage> sendGroupMessage({
+  Future<CircleChatMessage> sendGroupMessage({
     required String circleId,
     required String content,
     String? mediaUrl,
@@ -169,7 +169,7 @@ class GroupChatRepository {
 
     //debugPrint('🟩 [GroupChatRepo] Group message inserted and returned');
 
-    return GroupMessage.fromSupabase(
+    return CircleChatMessage.fromSupabase(
       messageRow: response,
       reactions: const [],
       replies: const [],
@@ -319,7 +319,7 @@ class GroupChatRepository {
   }
 
   Future<void> toggleSaveMessage({
-    required GroupMessage message,
+    required CircleChatMessage message,
     String? source,
     String? sourceType,
   }) async {

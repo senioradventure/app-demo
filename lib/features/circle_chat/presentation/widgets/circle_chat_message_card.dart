@@ -4,24 +4,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/image_mesage_bubble.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
-import 'package:senior_circle/core/enum/chat_message_type.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/forward_bottom_sheet.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_actions.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_replies.dart';
-import 'package:senior_circle/features/my_circle_chatroom/models/group_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_message_header.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/my_circle_grp_reply_input.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_event.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/forward_bottom_sheet.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_message_actions.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_message_replies.dart';
+import 'package:senior_circle/features/circle_chat/models/circle_chat_message_model.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_message_header.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_reply_input_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class GroupMessageCard extends StatefulWidget {
-  final GroupMessage grpmessage;
+class CircleChatMessageCard extends StatefulWidget {
+  final CircleChatMessage grpmessage;
   final bool isReply;
   final bool isContinuation;
   final bool isLastInGroup;
 
-  const GroupMessageCard({
+  const CircleChatMessageCard({
     super.key,
     required this.grpmessage,
     this.isReply = false,
@@ -30,16 +29,16 @@ class GroupMessageCard extends StatefulWidget {
   });
 
   @override
-  State<GroupMessageCard> createState() => _GroupMessageCardState();
+  State<CircleChatMessageCard> createState() => _CircleChatMessageCardState();
 }
 
-class _GroupMessageCardState extends State<GroupMessageCard> {
+class _CircleChatMessageCardState extends State<CircleChatMessageCard> {
   final TextEditingController _replyController = TextEditingController();
 
   void _onReactionTap(BuildContext context, String emoji) {
-    final userId = context.read<ChatBloc>().repository.currentUserId!;
+    final userId = context.read<CircleChatBloc>().repository.currentUserId!;
 
-    context.read<ChatBloc>().add(
+    context.read<CircleChatBloc>().add(
       ToggleReaction(
         messageId: widget.grpmessage.id,
         emoji: emoji,
@@ -64,10 +63,10 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   }
 
   void _handleStar() {
-    context.read<ChatBloc>().add(
+    context.read<CircleChatBloc>().add(
       ToggleStar(
         messageId: widget.grpmessage.id,
-        userId: context.read<ChatBloc>().repository.currentUserId!,
+        userId: context.read<CircleChatBloc>().repository.currentUserId!,
       ),
     );
   }
@@ -89,20 +88,20 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   }
 
   void _handleDeleteForMe() {
-    context.read<ChatBloc>().add(
+    context.read<CircleChatBloc>().add(
       DeleteGroupMessage(messageId: widget.grpmessage.id, forEveryone: false),
     );
   }
 
   void _handleDeleteForEveryone() {
-    context.read<ChatBloc>().add(
+    context.read<CircleChatBloc>().add(
       DeleteGroupMessage(messageId: widget.grpmessage.id, forEveryone: true),
     );
   }
 
   Future<void> _showContextMenu(
     BuildContext context,
-    GroupMessage msg,
+    CircleChatMessage msg,
     bool isMe,
   ) async {
     final box = context.findRenderObject() as RenderBox;
@@ -205,7 +204,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
   @override
   Widget build(BuildContext context) {
     final grpmessage = widget.grpmessage;
-    final currentUserId = context.read<ChatBloc>().repository.currentUserId;
+    final currentUserId = context.read<CircleChatBloc>().repository.currentUserId;
     final isMe = currentUserId != null && grpmessage.senderId == currentUserId;
     final likeReaction = grpmessage.reactions
         .where((r) => r.emoji == '👍')
@@ -272,7 +271,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              GroupMessageHeader(
+                              CircleChatMessageHeader(
                                 grpmessage: grpmessage,
                                 isMe: isMe,
                               ),
@@ -305,7 +304,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                                   ),
                                 ),
 
-                              MessageActions(
+                              CircleChatMessageActions(
                                 isLiked: isLiked,
                                 likeCount: likeCount,
                                 reactions: grpmessage.reactions,
@@ -317,7 +316,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                                 onAddReactionTap: _showEmojiPicker,
                                 onLikeTap: () => _onReactionTap(context, '👍'),
                                 onReplyTap: () {
-                                  context.read<ChatBloc>().add(
+                                  context.read<CircleChatBloc>().add(
                                     ToggleReplyInput(messageId: grpmessage.id),
                                   );
                                 },
@@ -336,7 +335,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                 ),
 
                 if (grpmessage.isThreadOpen)
-                  MessageReplies(replies: grpmessage.replies),
+                  CircleChatMessageReplies(replies: grpmessage.replies),
 
                 if (grpmessage.isReplyInputOpen)
                   Padding(
@@ -345,7 +344,7 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
                       right: 12,
                       bottom: 12,
                     ),
-                    child: BuildReplyInputField(
+                    child: CircleChatReplyInputField(
                       replyController: _replyController,
                       grpmessage: grpmessage,
                     ),
@@ -358,10 +357,10 @@ class _GroupMessageCardState extends State<GroupMessageCard> {
     );
   }
 
-  Widget _buildReplyButton(GroupMessage grpmessage) => Center(
+  Widget _buildReplyButton(CircleChatMessage grpmessage) => Center(
     child: TextButton.icon(
       onPressed: () {
-        context.read<ChatBloc>().add(
+        context.read<CircleChatBloc>().add(
           ToggleGroupThread(messageId: grpmessage.id),
         );
       },

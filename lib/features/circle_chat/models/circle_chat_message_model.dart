@@ -1,7 +1,7 @@
-import 'package:senior_circle/features/my_circle_chatroom/models/reaction_model.dart';
+import 'package:senior_circle/features/circle_chat/models/reaction_model.dart';
 import 'package:flutter/foundation.dart';
 
-class GroupMessage {
+class CircleChatMessage {
   final String id;
   final String senderId;
   final String senderName;
@@ -11,12 +11,12 @@ class GroupMessage {
   final String? imagePath;
   final String time;
   final List<Reaction> reactions;
-  final List<GroupMessage> replies;
+  final List<CircleChatMessage> replies;
   final bool isThreadOpen;
   final bool isReplyInputOpen;
   final String? replyToMessageId;
 
-  const GroupMessage({
+  const CircleChatMessage({
     required this.id,
     required this.senderId,
     required this.senderName,
@@ -35,7 +35,7 @@ class GroupMessage {
 
   final bool isStarred;
 
-  GroupMessage copyWith({
+  CircleChatMessage copyWith({
     String? id,
     String? senderId,
     String? senderName,
@@ -45,13 +45,13 @@ class GroupMessage {
     String? imagePath,
     String? time,
     List<Reaction>? reactions,
-    List<GroupMessage>? replies,
+    List<CircleChatMessage>? replies,
     bool? isThreadOpen,
     bool? isReplyInputOpen,
     String? replyToMessageId,
     bool? isStarred,
   }) {
-    return GroupMessage(
+    return CircleChatMessage(
       id: id ?? this.id,
       senderId: senderId ?? this.senderId,
       senderName: senderName ?? this.senderName,
@@ -69,10 +69,10 @@ class GroupMessage {
     );
   }
 
-  factory GroupMessage.fromSupabase({
+  factory CircleChatMessage.fromSupabase({
     required Map<String, dynamic> messageRow,
     required List<Reaction> reactions,
-    List<GroupMessage> replies = const [],
+    List<CircleChatMessage> replies = const [],
     bool isStarred = false,
   }) {
     if (messageRow['sender_id'] == null) {
@@ -85,7 +85,7 @@ class GroupMessage {
       'reactions=${reactions.length}',
     );
 
-    return GroupMessage(
+    return CircleChatMessage(
       id: messageRow['id'] as String,
       senderId: messageRow['sender_id']?.toString() ?? '',
       senderName: messageRow['profiles']?['full_name'] ?? 'Unknown',
@@ -103,10 +103,10 @@ class GroupMessage {
     );
   }
 
-  factory GroupMessage.fromMap(Map<String, dynamic> map) {
+  factory CircleChatMessage.fromMap(Map<String, dynamic> map) {
     final reactionsRaw = Map<String, dynamic>.from(map['reactions'] ?? {});
 
-    return GroupMessage(
+    return CircleChatMessage(
       id: map['id'],
       senderId: map['senderId'],
       senderName: map['senderName'],
@@ -119,7 +119,7 @@ class GroupMessage {
       isReplyInputOpen: map['isReplyInputOpen'] ?? false,
       isStarred: map['isStarred'] ?? false,
       replies: (map['replies'] as List? ?? [])
-          .map((e) => GroupMessage.fromMap(Map<String, dynamic>.from(e)))
+          .map((e) => CircleChatMessage.fromMap(Map<String, dynamic>.from(e)))
           .toList(),
       reactions: reactionsRaw.entries.map((entry) {
         return Reaction(

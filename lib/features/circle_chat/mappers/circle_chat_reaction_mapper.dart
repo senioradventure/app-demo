@@ -1,6 +1,6 @@
 import '../models/reaction_model.dart';
 
-class ReactionMapper {
+class CircleChatReactionMapper {
   static List<Reaction> aggregate(List<Map<String, dynamic>> rows) {
     final Map<String, List<String>> grouped = {};
 
