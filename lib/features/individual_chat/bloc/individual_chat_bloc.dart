@@ -155,11 +155,12 @@ class IndividualChatBloc
         } else {
           debugPrint('🟨 [IndividualChatBloc] Uploading image...');
           final file = File(current.imagePath!);
-          final fileName =
-              'messages/${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
-
-          await _client.storage.from('media').upload(fileName, file);
-          mediaUrl = _client.storage.from('media').getPublicUrl(fileName);
+          
+          
+          mediaUrl = await _repository.uploadMedia(
+             file: file,
+             folder: 'images',
+          );
         }
       }
 
