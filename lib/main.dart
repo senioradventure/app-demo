@@ -28,6 +28,7 @@ import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart'
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:senior_circle/core/di/dependency_injection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,9 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuZm96cm9vbGNlcXVjbGx0d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NzEzNzMsImV4cCI6MjA4MDE0NzM3M30.0MQAK_yOPZX8MxvmsmSnXkV2tcMPzKcGOOTpl2XdTlA',
   );
+
+  // Initialize dependency injection
+  setupDependencyInjection();
 
   runApp(const SeniorCircleApp());
 }
@@ -99,7 +103,7 @@ class SeniorCircleApp extends StatelessWidget {
           create: (_) => ForwardBloc(),
         ),
         BlocProvider(
-          create: (_) => CircleChatBloc(repository: CircleChatMessagesRepository()),
+          create: (_) => CircleChatBloc(repository: getIt<CircleChatMessagesRepository>()),
         ),
       ],
       child: MaterialApp(

@@ -19,6 +19,7 @@ class MyCircleRepository {
     );
     debugPrint('🟩 [MyCircleRepo] Individual chats count: ${(individualResponse as List?)?.length}');
     // debugPrint('🟩 [MyCircleRepo] First individual chat sample: ${individualResponse.first}');
+    // debugPrint('🟩 [MyCircleRepo] First individual chat sample: ${individualResponse.first}');
 
     // 🔹 Circle / group chats (filtered by membership)
     final circleResponse = await _client

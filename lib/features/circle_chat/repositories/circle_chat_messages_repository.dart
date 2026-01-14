@@ -3,14 +3,50 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 import '../models/circle_chat_message_model.dart';
 import '../mappers/circle_chat_reaction_mapper.dart';
+import 'package:senior_circle/core/database/daos/circle_messages_dao.dart';
+import 'package:senior_circle/core/database/converters/circle_message_converter.dart';
 
 class CircleChatMessagesRepository {
   final SupabaseClient _client;
+  final CircleMessagesDao? _messagesDao;
 
-  CircleChatMessagesRepository([SupabaseClient? client])
-      : _client = client ?? Supabase.instance.client;
+  CircleChatMessagesRepository({
+    SupabaseClient? client,
+    CircleMessagesDao? messagesDao,
+  })  : _client = client ?? Supabase.instance.client,
+        _messagesDao = messagesDao;
 
   String? get currentUserId => _client.auth.currentUser?.id;
+
+  /// Fetch messages from local database (instant)
+  Future<List<CircleChatMessage>> fetchMessagesFromLocal(String circleId) async {
+    if (_messagesDao == null) return [];
+    
+    debugPrint('🟦 [Repo] Loading messages from local DB for circle $circleId');
+    final driftMessages = await _messagesDao!.getMessagesByCircle(circleId);
+    final messages = CircleMessageConverter.fromDriftList(driftMessages);
+    
+    // Build message tree (attach replies to parent messages)
+    return _buildLocalMessageTree(messages);
+  }
+
+  /// Build message tree from local messages
+  List<CircleChatMessage> _buildLocalMessageTree(List<CircleChatMessage> messages) {
+    final Map<String, List<CircleChatMessage>> repliesMap = {};
+    
+    // Group replies by parent message ID
+    for (var m in messages) {
+      if (m.replyToMessageId != null) {
+        repliesMap.putIfAbsent(m.replyToMessageId!, () => []).add(m);
+      }
+    }
+    
+    // Return only top-level messages with their replies attached
+    return messages
+        .where((m) => m.replyToMessageId == null)
+        .map((m) => m.copyWith(replies: (repliesMap[m.id] ?? []).reversed.toList()))
+        .toList();
+  }
 
   Future<List<CircleChatMessage>> fetchGroupMessages({
     required String circleId,
@@ -21,11 +57,16 @@ class CircleChatMessagesRepository {
 
       final reactionsByMessage = await _fetchReactions(messageRows);
       final savedMessageIds = await _fetchSavedMessageIds(messageRows);
-      return _buildMessageTree(
+      final messages = _buildMessageTree(
         messageRows,
         reactionsByMessage,
         savedMessageIds,
       );
+      
+      // 💾 Save to local database
+      await _syncToLocal(messages, circleId);
+      
+      return messages;
     } catch (e, stack) {
       debugPrint('🟥 [GroupChatRepo] ERROR: $e');
       debugPrint('🟥 [GroupChatRepo] STACKTRACE:\n$stack');
@@ -143,6 +184,16 @@ class CircleChatMessagesRepository {
               m.copyWith(replies: (repliesMap[m.id] ?? []).reversed.toList()),
         )
         .toList();
+  }
+
+  /// Sync messages to local database
+  Future<void> _syncToLocal(List<CircleChatMessage> messages, String circleId) async {
+    if (_messagesDao == null) return;
+    
+    debugPrint('\ud83d\udfe6 [Repo] Syncing ${messages.length} messages to local DB');
+    final companions = CircleMessageConverter.toCompanionList(messages, circleId);
+    await _messagesDao!.upsertMessages(companions);
+    debugPrint('\ud83d\udfe9 [Repo] Local DB sync complete');
   }
 
   Future<CircleChatMessage> sendGroupMessage({

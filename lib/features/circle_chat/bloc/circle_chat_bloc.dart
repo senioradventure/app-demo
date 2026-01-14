@@ -74,18 +74,30 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
     LoadGroupMessages event,
     Emitter<CircleChatState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, error: null));
     _circleId = event.chatId;
 
     try {
+      // 🚀 Load from local DB first (instant)
+      final localMessages = await repository.fetchMessagesFromLocal(event.chatId);
+      if (localMessages.isNotEmpty) {
+        debugPrint('🟦 [ChatBloc] Loaded ${localMessages.length} messages from local DB');
+        emit(state.copyWith(groupMessages: localMessages, isLoading: false));
+      } else {
+        // Only show loading if no local data
+        emit(state.copyWith(isLoading: true, error: null));
+      }
+
+      // 🔄 Sync with Supabase in background
       final messages = await repository.fetchGroupMessages(
         circleId: event.chatId,
       );
 
+      debugPrint('🟩 [ChatBloc] Synced ${messages.length} messages from Supabase');
       emit(state.copyWith(groupMessages: messages, isLoading: false));
 
       _subscribeToGroupRealtime(event.chatId);
     } catch (e) {
+      debugPrint('🟥 [ChatBloc] Error loading messages: $e');
       emit(state.copyWith(isLoading: false, error: 'Failed to load messages'));
     }
   }
