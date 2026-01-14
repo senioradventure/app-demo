@@ -46,19 +46,9 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
       MaterialPageRoute(
         builder: (_) {
           if (chat.isGroup) {
-            return BlocProvider(
-          create: (_) => ChatBloc(
-            repository: GroupChatRepository(),
-          )..add(LoadGroupMessages(chatId: chat.id)),
-          child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
-        );
+            return MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin);
           } else {
-            return BlocProvider(
-              create: (_) =>
-                  IndividualChatBloc(IndividualChatRepository())
-                    ..add(LoadConversationMessages(chat.id)),
-              child: MyCircleIndividualChatPage(chat: chat),
-            );
+            return MyCircleIndividualChatPage(chat: chat);
           }
         },
       ),

@@ -14,62 +14,68 @@ import 'package:senior_circle/features/my_circle_chatroom/models/group_message_m
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
 import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
 
-class ForwardBottomSheet extends StatelessWidget {
+class ForwardBottomSheet extends StatefulWidget {
   final GroupMessage message;
 
   const ForwardBottomSheet({super.key, required this.message});
 
   @override
+  State<ForwardBottomSheet> createState() => _ForwardBottomSheetState();
+}
+
+class _ForwardBottomSheetState extends State<ForwardBottomSheet> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<ForwardBloc>().add(LoadForwardTargets());
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ForwardBloc()..add(LoadForwardTargets()),
-      child: BlocListener<ForwardBloc, ForwardState>(
-        listener: (context, state) {
-          if (state is ForwardSuccess) {
-            Navigator.pop(context); // Close bottom sheet
-            Navigator.of(context).pop(); // Close message options if open
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          } else if (state is ForwardError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          } else if (state is ForwardNavigateToGroup) {
-            Navigator.pop(context);
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => BlocProvider(
-                  create: (_) => ChatBloc(repository: GroupChatRepository())
-                    ..add(LoadGroupMessages(chatId: state.chat.id))
-                    ..add(ForwardMessage(
-                      message: state.message,
-                      individualTargets: const [],
-                      circleIds: [state.chat.id],
-                    )),
-                  child: MyCircleGroupChatPage(chat: state.chat, isAdmin: state.isAdmin),
-                ),
-              ),
-            );
-          } else if (state is ForwardNavigateToIndividual) {
-            Navigator.pop(context);
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => BlocProvider(
-                  create: (_) => IndividualChatBloc(IndividualChatRepository())
-                    ..add(LoadConversationMessages(state.chat.id))
-                    ..add(PrefillIndividualChat(
-                      text: state.message.text,
-                      mediaUrl: state.message.imagePath,
-                    )),
-                  child: MyCircleIndividualChatPage(chat: state.chat),
-                ),
-              ),
-            );
-          }
-        },
-        child: _ForwardContent(message: message),
-      ),
+    return BlocListener<ForwardBloc, ForwardState>(
+      listener: (context, state) {
+        if (state is ForwardSuccess) {
+          Navigator.pop(context); // Close bottom sheet
+          Navigator.of(context).pop(); // Close message options if open
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        } else if (state is ForwardError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        } else if (state is ForwardNavigateToGroup) {
+          Navigator.pop(context);
+          
+          final chatBloc = context.read<ChatBloc>();
+          chatBloc.add(ForwardMessage(
+            message: state.message,
+            individualTargets: const [],
+            circleIds: [state.chat.id],
+          ));
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => MyCircleGroupChatPage(chat: state.chat, isAdmin: state.isAdmin),
+            ),
+          );
+        } else if (state is ForwardNavigateToIndividual) {
+          Navigator.pop(context);
+
+          final individualChatBloc = context.read<IndividualChatBloc>();
+          individualChatBloc.add(PrefillIndividualChat(
+            text: state.message.text,
+            mediaUrl: state.message.imagePath,
+          ));
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => MyCircleIndividualChatPage(chat: state.chat),
+            ),
+          );
+        }
+      },
+      child: _ForwardContent(message: widget.message),
     );
   }
 }

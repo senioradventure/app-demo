@@ -1,3 +1,4 @@
+import 'package:senior_circle/core/client/supabase_client.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
