@@ -29,6 +29,7 @@ class IndividualChatBloc
     on<ClearReplyMessage>(_onClearReply);
     on<SendConversationMessage>(_onSendMessage);
     on<AddReactionToMessage>(_onAddReaction);
+    on<RemoveReaction>(_onRemoveReaction);
     on<StarMessage>(_onStarMessage);
     on<DeleteMessageForEveryone>(_onDeleteMessageForEveryone);
     on<DeleteMessageForMe>(_onDeleteMessageForMe);
@@ -59,6 +60,8 @@ class IndividualChatBloc
       );
 
       _subscribeToRealtime();
+      // Subscribe to reactions realtime
+      _repository.subscribeToReactionsRealtime(_conversationId);
     } catch (e) {
       emit(IndividualChatError(e.toString()));
     }
@@ -281,33 +284,45 @@ class IndividualChatBloc
     final current = state as IndividualChatLoaded;
 
     final userId = await _repository.getCurrentUserId();
+
     final updatedMessages = current.messages.map((m) {
       if (m.id != event.messageId) return m;
 
-      final existingIndex = m.reactions.indexWhere((r) => r.userId == userId);
+      final List<MessageReaction> updatedReactions = List<MessageReaction>.from(
+        m.reactions,
+      );
 
-      List<MessageReaction> updatedReactions = List.from(m.reactions);
+      final existingIndex = updatedReactions.indexWhere(
+        (r) => r.userId == userId,
+      );
 
       if (existingIndex != -1) {
+        // Same reaction → toggle off
         if (updatedReactions[existingIndex].reaction == event.reaction) {
-          updatedReactions.removeAt(existingIndex); // toggle off
+          updatedReactions.removeAt(existingIndex);
         } else {
+          // Different reaction → replace
           updatedReactions[existingIndex] = MessageReaction(
-            id: 'temp',
+            id: updatedReactions[existingIndex].id, // preserve temp/real id
             userId: userId,
             reaction: event.reaction,
           );
         }
       } else {
+        // New reaction
         updatedReactions.add(
-          MessageReaction(id: 'temp', userId: userId, reaction: event.reaction),
+          MessageReaction(
+            id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
+            userId: userId,
+            reaction: event.reaction,
+          ),
         );
       }
 
       return m.copyWith(reactions: updatedReactions);
     }).toList();
 
-    // ✅ Increment version to trigger UI rebuild
+    // 🔥 CRITICAL: force rebuild
     emit(
       current.copyWith(messages: updatedMessages, version: current.version + 1),
     );
@@ -318,14 +333,46 @@ class IndividualChatBloc
         reaction: event.reaction,
       );
     } catch (e) {
-      // Optional: handle error and revert optimistic update
+      // Optional rollback trigger
       if (state is IndividualChatLoaded) {
-        emit(
-          (state as IndividualChatLoaded).copyWith(
-            version: (state as IndividualChatLoaded).version + 1,
-          ),
-        );
+        final s = state as IndividualChatLoaded;
+        emit(s.copyWith(version: s.version + 1));
       }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // REMOVE REACTION
+  // ---------------------------------------------------------------------------
+  Future<void> _onRemoveReaction(
+    RemoveReaction event,
+    Emitter<IndividualChatState> emit,
+  ) async {
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    final userId = await _repository.getCurrentUserId();
+
+    final updatedMessages = current.messages.map((m) {
+      if (m.id != event.messageId) return m;
+
+      return m.copyWith(
+        reactions: m.reactions
+            .where((r) => !(r.reaction == event.reaction && r.userId == userId))
+            .toList(),
+      );
+    }).toList();
+
+    // 🔥 Optimistic UI update
+    emit(current.copyWith(messages: updatedMessages));
+
+    try {
+      await _repository.removeReaction(
+        messageId: event.messageId,
+        reaction: event.reaction,
+      );
+    } catch (e) {
+      emit(current); // rollback
     }
   }
 
@@ -446,6 +493,7 @@ class IndividualChatBloc
   @override
   Future<void> close() {
     _channel?.unsubscribe();
+    _repository.unsubscribeFromReactionsRealtime();
     return super.close();
   }
 }

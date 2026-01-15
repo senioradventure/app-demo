@@ -2,16 +2,22 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:path/path.dart';
-import 'package:senior_circle/core/local_db/app_database.dart'; // Adjust path if needed
-import 'package:senior_circle/core/local_db/tables/individual_messages_table.dart';
+import 'package:senior_circle/core/local_db/app_database.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
+import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart'
+    as model;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:senior_circle/core/local_db/daos/individual_messages_dao.dart';
+import 'package:senior_circle/core/local_db/daos/message_reactions_dao.dart';
 
 class IndividualChatRepository {
   final supabase.SupabaseClient _client = supabase.Supabase.instance.client;
   final IndividualMessagesDao _dao = AppDatabase.instance.individualMessagesDao;
+  final MessageReactionsDao _reactionsDao =
+      AppDatabase.instance.messageReactionsDao;
+
+  supabase.RealtimeChannel? _reactionsChannel;
 
   /// Loads messages from Supabase, syncs them to Drift, and returns the list.
   /// Used for initial load.
@@ -61,13 +67,35 @@ class IndividualChatRepository {
     }
   }
 
-  /// Watch messages from local Drift DB
+  /// Watch messages from local Drift DB with reactions
   Stream<List<IndividualChatMessageModel>> watchMessages(
     String conversationId,
-  ) {
-    return _dao.watchMessages(conversationId).map((rows) {
-      return rows.map(_fromRow).toList();
-    });
+  ) async* {
+    await for (final messages in _dao.watchMessages(conversationId)) {
+      final messagesWithReactions = <IndividualChatMessageModel>[];
+
+      for (final msg in messages) {
+        final reactions = await _reactionsDao
+            .watchReactionsByMessageId(msg.id)
+            .first;
+
+        final messageModel = _fromRow(msg).copyWith(
+          reactions: reactions
+              .map(
+                (r) => model.MessageReaction(
+                  id: r.id,
+                  userId: r.userId,
+                  reaction: r.reaction,
+                ),
+              )
+              .toList(),
+        );
+
+        messagesWithReactions.add(messageModel);
+      }
+
+      yield messagesWithReactions;
+    }
   }
 
   /// Upload any media (image / file / voice)
@@ -133,6 +161,7 @@ class IndividualChatRepository {
   }) async {
     final userId = _client.auth.currentUser!.id;
 
+    // Check if user already has a reaction on this message
     final existingResponse = await _client
         .from('message_reactions')
         .select()
@@ -142,23 +171,70 @@ class IndividualChatRepository {
     final existing = (existingResponse as List);
 
     if (existing.isNotEmpty) {
-      await _client
-          .from('message_reactions')
-          .delete()
-          .eq('id', existing.first['id']);
+      final existingReaction = existing.first['reaction'];
+      final existingId = existing.first['id'];
 
-      if (existing.first['reaction'] == reaction) {
+      // Delete from Supabase
+      await _client.from('message_reactions').delete().eq('id', existingId);
+
+      // Delete from local DB
+      await _reactionsDao.deleteReaction(messageId, userId, existingReaction);
+
+      // If same reaction, toggle off (already deleted above)
+      if (existingReaction == reaction) {
         return;
       }
     }
 
-    await _client.from('message_reactions').insert({
-      'message_id': messageId,
-      'user_id': userId,
-      'reaction': reaction,
-    });
+    // Insert into Supabase
+    final response = await _client
+        .from('message_reactions')
+        .insert({
+          'message_id': messageId,
+          'user_id': userId,
+          'reaction': reaction,
+        })
+        .select()
+        .single();
 
-    // Note: Reactions are not stored in Drift messages table
+    // Mirror into local Drift
+    await _reactionsDao.insertReaction(
+      MessageReactionsCompanion(
+        id: Value(response['id']),
+        messageId: Value(messageId),
+        userId: Value(userId),
+        reaction: Value(reaction),
+        createdAt: Value(DateTime.parse(response['created_at'])),
+      ),
+    );
+  }
+
+  Future<void> removeReaction({
+    required String messageId,
+    required String reaction,
+  }) async {
+    final userId = _client.auth.currentUser!.id;
+
+    // Find the reaction in Supabase
+    final existingResponse = await _client
+        .from('message_reactions')
+        .select()
+        .eq('message_id', messageId)
+        .eq('user_id', userId)
+        .eq('reaction', reaction);
+
+    final existing = (existingResponse as List);
+
+    if (existing.isEmpty) return;
+
+    // Delete from Supabase
+    await _client
+        .from('message_reactions')
+        .delete()
+        .eq('id', existing.first['id']);
+
+    // Delete from local Drift
+    await _reactionsDao.deleteReaction(messageId, userId, reaction);
   }
 
   Future<void> starMessage({
@@ -227,7 +303,6 @@ class IndividualChatRepository {
       conversationId: Value(conversationId),
       replyToMessageId: Value(model.replyToMessageId),
       createdAt: Value(model.createdAt),
-  
     );
   }
 
@@ -240,7 +315,54 @@ class IndividualChatRepository {
       mediaType: row.mediaType,
       createdAt: row.createdAt,
       replyToMessageId: row.replyToMessageId,
-      reactions: [], // Drift does not store reactions
+      reactions: [], // Reactions will be loaded separately via stream
     );
+  }
+
+  /// Subscribe to realtime changes for message_reactions
+  void subscribeToReactionsRealtime(String conversationId) {
+    _reactionsChannel?.unsubscribe();
+
+    _reactionsChannel = _client
+        .channel('reactions_$conversationId')
+        .onPostgresChanges(
+          event: supabase.PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'message_reactions',
+          callback: (payload) async {
+            final data = payload.newRecord;
+            // Only sync if this reaction belongs to a message in this conversation
+            // We'll insert it into local DB
+            await _reactionsDao.insertReaction(
+              MessageReactionsCompanion(
+                id: Value(data['id']),
+                messageId: Value(data['message_id']),
+                userId: Value(data['user_id']),
+                reaction: Value(data['reaction']),
+                createdAt: Value(DateTime.parse(data['created_at'])),
+              ),
+            );
+          },
+        )
+        .onPostgresChanges(
+          event: supabase.PostgresChangeEvent.delete,
+          schema: 'public',
+          table: 'message_reactions',
+          callback: (payload) async {
+            final data = payload.oldRecord;
+            // Delete from local DB
+            await _reactionsDao.deleteReaction(
+              data['message_id'],
+              data['user_id'],
+              data['reaction'],
+            );
+          },
+        )
+        .subscribe();
+  }
+
+  /// Unsubscribe from reactions realtime
+  void unsubscribeFromReactionsRealtime() {
+    _reactionsChannel?.unsubscribe();
   }
 }
