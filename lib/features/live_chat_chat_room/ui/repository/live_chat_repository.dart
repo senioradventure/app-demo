@@ -3,39 +3,41 @@ import 'package:flutter/material.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/user_profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
+import 'package:senior_circle/features/live_chat_chat_room/data/local/daos/messages_daos.dart';
 
 class ChatRoomRepository {
   final SupabaseClient _supabase;
+  final MessagesDao _messagesDao;
 
-  ChatRoomRepository({SupabaseClient? supabase})
-    : _supabase = supabase ?? Supabase.instance.client;
+  ChatRoomRepository({SupabaseClient? supabase,required MessagesDao messagesDao,})
+    : _supabase = supabase ?? Supabase.instance.client,
+    _messagesDao = messagesDao;
 
   String? get currentUserId => _supabase.auth.currentUser?.id;
 
   Future<void> sendTextMessage({
-    required String roomId,
-    required String text,
-  }) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) throw Exception('User not logged in');
+  required String roomId,
+  required String text,
+}) async {
+  final user = _supabase.auth.currentUser;
+  if (user == null) throw Exception('User not logged in');
 
-    final response = await _supabase
-        .from('messages')
-        .insert({
-          'live_chat_room_id': roomId,
-          'sender_id': user.id,
-          'content': text,
-          'media_type': 'text',
-        })
-        .select()
-        .maybeSingle();
+  // ✅ Insert locally first
+  await _messagesDao.insertLocalMessage(
+    roomId: roomId,
+    senderId: user.id,
+    content: text,
+  );
 
-    debugPrint('INSERT RESPONSE: $response');
+  // 🔴 Then send to server
+  await _supabase.from('messages').insert({
+    'live_chat_room_id': roomId,
+    'sender_id': user.id,
+    'content': text,
+    'media_type': 'text',
+  });
+}
 
-    if (response == null) {
-      throw Exception('Message insert failed (no row returned)');
-    }
-  }
 
   Future<Set<String>> _fetchHiddenMessageIds() async {
     final userId = currentUserId;
@@ -92,40 +94,24 @@ class ChatRoomRepository {
     return rows.map<String>((r) => r['reported_message_id'] as String).toSet();
   }
 
-  Stream<List<ChatMessage>> streamMessages({required String roomId}) {
-    final userId = currentUserId ?? '';
+Stream<List<ChatMessage>> streamMessages({required String roomId}) {
+  final userId = currentUserId ?? '';
 
-    return _supabase.from('messages').stream(primaryKey: ['id']).asyncMap((
-      rows,
-    ) async {
-      final hiddenIds = await _fetchHiddenMessageIds();
-      final filtered = rows
-          .where(
-            (row) =>
-                row['live_chat_room_id'] == roomId &&
-                row['deleted_at'] == null &&
-                !hiddenIds.contains(row['id']),
-          )
-          .toList();
+  // 🔵 Only use Supabase stream for now
+  return _supabase
+      .from('messages')
+      .stream(primaryKey: ['id'])
+      .map((rows) {
+    return rows
+        .where((row) =>
+            row['live_chat_room_id'] == roomId &&
+            row['deleted_at'] == null)
+        .map((row) => ChatMessage.fromMap(row, userId))
+        .toList();
+  });
+}
 
-      final messageIds = filtered
-          .map<String>((row) => row['id'] as String)
-          .toList();
 
-      final savedIds = await _fetchSavedMessageIds(messageIds);
-      final reportedIds = await _fetchReportedMessageIds(messageIds);
-
-      final serverMessages = filtered.map((row) {
-        return ChatMessage.fromMap({
-          ...row,
-          'is_starred': savedIds.contains(row['id']),
-          'is_reported': reportedIds.contains(row['id']),
-        }, userId);
-      }).toList();
-
-      return serverMessages;
-    });
-  }
 
   Future<void> sendFriendRequest(String otherUserId) async {
     final userId = currentUserId;
