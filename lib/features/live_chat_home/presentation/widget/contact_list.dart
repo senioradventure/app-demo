@@ -16,6 +16,16 @@ class ContactRoomList extends StatelessWidget {
     return true;
   }
 
+  String timeAgo(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays}d ago';
+  }
+
   @override
   Widget build(BuildContext context) {
     final list = roomList;
@@ -53,26 +63,24 @@ class ContactRoomList extends StatelessWidget {
 
         return InkWell(
           onTap: () {
-  debugPrint('👉 Opening chat with roomId: ${room.id}');
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) {
-        return Builder(
-          builder: (innerContext) {
-            return Chatroom(
-              title: room.name,
-              imageUrl: room.image_url,
-              roomId: room.id,
-              adminId: room.admin_id!,
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return Builder(
+                    builder: (innerContext) {
+                      return Chatroom(
+                        title: room.name,
+                        imageUrl: room.image_url,
+                        roomId: room.id,
+                        adminId: room.admin_id!,
+                      );
+                    },
+                  );
+                },
+              ),
             );
           },
-        );
-      },
-    ),
-  );
-},
 
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
@@ -119,7 +127,12 @@ class ContactRoomList extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    TimeText(time: "32m ago"),
+                    TimeText(
+                      time: room.lastMessageAt != null
+                          ? timeAgo(room.lastMessageAt!)
+                          : '',
+                    ),
+
                     const SizedBox(height: 6),
                     UserCountBadge(count: 10),
                   ],
