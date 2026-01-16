@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart'
     hide
         Column; // Hide Column to avoid conflict if any, though not expected here
+import 'dart:io';
 import 'package:senior_circle/core/database/app_database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:senior_circle/features/createCircle/model/friend_model.dart';
