@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
@@ -19,6 +20,9 @@ class IndividualChatBloc
   late String _conversationId;
   RealtimeChannel? _channel;
 
+  String? _prefilledText;
+  String? _prefilledMedia;
+
   IndividualChatBloc(this._repository) : super(IndividualChatInitial()) {
     on<LoadConversationMessages>(_onLoadMessages);
     on<PickMessageImage>(_onPickImage);
@@ -32,6 +36,7 @@ class IndividualChatBloc
     on<StarMessage>(_onStarMessage);
     on<DeleteMessageForEveryone>(_onDeleteMessageForEveryone);
     on<DeleteMessageForMe>(_onDeleteMessageForMe);
+    on<PrefillIndividualChat>(_onPrefillChat);
     on<SendVoiceMessage>(_onSendVoiceMessage);
   }
 
@@ -48,18 +53,41 @@ class IndividualChatBloc
     try {
       final messages = await _repository.loadMessages(_conversationId);
 
+      final imagePathValue = _prefilledMedia != null &&
+              ['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
+                  _prefilledMedia!.toLowerCase().contains(ext))
+          ? _prefilledMedia
+          : null;
+      
+      final filePathValue = _prefilledMedia != null &&
+              !['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
+                  _prefilledMedia!.toLowerCase().contains(ext))
+          ? _prefilledMedia
+          : null;
+      
+      debugPrint('🟦 [IndividualChatBloc] _prefilledMedia: $_prefilledMedia');
+      debugPrint('🟦 [IndividualChatBloc] imagePath: $imagePathValue');
+      debugPrint('🟦 [IndividualChatBloc] filePath: $filePathValue');
+      
       emit(
         IndividualChatLoaded(
           messages: messages,
-          imagePath: null,
-          filePath: null,
+          imagePath: imagePathValue,
+          filePath: filePathValue,
           replyTo: null,
           isSending: false,
+          prefilledInputText: _prefilledText,
+          prefilledMediaUrl: _prefilledMedia,
         ),
       );
 
+      // Clear after applying to initial state
+      _prefilledText = null;
+      _prefilledMedia = null;
+
       _subscribeToRealtime();
     } catch (e) {
+      debugPrint(e.toString());
       emit(IndividualChatError(e.toString()));
     }
   }
@@ -129,7 +157,7 @@ class IndividualChatBloc
     final userId = await _repository.getCurrentUserId();
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
-    String? mediaUrl;
+    String? mediaUrl  = current.prefilledMediaUrl;
     String mediaType = 'text';
 
     try {
@@ -137,17 +165,25 @@ class IndividualChatBloc
 
       /// ───────── MEDIA HANDLING ─────────
       if (current.imagePath != null) {
-        mediaUrl = await _repository.uploadMedia(
-          file: File(current.imagePath!),
-          folder: 'images',
-        );
         mediaType = 'image';
+        if (current.imagePath!.startsWith('http')) {
+          mediaUrl = current.imagePath;
+        } else {
+          mediaUrl = await _repository.uploadMedia(
+            file: File(current.imagePath!),
+            folder: 'images',
+          );
+        }
       } else if (current.filePath != null) {
-        mediaUrl = await _repository.uploadMedia(
-          file: File(current.filePath!),
-          folder: 'files',
-        );
         mediaType = 'file';
+        if (current.filePath!.startsWith('http')) {
+          mediaUrl = current.filePath;
+        } else {
+          mediaUrl = await _repository.uploadMedia(
+            file: File(current.filePath!),
+            folder: 'files',
+          );
+        }
       }
 
       /// ───────── OPTIMISTIC MESSAGE ─────────
@@ -170,6 +206,7 @@ class IndividualChatBloc
           clearImagePath: true,
           clearFilePath: true,
           clearReplyTo: true,
+          prefilledMediaUrl: null, // Clear after use
           version: current.version + 1,
         ),
       );
@@ -340,7 +377,11 @@ class IndividualChatBloc
     final current = state as IndividualChatLoaded;
 
     try {
-      await _repository.starMessage(message: event.message);
+      await _repository.starMessage(
+         message: event.message,
+        source: _conversationId,
+        sourceType: 'conversation',
+      );
 
       emit(StarMessageSuccess('Message starred ⭐'));
 
@@ -401,6 +442,8 @@ class IndividualChatBloc
       emit(DeleteMessageSuccess('Message deleted'));
       emit(current.copyWith(messages: updatedMessages));
     } catch (e) {
+      debugPrint('Delete error: $e'); // Debug logging
+      // Rollback on failure
       emit(DeleteMessageFailure('Failed to delete message'));
       emit(current);
     }
@@ -447,5 +490,27 @@ class IndividualChatBloc
   Future<void> close() {
     _channel?.unsubscribe();
     return super.close();
+  }
+
+  void _onPrefillChat(
+    PrefillIndividualChat event,
+    Emitter<IndividualChatState> emit,
+  ) {
+    _prefilledText = event.text;
+    _prefilledMedia = event.mediaUrl;
+
+    if (state is! IndividualChatLoaded) return;
+    final current = state as IndividualChatLoaded;
+
+    emit(
+      current.copyWith(
+        prefilledInputText: _prefilledText,
+        prefilledMediaUrl: _prefilledMedia,
+      ),
+    );
+
+    // Clear after emitting state
+    _prefilledText = null;
+    _prefilledMedia = null;
   }
 }

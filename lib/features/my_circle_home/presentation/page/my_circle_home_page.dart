@@ -3,13 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/core/common/widgets/profile_aware_appbar.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createCircle/presentation/circle_creation_screen.dart';
-import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
-import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
-import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
+import 'package:senior_circle/features/circle_chat/presentation/page/circle_chat_page.dart';
 import 'package:senior_circle/features/individual_chat/presentation/my_circle_individual_chat_page.dart';
-import 'package:senior_circle/features/my_circle_chatroom/repositories/group_chat_reppository.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_event.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_state.dart';
@@ -18,7 +13,6 @@ import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_ci
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_chat_list_widget.dart';
 import 'package:senior_circle/core/common/widgets/search_bar_widget.dart';
 import 'package:senior_circle/features/my_circle_home/presentation/widgets/my_circle_home_starred_message_widget.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MyCircleHomePage extends StatefulWidget {
   const MyCircleHomePage({super.key});
@@ -28,7 +22,6 @@ class MyCircleHomePage extends StatefulWidget {
 }
 
 class _MyCircleHomePageState extends State<MyCircleHomePage> {
-  //add this function whenever focus need to be removed when navigating from any screen
   @override
   void initState() {
     super.initState();
@@ -41,30 +34,24 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
   }
 
   void navigateToChatRoom(MyCircle chat) {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId = context.read<MyCircleBloc>().repository.currentUserId;
     final isAdmin = chat.adminId == currentUserId;
 
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) {
           if (chat.isGroup) {
-            return BlocProvider(
-          create: (_) => ChatBloc(
-            repository: GroupChatRepository(Supabase.instance.client),
-          )..add(LoadGroupMessages(chatId: chat.id)),
-          child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
-        );
+            return CircleChatPage(chat: chat, isAdmin: isAdmin);
           } else {
-            return BlocProvider(
-              create: (_) =>
-                  IndividualChatBloc(IndividualChatRepository())
-                    ..add(LoadConversationMessages(chat.id)),
-              child: MyCircleIndividualChatPage(chat: chat),
-            );
+            return MyCircleIndividualChatPage(chat: chat);
           }
         },
       ),
-    );
+    ).then((_) {
+      if (mounted) {
+        context.read<MyCircleBloc>().add(LoadMyCircleChats());
+      }
+    });
   }
 
   @override
@@ -88,18 +75,15 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
                 if (state is MyCircleChatLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
                 if (state is MyCircleChatLoaded) {
                   return ChatListWidget(
                     foundResults: state.chats,
                     onChatTap: navigateToChatRoom,
                   );
                 }
-
                 if (state is MyCircleChatError) {
                   return Center(child: Text(state.message));
                 }
-
                 return const SizedBox.shrink();
               },
             ),

@@ -6,11 +6,11 @@ class StarredMessagesRepository {
     try {
       final response = await supabase
           .from('saved_messages')
-          .select()
-          .order(
-            'id',
-            ascending: false,
-          ); // Order by some criteria, assuming id or created_at if available. Using id for now.
+          .select('''
+            *,
+            profiles:sender_id (full_name)
+          ''')
+          .order('id', ascending: false);
 
       return (response as List<dynamic>)
           .map((e) => SavedMessage.fromJson(e as Map<String, dynamic>))

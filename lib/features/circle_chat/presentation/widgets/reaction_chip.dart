@@ -1,0 +1,48 @@
+import 'package:flutter/material.dart';
+import 'package:senior_circle/core/theme/colors/app_colors.dart';
+import 'package:senior_circle/features/circle_chat/models/reaction_model.dart';
+
+class ReactionChip extends StatelessWidget {
+  final Reaction reaction;
+  final VoidCallback? onTap;
+
+  const ReactionChip({
+    super.key,
+    required this.reaction,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+ 
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              border: Border.all(color: AppColors.textLightGray),
+              borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              reaction.emoji,
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              reaction.count.toString(),
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

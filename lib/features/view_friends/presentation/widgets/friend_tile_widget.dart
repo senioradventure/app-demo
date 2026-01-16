@@ -81,10 +81,6 @@ class FriendTile extends StatelessWidget {
                       .repository
                       .getOrCreateIndividualChatWithFriend(friend.id);
 
-                  context.read<IndividualChatBloc>().add(
-                    LoadConversationMessages(conversation.id),
-                  );
-
                   Navigator.push(
                     context,
                     MaterialPageRoute(

@@ -11,6 +11,7 @@ import 'package:senior_circle/core/common/widgets/message_input_widget/attachmen
 class MessageInputFieldWidget extends StatefulWidget {
   const MessageInputFieldWidget({
     super.key,
+    this.initialText,
     required this.replyTo,
     required this.imagePath,
     required this.filePath,
@@ -25,6 +26,7 @@ class MessageInputFieldWidget extends StatefulWidget {
     required this.onSendVoice,
   });
 
+  final String? initialText;
   final dynamic replyTo;
   final String? imagePath;
   final String? filePath;
@@ -67,7 +69,16 @@ class _MessageInputFieldWidgetState
   @override
   void initState() {
     super.initState();
+    _controller.text = widget.initialText ?? '';
     _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(MessageInputFieldWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialText != oldWidget.initialText) {
+      _controller.text = widget.initialText ?? '';
+    }
   }
 
   @override
@@ -83,6 +94,20 @@ class _MessageInputFieldWidgetState
 
   void _onTextChanged() {
     if (mounted) setState(() {});
+  }
+
+  String _extractFileName(String path) {
+    // Check if it's a URL
+    if (path.startsWith('http')) {
+      try {
+        final uri = Uri.parse(path);
+        return uri.pathSegments.last;
+      } catch (e) {
+        return path.split('/').last;
+      }
+    }
+    // Local path - handle both / and \\
+    return path.split(RegExp(r'[/\\]')).last;
   }
 
   double _smoothAmplitude(double current, double previous) {
@@ -310,7 +335,7 @@ class _MessageInputFieldWidgetState
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      widget.filePath!.split('/').last,
+                      _extractFileName(widget.filePath!),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

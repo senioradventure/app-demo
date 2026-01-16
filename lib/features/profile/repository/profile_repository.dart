@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:senior_circle/core/enum/profile_visibility.dart';
@@ -93,7 +94,7 @@ Future<void> updateVisibility({
       })
       .eq('user_id', userId);
 
-  print('🟢 [Repo] UPDATE result: $res');
+  debugPrint('🟢 [Repo] UPDATE result: $res');
 }
 
 

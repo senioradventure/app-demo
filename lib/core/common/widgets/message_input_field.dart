@@ -1,14 +1,21 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:senior_circle/core/common/widgets/image_preview.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/core/theme/texttheme/text_theme.dart';
 
 class MessageInputField extends StatefulWidget {
   final void Function(String? text, String? imagePath) onSend;
+  final String? initialText;
+  final String? initialMediaUrl;
 
-  const MessageInputField({super.key, required this.onSend});
+  const MessageInputField({
+    super.key,
+    required this.onSend,
+    this.initialText,
+    this.initialMediaUrl,
+  });
 
   @override
   State<MessageInputField> createState() => _MessageInputFieldState();
@@ -17,9 +24,32 @@ class MessageInputField extends StatefulWidget {
 class _MessageInputFieldState extends State<MessageInputField> {
   final TextEditingController _controller = TextEditingController();
   XFile? _selectedImage;
+  String? _prefilledImageUrl;
 
   bool get _canSend =>
-      _controller.text.trim().isNotEmpty || _selectedImage != null;
+      _controller.text.trim().isNotEmpty || 
+      _selectedImage != null || 
+      _prefilledImageUrl != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.text = widget.initialText ?? '';
+    _prefilledImageUrl = widget.initialMediaUrl;
+  }
+
+  @override
+  void didUpdateWidget(covariant MessageInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialText != oldWidget.initialText) {
+      _controller.text = widget.initialText ?? '';
+    }
+    if (widget.initialMediaUrl != oldWidget.initialMediaUrl) {
+      setState(() {
+        _prefilledImageUrl = widget.initialMediaUrl;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +59,8 @@ class _MessageInputFieldState extends State<MessageInputField> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_selectedImage != null)
-            ImagePreview(
-              selectedImage: _selectedImage!,
-              onRemove: () {
-                setState(() {
-                  _selectedImage = null;
-                });
-              },
-            ),
+          if (_selectedImage != null || _prefilledImageUrl != null)
+            _buildImagePreview(),
 
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -50,6 +73,7 @@ class _MessageInputFieldState extends State<MessageInputField> {
                   if (image != null) {
                     setState(() {
                       _selectedImage = image;
+                      _prefilledImageUrl = null; // Clear prefilled if new picked
                     });
                   }
                 },
@@ -76,12 +100,13 @@ class _MessageInputFieldState extends State<MessageInputField> {
                     },
                     minLines: 1,
                     maxLines: 1,
-                    keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
                       hintText: "Type a message",
                       hintStyle: AppTextTheme.lightTextTheme.labelMedium,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(70)),
+                        borderSide: BorderSide(color: AppColors.darkGray),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(70),
@@ -102,10 +127,13 @@ class _MessageInputFieldState extends State<MessageInputField> {
                           _controller.text.trim().isEmpty
                               ? null
                               : _controller.text.trim(),
-                          _selectedImage?.path,
+                          _selectedImage?.path ?? _prefilledImageUrl,
                         );
                         _controller.clear();
-                        setState(() => _selectedImage = null);
+                        setState(() {
+                          _selectedImage = null;
+                          _prefilledImageUrl = null;
+                        });
                       }
                     : null,
                 child: Padding(
@@ -118,6 +146,49 @@ class _MessageInputFieldState extends State<MessageInputField> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreview() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Stack(
+        children: [
+          Container(
+            height: 100,
+            width: 100,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              image: DecorationImage(
+                image: _selectedImage != null
+                   ? FileImage(File(_selectedImage!.path))
+                   : NetworkImage(_prefilledImageUrl!) as ImageProvider,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedImage = null;
+                  _prefilledImageUrl = null;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:senior_circle/core/utils/location_service/location_model.dart';
@@ -153,7 +154,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   final current = state as ProfileLoaded;
 
-  print('🟣 [Bloc] OLD visibility: '
+  debugPrint('🟣 [Bloc] OLD visibility: '
       '${current.profile.settings?.visibility}');
 
   // 1️⃣ Optimistically update local state
@@ -169,7 +170,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ),
   );
 
-  print('🟣 [Bloc] NEW visibility (local): '
+  debugPrint('🟣 [Bloc] NEW visibility (local): '
       '${updatedProfile.settings?.visibility}');
 
   // 2️⃣ Persist to DB
@@ -179,9 +180,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       visibility: event.visibility,
     );
 
-    print('🟢 [Bloc] Visibility saved to DB');
+    debugPrint('🟢 [Bloc] Visibility saved to DB');
   } catch (e) {
-    print('🔴 [Bloc] DB update failed, rolling back');
+    debugPrint('🔴 [Bloc] DB update failed, rolling back');
 
     // rollback on failure
     emit(current);

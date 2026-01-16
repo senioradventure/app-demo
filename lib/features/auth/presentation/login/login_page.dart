@@ -57,7 +57,7 @@ class LoginPage extends StatelessWidget {
                       children: [
                         // Hero Image (Full Width)
                         const SizedBox(height: 60),
-                        Container(
+                        SizedBox(
                           height: 400,
                           child: SvgPicture.asset(
                             'assets/images/Welcome.svg',

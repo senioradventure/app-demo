@@ -4,7 +4,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
-import 'package:senior_circle/features/my_circle_chatroom/presentation/widgets/reaction_bar.dart';
+import 'package:senior_circle/features/circle_chat/presentation/widgets/reaction_bar.dart';
 
 OverlayEntry? _activeOverlay;
 

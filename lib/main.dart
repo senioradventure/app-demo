@@ -14,6 +14,9 @@ import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_blo
 import 'package:senior_circle/features/live_chat_chat_room/ui/repository/live_chat_repository.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/repository/live_chat_home_repo.dart';
+import 'package:senior_circle/features/circle_chat/bloc/circle_chat_bloc.dart';
+import 'package:senior_circle/features/circle_chat/bloc/forward_bloc.dart';
+import 'package:senior_circle/features/circle_chat/repositories/circle_chat_messages_repository.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_bloc.dart';
 import 'package:senior_circle/features/my_circle_home/bloc/my_circle_event.dart';
 import 'package:senior_circle/features/my_circle_home/repository/my_circle_repository.dart';
@@ -26,6 +29,7 @@ import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart'
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:senior_circle/core/di/dependency_injection.dart';
   late final AppDatabase appDatabase;
 
 void main() async {
@@ -37,6 +41,9 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuZm96cm9vbGNlcXVjbGx0d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NzEzNzMsImV4cCI6MjA4MDE0NzM3M30.0MQAK_yOPZX8MxvmsmSnXkV2tcMPzKcGOOTpl2XdTlA',
   );
+
+  // Initialize dependency injection
+  setupDependencyInjection();
 
   runApp(const SeniorCircleApp());
 }
@@ -101,6 +108,12 @@ class SeniorCircleApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => IndividualChatBloc(IndividualChatRepository()),
+        ),
+        BlocProvider(
+          create: (_) => ForwardBloc(),
+        ),
+        BlocProvider(
+          create: (_) => CircleChatBloc(repository: getIt<CircleChatMessagesRepository>()),
         ),
       ],
       child: MaterialApp(

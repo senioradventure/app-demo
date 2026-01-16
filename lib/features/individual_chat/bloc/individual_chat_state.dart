@@ -15,6 +15,8 @@ class IndividualChatLoaded extends IndividualChatState {
   final List<IndividualChatMessageModel> messages;
   final bool isSending;
   final IndividualChatMessageModel? replyTo;
+  final String? prefilledInputText;
+  final String? prefilledMediaUrl;
   final String? imagePath;
   final String? filePath;
   final String? voicePath;
@@ -28,6 +30,8 @@ class IndividualChatLoaded extends IndividualChatState {
     this.imagePath,
     this.filePath,
     this.voicePath,
+    this.prefilledInputText,
+    this.prefilledMediaUrl,
     this.version = 0,
   });
 
@@ -46,12 +50,16 @@ class IndividualChatLoaded extends IndividualChatState {
     bool clearVoicePath = false,
 
     int? version,
+    String? prefilledInputText,
+    String? prefilledMediaUrl,
   }) {
     return IndividualChatLoaded(
       messages: messages ?? this.messages,
       isSending: isSending ?? this.isSending,
       replyTo: clearReplyTo ? null : replyTo ?? this.replyTo,
       imagePath: clearImagePath ? null : imagePath ?? this.imagePath,
+      prefilledInputText: prefilledInputText ?? this.prefilledInputText,
+      prefilledMediaUrl: prefilledMediaUrl ?? this.prefilledMediaUrl,
 
       /// ✅ ADD
       filePath: clearFilePath ? null : filePath ?? this.filePath,
@@ -67,6 +75,8 @@ class IndividualChatLoaded extends IndividualChatState {
     messages,
     isSending,
     replyTo,
+    prefilledInputText,
+    prefilledMediaUrl,
     imagePath,
     filePath,
     voicePath,

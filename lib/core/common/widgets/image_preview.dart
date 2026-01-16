@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ImagePreview extends StatelessWidget {
   final XFile selectedImage;
@@ -14,18 +15,33 @@ class ImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNetwork = selectedImage.path.startsWith('http');
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Stack(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.file(
-              File(selectedImage.path),
-              height: MediaQuery.of(context).size.width * 0.5,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            child: isNetwork
+                ? CachedNetworkImage(
+                    imageUrl: selectedImage.path,
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorWidget: (context, url, error) => const Center(
+                      child: Icon(Icons.broken_image),
+                    ),
+                  )
+                : Image.file(
+                    File(selectedImage.path),
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
           ),
 
           Positioned(
@@ -36,7 +52,7 @@ class ImagePreview extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black54,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

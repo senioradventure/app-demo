@@ -72,6 +72,15 @@ class DeleteMessageForMe extends IndividualChatEvent {
   @override
   List<Object> get props => [messageId];
 }
+class PrefillIndividualChat extends IndividualChatEvent {
+  final String? text;
+  final String? mediaUrl;
+
+  const PrefillIndividualChat({this.text, this.mediaUrl});
+
+  @override
+  List<Object?> get props => [text, mediaUrl];
+}
 
 class PickMessageFile extends IndividualChatEvent {
   final String path;

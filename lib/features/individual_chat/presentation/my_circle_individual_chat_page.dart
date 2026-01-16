@@ -55,8 +55,8 @@ class _MyCircleIndividualChatPageState
     return Scaffold(
       appBar: MyCircleIndividualAppBar(
         userName: widget.chat.name,
-        profileUrl: widget.chat.imageUrl!,
-        userId: widget.chat.otherUserId!,
+        profileUrl: widget.chat.imageUrl,
+        userId: widget.chat.otherUserId ?? '',
       ),
 
       /// 🔥 GLOBAL LISTENER FOR SNACKBARS
@@ -211,7 +211,9 @@ class _MyCircleIndividualChatPageState
                     return previous.isSending != current.isSending ||
                         previous.replyTo != current.replyTo ||
                         previous.imagePath != current.imagePath ||
-                        previous.filePath != current.filePath;
+                        previous.filePath != current.filePath ||
+                        previous.prefilledInputText != current.prefilledInputText ||
+                        previous.prefilledMediaUrl != current.prefilledMediaUrl;
                   }
 
                   return false;
@@ -222,6 +224,7 @@ class _MyCircleIndividualChatPageState
                   }
 
                   return MessageInputFieldWidget(
+                    initialText: state.prefilledInputText,
                     replyTo: state.replyTo,
                     imagePath: state.imagePath,
                     isSending: state.isSending,

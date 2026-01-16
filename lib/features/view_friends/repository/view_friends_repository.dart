@@ -1,3 +1,4 @@
+import 'package:senior_circle/core/client/supabase_client.dart';
 import 'package:senior_circle/features/my_circle_home/models/my_circle_model.dart';
 import 'package:senior_circle/features/view_friends/models/friends_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -5,7 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ViewFriendsRepository {
   final SupabaseClient _client;
 
-  ViewFriendsRepository(this._client);
+  ViewFriendsRepository([SupabaseClient? client])
+      : _client = client ?? Supabase.instance.client;
 
   Future<List<Friend>> getFriends(String userId) async {
     final response = await _client.rpc(
@@ -27,6 +29,8 @@ class ViewFriendsRepository {
 
     return friends.values.toList();
   }
+
+  String? get currentUserId => supabase.auth.currentUser?.id;
 
   Future<MyCircle> getOrCreateIndividualChatWithFriend(String friendId) async {
     final userId = _client.auth.currentUser!.id;

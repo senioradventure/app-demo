@@ -19,8 +19,6 @@ class MessageBubbleIndividual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final groupedReactions = groupReactions(message.reactions);
-
     return Column(
       crossAxisAlignment: isMe
           ? CrossAxisAlignment.end
@@ -96,7 +94,7 @@ class MessageBubbleIndividual extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white70,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(

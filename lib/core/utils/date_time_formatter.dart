@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
-String formatChatTime(BuildContext context, DateTime time) {
+String formatChatTime(BuildContext context, DateTime? time) {
+  if (time == null) return '';
+  
+  final localTime = time.toLocal();
   final now = DateTime.now();
-  final difference = now.difference(time);
+  final difference = now.difference(localTime);
 
-  if (difference.inMinutes < 1) {
+  if (difference.inSeconds < 30) {
     return 'Just now';
   }
 
@@ -12,19 +15,25 @@ String formatChatTime(BuildContext context, DateTime time) {
     return '${difference.inMinutes} min ago';
   }
 
-  if (difference.inHours < 24 &&
-      now.day == time.day &&
-      now.month == time.month &&
-      now.year == time.year) {
+  // Today
+  if (now.year == localTime.year && now.month == localTime.month && now.day == localTime.day) {
     return MaterialLocalizations.of(context).formatTimeOfDay(
-      TimeOfDay.fromDateTime(time),
+      TimeOfDay.fromDateTime(localTime),
       alwaysUse24HourFormat: false,
     );
   }
 
-  if (difference.inDays == 1) {
+  // Yesterday
+  final yesterday = now.subtract(const Duration(days: 1));
+  if (yesterday.year == localTime.year && yesterday.month == localTime.month && yesterday.day == localTime.day) {
     return 'Yesterday';
   }
 
-  return '${time.day}/${time.month}/${time.year}';
+  // Last 7 days
+  if (difference.inDays < 7) {
+    final List<String> weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return weekDays[localTime.weekday - 1];
+  }
+
+  return '${localTime.day}/${localTime.month}/${localTime.year}';
 }
