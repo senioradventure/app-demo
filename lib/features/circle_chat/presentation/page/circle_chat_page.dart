@@ -196,6 +196,10 @@ class _CircleChatPageState extends State<CircleChatPage> {
 
                 onSend: (text) {
                   final bloc = context.read<CircleChatBloc>();
+                  debugPrint('🟦 [CircleChatPage] Sending message');
+                  debugPrint('🟦 [CircleChatPage] prefilledMedia: ${state.prefilledMedia?.url}, type: ${state.prefilledMedia?.type}');
+                  debugPrint('🟦 [CircleChatPage] effectiveFilePath: $effectiveFilePath');
+                  debugPrint('🟦 [CircleChatPage] effectiveImagePath: $effectiveImagePath');
                   bloc.add(
                     SendGroupMessage(
                       text: text,

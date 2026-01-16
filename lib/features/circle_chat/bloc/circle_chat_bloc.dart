@@ -139,6 +139,8 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
       }
       // Use event imagePath if provided (for forwarding/prefilled)
       else if (event.imagePath != null) {
+        debugPrint('🟨 [ChatBloc] Using event.imagePath: ${event.imagePath}');
+        debugPrint('🟨 [ChatBloc] event.mediaType: ${event.mediaType}');
         mediaUrl = event.imagePath;
         if (event.mediaType != null) {
           mediaType = event.mediaType!;
@@ -147,7 +149,10 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
            final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) => lowerUrl.contains(ext));
            mediaType = isImage ? MediaType.image : MediaType.file;
         }
+        debugPrint('🟨 [ChatBloc] Final mediaType: $mediaType');
       }
+
+      debugPrint('🟨 [ChatBloc] Sending with mediaUrl: $mediaUrl, mediaType: $mediaType');
 
       final newMessage = await repository.sendGroupMessage(
         circleId: circleId,

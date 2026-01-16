@@ -212,7 +212,8 @@ class _MyCircleIndividualChatPageState
                         previous.replyTo != current.replyTo ||
                         previous.imagePath != current.imagePath ||
                         previous.filePath != current.filePath ||
-                        previous.prefilledInputText != current.prefilledInputText;
+                        previous.prefilledInputText != current.prefilledInputText ||
+                        previous.prefilledMediaUrl != current.prefilledMediaUrl;
                   }
 
                   return false;

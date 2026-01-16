@@ -53,19 +53,27 @@ class IndividualChatBloc
     try {
       final messages = await _repository.loadMessages(_conversationId);
 
+      final imagePathValue = _prefilledMedia != null &&
+              ['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
+                  _prefilledMedia!.toLowerCase().contains(ext))
+          ? _prefilledMedia
+          : null;
+      
+      final filePathValue = _prefilledMedia != null &&
+              !['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
+                  _prefilledMedia!.toLowerCase().contains(ext))
+          ? _prefilledMedia
+          : null;
+      
+      debugPrint('🟦 [IndividualChatBloc] _prefilledMedia: $_prefilledMedia');
+      debugPrint('🟦 [IndividualChatBloc] imagePath: $imagePathValue');
+      debugPrint('🟦 [IndividualChatBloc] filePath: $filePathValue');
+      
       emit(
         IndividualChatLoaded(
           messages: messages,
-          imagePath: _prefilledMedia != null &&
-                  ['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
-                      _prefilledMedia!.toLowerCase().contains(ext))
-              ? _prefilledMedia
-              : null,
-          filePath: _prefilledMedia != null &&
-                  !['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
-                      _prefilledMedia!.toLowerCase().contains(ext))
-              ? _prefilledMedia
-              : null,
+          imagePath: imagePathValue,
+          filePath: filePathValue,
           replyTo: null,
           isSending: false,
           prefilledInputText: _prefilledText,
