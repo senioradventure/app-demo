@@ -57,6 +57,8 @@ class _MyCircleIndividualChatPageState
         userName: widget.chat.name,
         profileUrl: widget.chat.imageUrl!,
         userId: widget.chat.otherUserId!,
+        id: widget.chat.id,
+        
       ),
 
       /// 🔥 GLOBAL LISTENER FOR SNACKBARS

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:senior_circle/core/local_db/app_database.dart';
 import 'package:senior_circle/core/utils/location_service/location_service.dart';
 import 'package:senior_circle/features/auth/bloc/auth_bloc.dart';
 import 'package:senior_circle/features/auth/presentation/splash_screen/splash_screen.dart';
@@ -24,6 +26,7 @@ import 'package:senior_circle/features/profile/repository/profile_repository.dar
 import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
+import 'package:senior_circle/local_messages_debug_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -35,7 +38,11 @@ void main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuZm96cm9vbGNlcXVjbGx0d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NzEzNzMsImV4cCI6MjA4MDE0NzM3M30.0MQAK_yOPZX8MxvmsmSnXkV2tcMPzKcGOOTpl2XdTlA',
   );
 
-  runApp(const SeniorCircleApp());
+  final database = AppDatabase();
+
+  runApp(
+    Provider<AppDatabase>.value(value: database, child: SeniorCircleApp()),
+  );
 }
 
 class SeniorCircleApp extends StatelessWidget {
@@ -62,7 +69,7 @@ class SeniorCircleApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => ChatRoomBloc(
-            repository: ChatRoomRepository(supabase: Supabase.instance.client,),
+            repository: ChatRoomRepository(supabase: Supabase.instance.client),
           ),
         ),
 
@@ -81,7 +88,6 @@ class SeniorCircleApp extends StatelessWidget {
             ..add(FetchLocationsEvent())
             ..add(FetchRoomsEvent()),
         ),
-        BlocProvider(create: (context) => IndividualChatBloc(IndividualChatRepository())),
         BlocProvider(
           create: (_) => CreateCircleBloc(
             repository: CreateCircleRepository(

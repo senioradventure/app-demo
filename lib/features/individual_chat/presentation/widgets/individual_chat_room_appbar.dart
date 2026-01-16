@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/profile_bottom_sheet.dart';
+import 'package:senior_circle/local_messages_debug_page.dart';
 
 class MyCircleIndividualAppBar extends StatelessWidget
     implements PreferredSizeWidget {
@@ -9,10 +10,12 @@ class MyCircleIndividualAppBar extends StatelessWidget
     required this.userName,
     required this.profileUrl,
     required this.userId,
+    required this.id,
   });
   final String userName;
   final String profileUrl;
   final String userId;
+  final String id;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +45,18 @@ class MyCircleIndividualAppBar extends StatelessWidget
         ),
       ),
       actions: [
-        IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
+        IconButton(
+          icon: const Icon(Icons.more_vert),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    LocalMessagesDebugPage(testConversationId: id),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
