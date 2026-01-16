@@ -18,7 +18,7 @@ class LiveChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
-      appBar: ProfileAwareAppBar(title: 'Live Chat'),
+      appBar: ProfileAwareAppBar(title: 'Live Chat '),
       body: SafeArea(
         child: BlocBuilder<LiveChatHomeBloc, LiveChatHomeState>(
           builder: (context, state) {

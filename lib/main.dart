@@ -9,6 +9,7 @@ import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
 import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
+import 'package:senior_circle/features/live_chat_chat_room/data/local/database.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/repository/live_chat_repository.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/bloc/live_chat_home_bloc.dart';
@@ -25,10 +26,12 @@ import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart'
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+  late final AppDatabase appDatabase;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  appDatabase = AppDatabase();
   await Supabase.initialize(
     url: 'https://bnfozroolcequclltwjb.supabase.co',
     anonKey:
@@ -40,10 +43,19 @@ void main() async {
 
 class SeniorCircleApp extends StatelessWidget {
   const SeniorCircleApp({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+  return MultiRepositoryProvider(
+    providers: [
+      RepositoryProvider(
+        create: (_) => ChatRoomRepository(
+          supabase: Supabase.instance.client,
+          messagesDao: appDatabase.messagesDao, 
+        ),
+      ),
+    ],
+    child: MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (_) => AuthBloc(AuthRepository(), LocationService()),
@@ -61,9 +73,7 @@ class SeniorCircleApp extends StatelessWidget {
                 ..add(LoadFriends()),
         ),
         BlocProvider(
-          create: (_) => ChatRoomBloc(
-            repository: ChatRoomRepository(supabase: Supabase.instance.client,),
-          ),
+          create: (context) => ChatRoomBloc(repository: context.read<ChatRoomRepository>(),),
         ),
 
         BlocProvider(
@@ -104,6 +114,7 @@ class SeniorCircleApp extends StatelessWidget {
         //SplashScreen
         home: SplashPage(),
       ),
-    );
+    )
+  );
   }
 }

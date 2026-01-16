@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:senior_circle/features/live_chat_chat_room/models/chat_messages.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_bloc.dart';
+import 'package:senior_circle/features/live_chat_chat_room/ui/bloc/chat_room_state.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/message_action_dialog.dart';
 import 'package:senior_circle/features/live_chat_chat_room/ui/widget/user_bottom_sheet.dart';
 
@@ -20,6 +21,8 @@ class ReceiverMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final senderId = msg.senderId;
+    if (senderId == null) return const SizedBox();
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -28,41 +31,71 @@ class ReceiverMessageBubble extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (msg.profileAsset != null) ...[
-                GestureDetector(
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      isScrollControlled: true,
-                      builder: (_) => UserProfileBottomSheet(
-                        msg: msg,
-                        otherUserId: msg.senderId!,
-                      ),
-                    );
-                  },
-                  child: CircleAvatar(
-                    radius: 14,
-                    backgroundImage: AssetImage(msg.profileAsset!),
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
+              BlocBuilder<ChatRoomBloc, ChatRoomState>(
+                buildWhen: (prev, curr) =>
+                    prev.userProfiles[senderId] != curr.userProfiles[senderId],
+                builder: (context, state) {
+                  final profile = state.userProfiles[senderId];
+
+                  return GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        isScrollControlled: true,
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<ChatRoomBloc>(),
+                          child: UserProfileBottomSheet(
+                            msg: msg,
+                            otherUserId: senderId,
+                            profile: profile,
+                          ),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Colors.grey.shade300,
+                      backgroundImage:
+                          (profile?.avatarUrl != null &&
+                              profile!.avatarUrl!.isNotEmpty)
+                          ? NetworkImage(profile.avatarUrl!)
+                          : const AssetImage('assets/images/chat_profile.png')
+                                as ImageProvider,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (msg.name != null) ...[
-                      Text(
-                        msg.name!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF6A6A6A),
-                        ),
-                      ),
-                      const SizedBox(height: 9),
-                    ],
+                    BlocBuilder<ChatRoomBloc, ChatRoomState>(
+                      buildWhen: (prev, curr) =>
+                          prev.userProfiles[senderId] !=
+                          curr.userProfiles[senderId],
+                      builder: (context, state) {
+                        final profile = state.userProfiles[senderId];
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile?.fullName ?? 'User',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF6A6A6A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                        );
+                      },
+                    ),
+
                     GestureDetector(
                       onLongPress: () {
                         FocusScope.of(context).unfocus();
@@ -71,7 +104,7 @@ class ReceiverMessageBubble extends StatelessWidget {
 
                         MessageActionDialog.show(
                           context,
-                          messageId: msg.id!, // ✅ PASS MESSAGE ID
+                          messageId: msg.id!,
                           currentUserId: currentUserId,
                         );
                       },
