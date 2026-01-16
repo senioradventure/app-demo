@@ -96,6 +96,20 @@ class _MessageInputFieldWidgetState
     if (mounted) setState(() {});
   }
 
+  String _extractFileName(String path) {
+    // Check if it's a URL
+    if (path.startsWith('http')) {
+      try {
+        final uri = Uri.parse(path);
+        return uri.pathSegments.last;
+      } catch (e) {
+        return path.split('/').last;
+      }
+    }
+    // Local path - handle both / and \\
+    return path.split(RegExp(r'[/\\]')).last;
+  }
+
   double _smoothAmplitude(double current, double previous) {
     const smoothingFactor = 0.7; // WhatsApp-like smoothing
     return previous * smoothingFactor + current * (1 - smoothingFactor);
@@ -321,7 +335,7 @@ class _MessageInputFieldWidgetState
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      widget.filePath!.split('/').last,
+                      _extractFileName(widget.filePath!),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
