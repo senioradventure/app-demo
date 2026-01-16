@@ -4,7 +4,8 @@ import 'package:senior_circle/core/common/widgets/profile_aware_appbar.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/createCircle/presentation/circle_creation_screen.dart';
 import 'package:senior_circle/features/individual_chat/bloc/individual_chat_bloc.dart';
-import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_local_repository.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_remote_repository.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_bloc.dart';
 import 'package:senior_circle/features/my_circle_chatroom/bloc/chat_event.dart';
 import 'package:senior_circle/features/my_circle_chatroom/presentation/page/my_circle_group_chat_page.dart';
@@ -49,16 +50,17 @@ class _MyCircleHomePageState extends State<MyCircleHomePage> {
         builder: (_) {
           if (chat.isGroup) {
             return BlocProvider(
-          create: (_) => ChatBloc(
-            repository: GroupChatRepository(Supabase.instance.client),
-          )..add(LoadGroupMessages(chatId: chat.id)),
-          child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
-        );
+              create: (_) => ChatBloc(
+                repository: GroupChatRepository(Supabase.instance.client),
+              )..add(LoadGroupMessages(chatId: chat.id)),
+              child: MyCircleGroupChatPage(chat: chat, isAdmin: isAdmin),
+            );
           } else {
             return BlocProvider(
-              create: (_) =>
-                  IndividualChatBloc(IndividualChatRepository())
-                    ..add(LoadConversationMessages(chat.id)),
+              create: (_) => IndividualChatBloc(
+                localRepository: IndividualChatLocalRepository(),
+                remoteRepository: IndividualChatRemoteRepository(),
+              )..add(LoadConversationMessages(chat.id)),
               child: MyCircleIndividualChatPage(chat: chat),
             );
           }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_user_profile_model.dart';
-import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_remote_repository.dart';
 
 void showUserProfileBottomSheet(BuildContext context, String userId) {
-  final repo = IndividualChatRepository();
+  final repo = IndividualChatRemoteRepository();
 
   showModalBottomSheet(
     context: context,

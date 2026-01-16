@@ -38,6 +38,15 @@ class MessageReactionsDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
+  /// Delete any reaction from a specific user on a message
+  /// Used when updating a reaction to ensure old reaction is removed
+  Future<void> deleteReactionByUser(String messageId, String userId) {
+    return (delete(messageReactions)..where(
+          (t) => t.messageId.equals(messageId) & t.userId.equals(userId),
+        ))
+        .go();
+  }
+
   /// Delete all reactions for a specific message (useful for cleanup)
   Future<void> deleteReactionsByMessageId(String messageId) {
     return (delete(

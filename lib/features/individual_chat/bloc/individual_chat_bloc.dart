@@ -2,24 +2,27 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:path/path.dart' as path;
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
-import 'package:senior_circle/features/individual_chat/repositories/individual_chat_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_local_repository.dart';
+import 'package:senior_circle/features/individual_chat/repositories/individual_chat_remote_repository.dart';
 
 part 'individual_chat_event.dart';
 part 'individual_chat_state.dart';
 
 class IndividualChatBloc
     extends Bloc<IndividualChatEvent, IndividualChatState> {
-  final IndividualChatRepository _repository;
-  final SupabaseClient _client = Supabase.instance.client;
+  final IndividualChatLocalRepository _localRepository;
+  final IndividualChatRemoteRepository _remoteRepository;
 
   late String _conversationId;
-  RealtimeChannel? _channel;
 
-  IndividualChatBloc(this._repository) : super(IndividualChatInitial()) {
+  IndividualChatBloc({
+    required IndividualChatLocalRepository localRepository,
+    required IndividualChatRemoteRepository remoteRepository,
+  }) : _localRepository = localRepository,
+       _remoteRepository = remoteRepository,
+       super(IndividualChatInitial()) {
     on<LoadConversationMessages>(_onLoadMessages);
     on<PickMessageImage>(_onPickImage);
     on<RemovePickedImage>(_onRemoveImage);
@@ -47,11 +50,20 @@ class IndividualChatBloc
     emit(IndividualChatLoading());
 
     try {
-      final messages = await _repository.loadMessages(_conversationId);
+      // 1. Fetch from remote (Supabase)
+      final remoteMessages = await _remoteRepository.fetchMessages(
+        _conversationId,
+      );
 
+      // 2. Sync to local (Drift)
+      for (final msg in remoteMessages) {
+        await _localRepository.upsertMessage(msg, _conversationId);
+      }
+
+      // 3. Emit loaded state with messages
       emit(
         IndividualChatLoaded(
-          messages: messages,
+          messages: remoteMessages,
           imagePath: null,
           filePath: null,
           replyTo: null,
@@ -59,11 +71,30 @@ class IndividualChatBloc
         ),
       );
 
+      // 4. Subscribe to realtime changes
       _subscribeToRealtime();
-      // Subscribe to reactions realtime
-      _repository.subscribeToReactionsRealtime(_conversationId);
     } catch (e) {
-      emit(IndividualChatError(e.toString()));
+      // Fallback to local data if remote fetch fails
+      try {
+        final localMessages = await _localRepository.getMessagesSnapshot(
+          _conversationId,
+        );
+        if (localMessages.isNotEmpty) {
+          emit(
+            IndividualChatLoaded(
+              messages: localMessages,
+              imagePath: null,
+              filePath: null,
+              replyTo: null,
+              isSending: false,
+            ),
+          );
+        } else {
+          emit(IndividualChatError(e.toString()));
+        }
+      } catch (_) {
+        emit(IndividualChatError(e.toString()));
+      }
     }
   }
 
@@ -129,7 +160,7 @@ class IndividualChatBloc
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
-    final userId = await _repository.getCurrentUserId();
+    final userId = await _remoteRepository.getCurrentUserId();
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
     String? mediaUrl;
@@ -140,13 +171,13 @@ class IndividualChatBloc
 
       /// ───────── MEDIA HANDLING ─────────
       if (current.imagePath != null) {
-        mediaUrl = await _repository.uploadMedia(
+        mediaUrl = await _remoteRepository.uploadMedia(
           file: File(current.imagePath!),
           folder: 'images',
         );
         mediaType = 'image';
       } else if (current.filePath != null) {
-        mediaUrl = await _repository.uploadMedia(
+        mediaUrl = await _remoteRepository.uploadMedia(
           file: File(current.filePath!),
           folder: 'files',
         );
@@ -177,8 +208,8 @@ class IndividualChatBloc
         ),
       );
 
-      /// ───────── SEND REAL MESSAGE ─────────
-      final realMessage = await _repository.sendMessage(
+      /// ───────── SEND TO REMOTE ─────────
+      final realMessage = await _remoteRepository.insertMessage(
         conversationId: _conversationId,
         content: event.text,
         mediaType: mediaType,
@@ -186,6 +217,10 @@ class IndividualChatBloc
         replyToMessageId: optimisticMessage.replyToMessageId,
       );
 
+      /// ───────── SYNC TO LOCAL ─────────
+      await _localRepository.upsertMessage(realMessage, _conversationId);
+
+      /// ───────── REPLACE TEMP WITH REAL ─────────
       if (state is IndividualChatLoaded) {
         final live = state as IndividualChatLoaded;
 
@@ -214,14 +249,14 @@ class IndividualChatBloc
   ) async {
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
-    final userId = await _repository.getCurrentUserId();
+    final userId = await _remoteRepository.getCurrentUserId();
     final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
     emit(current.copyWith(isSending: true));
 
     try {
       /// ───── UPLOAD VOICE ─────
-      final mediaUrl = await _repository.uploadMedia(
+      final mediaUrl = await _remoteRepository.uploadMedia(
         file: event.audioFile,
         folder: 'voice',
       );
@@ -248,14 +283,18 @@ class IndividualChatBloc
         ),
       );
 
-      /// ───── REAL MESSAGE ─────
-      final realMessage = await _repository.insertMessage(
+      /// ───── SEND TO REMOTE ─────
+      final realMessage = await _remoteRepository.insertMessage(
         conversationId: _conversationId,
         mediaType: 'audio',
         mediaUrl: mediaUrl,
         replyToMessageId: optimistic.replyToMessageId,
       );
 
+      /// ───── SYNC TO LOCAL ─────
+      await _localRepository.upsertMessage(realMessage, _conversationId);
+
+      /// ───── REPLACE TEMP WITH REAL ─────
       final live = state as IndividualChatLoaded;
 
       emit(
@@ -283,7 +322,7 @@ class IndividualChatBloc
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
-    final userId = await _repository.getCurrentUserId();
+    final userId = await _remoteRepository.getCurrentUserId();
 
     final updatedMessages = current.messages.map((m) {
       if (m.id != event.messageId) return m;
@@ -328,10 +367,32 @@ class IndividualChatBloc
     );
 
     try {
-      await _repository.addReaction(
+      /// ───── ADD TO REMOTE ─────
+      final reactionData = await _remoteRepository.addReaction(
         messageId: event.messageId,
         reaction: event.reaction,
       );
+
+      /// ───── SYNC TO LOCAL ─────
+      if (reactionData != null) {
+        // Reaction was added
+        await _localRepository.upsertReaction(
+          MessageReaction(
+            id: reactionData['id'],
+            userId: reactionData['user_id'],
+            reaction: reactionData['reaction'],
+          ),
+          event.messageId,
+          DateTime.parse(reactionData['created_at']),
+        );
+      } else {
+        // Reaction was toggled off (deleted)
+        await _localRepository.deleteReaction(
+          event.messageId,
+          userId,
+          event.reaction,
+        );
+      }
     } catch (e) {
       // Optional rollback trigger
       if (state is IndividualChatLoaded) {
@@ -351,7 +412,7 @@ class IndividualChatBloc
     if (state is! IndividualChatLoaded) return;
     final current = state as IndividualChatLoaded;
 
-    final userId = await _repository.getCurrentUserId();
+    final userId = await _remoteRepository.getCurrentUserId();
 
     final updatedMessages = current.messages.map((m) {
       if (m.id != event.messageId) return m;
@@ -364,12 +425,22 @@ class IndividualChatBloc
     }).toList();
 
     // 🔥 Optimistic UI update
-    emit(current.copyWith(messages: updatedMessages));
+    emit(
+      current.copyWith(messages: updatedMessages, version: current.version + 1),
+    );
 
     try {
-      await _repository.removeReaction(
+      /// ───── REMOVE FROM REMOTE ─────
+      await _remoteRepository.removeReaction(
         messageId: event.messageId,
         reaction: event.reaction,
+      );
+
+      /// ───── REMOVE FROM LOCAL ─────
+      await _localRepository.deleteReaction(
+        event.messageId,
+        userId,
+        event.reaction,
       );
     } catch (e) {
       emit(current); // rollback
@@ -387,7 +458,7 @@ class IndividualChatBloc
     final current = state as IndividualChatLoaded;
 
     try {
-      await _repository.starMessage(message: event.message);
+      await _remoteRepository.starMessage(message: event.message);
 
       emit(StarMessageSuccess('Message starred ⭐'));
 
@@ -416,7 +487,11 @@ class IndividualChatBloc
     emit(current.copyWith(messages: updatedMessages));
 
     try {
-      await _repository.deleteMessageForEveryone(event.message.id);
+      /// ───── DELETE FROM REMOTE ─────
+      await _remoteRepository.deleteMessageForEveryone(event.message.id);
+
+      /// ───── SOFT DELETE LOCALLY ─────
+      await _localRepository.softDeleteMessage(event.message.id);
 
       emit(DeleteMessageSuccess('Message deleted'));
       emit(current.copyWith(messages: updatedMessages));
@@ -434,7 +509,6 @@ class IndividualChatBloc
     Emitter<IndividualChatState> emit,
   ) async {
     if (state is! IndividualChatLoaded) return;
-
     final current = state as IndividualChatLoaded;
 
     final updatedMessages = current.messages
@@ -444,7 +518,12 @@ class IndividualChatBloc
     emit(current.copyWith(messages: updatedMessages));
 
     try {
-      await _repository.deleteMessageForMe(event.messageId);
+      /// ───── DELETE FROM REMOTE ─────
+      await _remoteRepository.deleteMessageForMe(event.messageId);
+
+      /// ───── SOFT DELETE LOCALLY ─────
+      await _localRepository.softDeleteMessage(event.messageId);
+
       emit(DeleteMessageSuccess('Message deleted'));
       emit(current.copyWith(messages: updatedMessages));
     } catch (e) {
@@ -457,34 +536,51 @@ class IndividualChatBloc
   // REALTIME MESSAGES
   // ---------------------------------------------------------------------------
   void _subscribeToRealtime() {
-    _channel?.unsubscribe();
+    // Subscribe to new messages
+    _remoteRepository.subscribeToMessagesRealtime(_conversationId, (
+      newMessage,
+    ) async {
+      if (state is! IndividualChatLoaded) return;
 
-    _channel = _client
-        .channel('conversation_$_conversationId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
-          schema: 'public',
-          table: 'messages',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'conversation_id',
-            value: _conversationId,
+      final live = state as IndividualChatLoaded;
+
+      // Check if message already exists
+      if (live.messages.any((m) => m.id == newMessage.id)) return;
+
+      // Sync new message to local DB
+      await _localRepository.upsertMessage(newMessage, _conversationId);
+
+      // Update UI immediately
+      // ignore: invalid_use_of_visible_for_testing_member
+      emit(live.copyWith(messages: [...live.messages, newMessage]));
+    });
+
+    // Subscribe to reaction changes
+    _remoteRepository.subscribeToReactionsRealtime(_conversationId, (
+      reactionData,
+      isDelete,
+    ) async {
+      if (isDelete) {
+        // Delete reaction from local DB
+        await _localRepository.deleteReaction(
+          reactionData['message_id'],
+          reactionData['user_id'],
+          reactionData['reaction'],
+        );
+      } else {
+        // Add reaction to local DB
+        await _localRepository.upsertReaction(
+          MessageReaction(
+            id: reactionData['id'],
+            userId: reactionData['user_id'],
+            reaction: reactionData['reaction'],
           ),
-          callback: (payload) {
-            if (state is! IndividualChatLoaded) return;
-
-            final newMessage = IndividualChatMessageModel.fromSupabase(
-              payload.newRecord,
-            );
-
-            final live = state as IndividualChatLoaded;
-
-            if (live.messages.any((m) => m.id == newMessage.id)) return;
-
-            emit(live.copyWith(messages: [...live.messages, newMessage]));
-          },
-        )
-        .subscribe();
+          reactionData['message_id'],
+          DateTime.parse(reactionData['created_at']),
+        );
+      }
+      // Note: Reactions will be picked up on next message load or we could emit state here
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -492,8 +588,7 @@ class IndividualChatBloc
   // ---------------------------------------------------------------------------
   @override
   Future<void> close() {
-    _channel?.unsubscribe();
-    _repository.unsubscribeFromReactionsRealtime();
+    _remoteRepository.unsubscribeFromRealtime();
     return super.close();
   }
 }
