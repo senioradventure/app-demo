@@ -160,7 +160,7 @@ class CircleChatMessagesRepository {
         mediaType: row['media_type'] ?? 'text',
         avatar: row['profiles']?['avatar_url'],
         text: row['content'],
-        imagePath: row['media_type'] == 'image' ? row['media_url'] : null,
+        imagePath: row['media_url'],
         time: row['created_at'] as String,
         reactions: CircleChatReactionMapper.aggregate(reactionsByMessage[id] ?? []),
         replies: const [],

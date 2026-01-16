@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 
@@ -40,26 +41,21 @@ class ImageMessageBubble extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: isNetworkImage
-              ? Image.network(
-                  imagePath,
+              ? CachedNetworkImage(
+                  imageUrl: imagePath,
                   width: isGroup ? double.infinity : 254,
                   height: isGroup
                       ? 201
                       : MediaQuery.of(context).size.height * 0.2,
                   fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const SizedBox(
-                      height: 200,
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return const SizedBox(
-                      height: 200,
-                      child: Center(child: Icon(Icons.broken_image)),
-                    );
-                  },
+                  placeholder: (context, url) => const SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => const SizedBox(
+                    height: 200,
+                    child: Center(child: Icon(Icons.broken_image)),
+                  ),
                 )
               : Image.file(
                   File(imagePath),

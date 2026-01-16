@@ -128,11 +128,23 @@ class _CircleChatPageState extends State<CircleChatPage> {
                   previous.prefilledMedia != current.prefilledMedia;
             },
             builder: (context, state) {
+              // Map prefilledMedia to imagePath or filePath for preview
+              String? effectiveImagePath = state.imagePath;
+              String? effectiveFilePath = state.filePath;
+              
+              if (state.prefilledMedia != null) {
+                if (state.prefilledMedia!.type == 'image') {
+                  effectiveImagePath = state.prefilledMedia!.url;
+                } else if (state.prefilledMedia!.type == 'file') {
+                  effectiveFilePath = state.prefilledMedia!.url;
+                }
+              }
+              
               return MessageInputFieldWidget(
                 initialText: state.prefilledInputText,
                 replyTo: null,
-                imagePath: state.imagePath,
-                filePath: state.filePath,
+                imagePath: effectiveImagePath,
+                filePath: effectiveFilePath,
                 isSending: state.isSending,
                 
                 onClearReply: () {
@@ -183,10 +195,13 @@ class _CircleChatPageState extends State<CircleChatPage> {
                 },
 
                 onSend: (text) {
-                  context.read<CircleChatBloc>().add(
+                  final bloc = context.read<CircleChatBloc>();
+                  bloc.add(
                     SendGroupMessage(
                       text: text,
                       circleId: widget.chat.id,
+                      imagePath: state.prefilledMedia?.url,
+                      mediaType: state.prefilledMedia?.type,
                     ),
                   );
                 },

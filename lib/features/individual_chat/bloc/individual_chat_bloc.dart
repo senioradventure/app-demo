@@ -56,8 +56,16 @@ class IndividualChatBloc
       emit(
         IndividualChatLoaded(
           messages: messages,
-          imagePath: null,
-          filePath: null,
+          imagePath: _prefilledMedia != null &&
+                  ['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
+                      _prefilledMedia!.toLowerCase().contains(ext))
+              ? _prefilledMedia
+              : null,
+          filePath: _prefilledMedia != null &&
+                  !['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) =>
+                      _prefilledMedia!.toLowerCase().contains(ext))
+              ? _prefilledMedia
+              : null,
           replyTo: null,
           isSending: false,
           prefilledInputText: _prefilledText,
@@ -147,19 +155,25 @@ class IndividualChatBloc
     try {
       emit(current.copyWith(isSending: true));
 
-      /// ───────── MEDIA HANDLING ───────── (if local file picked)
+      /// ───────── MEDIA HANDLING ─────────
       if (current.imagePath != null) {
+        mediaType = 'image';
         if (current.imagePath!.startsWith('http')) {
-          debugPrint('🟨 [IndividualChatBloc] imagePath is a URL, skipping upload');
           mediaUrl = current.imagePath;
         } else {
-          debugPrint('🟨 [IndividualChatBloc] Uploading image...');
-          final file = File(current.imagePath!);
-          
-          
           mediaUrl = await _repository.uploadMedia(
-             file: file,
-             folder: 'images',
+            file: File(current.imagePath!),
+            folder: 'images',
+          );
+        }
+      } else if (current.filePath != null) {
+        mediaType = 'file';
+        if (current.filePath!.startsWith('http')) {
+          mediaUrl = current.filePath;
+        } else {
+          mediaUrl = await _repository.uploadMedia(
+            file: File(current.filePath!),
+            folder: 'files',
           );
         }
       }

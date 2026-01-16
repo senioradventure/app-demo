@@ -92,9 +92,7 @@ class CircleChatMessage {
       mediaType: messageRow['media_type']?? 'text',
       avatar: messageRow['profiles']?['avatar_url'],
       text: messageRow['content'],
-      imagePath: messageRow['media_type'] == 'image'
-          ? messageRow['media_url']
-          : null,
+      imagePath: messageRow['media_url'],
       time: messageRow['created_at']?.toString() ?? '',
       reactions: reactions,
       replies: replies,

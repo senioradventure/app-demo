@@ -140,7 +140,13 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
       // Use event imagePath if provided (for forwarding/prefilled)
       else if (event.imagePath != null) {
         mediaUrl = event.imagePath;
-        mediaType = event.mediaType ?? MediaType.image;
+        if (event.mediaType != null) {
+          mediaType = event.mediaType!;
+        } else {
+           final lowerUrl = event.imagePath!.toLowerCase();
+           final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].any((ext) => lowerUrl.contains(ext));
+           mediaType = isImage ? MediaType.image : MediaType.file;
+        }
       }
 
       final newMessage = await repository.sendGroupMessage(

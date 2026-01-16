@@ -13,7 +13,7 @@ class CircleMessageConverter {
       reactionsMap[reaction.emoji] = reaction.userIds;
     }
     
-    // Serialize replies to JSON (simplified - just IDs)
+    // Serialize replies to JSON 
     final repliesIds = message.replies.map((r) => r.id).toList();
     
     return CircleMessagesCompanion(

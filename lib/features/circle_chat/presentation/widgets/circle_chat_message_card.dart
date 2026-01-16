@@ -13,6 +13,8 @@ import 'package:senior_circle/features/circle_chat/models/circle_chat_message_mo
 import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_message_header.dart';
 import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_chat_reply_input_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:senior_circle/core/common/widgets/file_message_bubble.dart'; 
+import 'package:senior_circle/core/constants/media_type.dart';
 
 class CircleChatMessageCard extends StatefulWidget {
   final CircleChatMessage grpmessage;
@@ -282,12 +284,17 @@ class _CircleChatMessageCardState extends State<CircleChatMessageCard> {
                                     top: 4,
                                     bottom: 4,
                                   ),
-                                  child: ImageMessageBubble(
-                                    imagePath: grpmessage.imagePath!,
-                                    isMe: isMe,
-
-                                    isGroup: true,
-                                  ),
+                                  child: grpmessage.mediaType == MediaType.image
+                                      ? ImageMessageBubble(
+                                          imagePath: grpmessage.imagePath!,
+                                          isMe: isMe,
+                                          isGroup: true,
+                                        )
+                                      : FileMessageBubble(
+                                          fileUrl: grpmessage.imagePath!,
+                                          isMe: isMe, 
+                                          isGroup: true,
+                                        ),
                                 ),
 
                               if (grpmessage.text != null &&
