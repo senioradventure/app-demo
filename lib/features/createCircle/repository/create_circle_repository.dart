@@ -1,4 +1,7 @@
-import 'dart:io';
+import 'package:drift/drift.dart'
+    hide
+        Column; // Hide Column to avoid conflict if any, though not expected here
+import 'package:senior_circle/core/database/app_database.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:senior_circle/features/createCircle/model/friend_model.dart';
 import 'package:flutter/foundation.dart';
@@ -6,10 +9,14 @@ import 'package:uuid/uuid.dart';
 
 class CreateCircleRepository {
   final SupabaseClient _supabaseClient;
+  final AppDatabase _db;
   final _uuid = const Uuid();
 
-  CreateCircleRepository({SupabaseClient? supabaseClient})
-    : _supabaseClient = supabaseClient ?? Supabase.instance.client;
+  CreateCircleRepository({
+    required AppDatabase db,
+    SupabaseClient? supabaseClient,
+  }) : _db = db,
+       _supabaseClient = supabaseClient ?? Supabase.instance.client;
 
   Future<List<Friend>> fetchFriends(String userId) async {
     try {
@@ -19,9 +26,51 @@ class CreateCircleRepository {
       );
 
       final List<dynamic> responseList = data as List<dynamic>;
-      return responseList.map((json) => Friend.fromJson(json)).toList();
+      final friends = responseList
+          .map((json) => Friend.fromJson(json))
+          .toList();
+
+      // Update Cache
+      await _db.transaction(() async {
+        await _db.delete(_db.friendsTable).go();
+        await _db.batch((batch) {
+          batch.insertAll(
+            _db.friendsTable,
+            friends.map(
+              (f) => FriendsTableCompanion.insert(
+                id: f.id,
+                fullName: f.fullName,
+                username: f.username,
+                avatarUrl: Value(f.avatarUrl),
+              ),
+            ),
+          );
+        });
+      });
+
+      return friends;
     } catch (e) {
-      debugPrint('Error fetching friends: $e');
+      debugPrint('Error fetching friends from network: $e');
+
+      // Fallback to cache
+      try {
+        final cachedFriends = await _db.select(_db.friendsTable).get();
+        if (cachedFriends.isNotEmpty) {
+          return cachedFriends
+              .map(
+                (f) => Friend(
+                  id: f.id,
+                  fullName: f.fullName,
+                  username: f.username,
+                  avatarUrl: f.avatarUrl,
+                ),
+              )
+              .toList();
+        }
+      } catch (dbError) {
+        debugPrint('Error fetching friends from cache: $dbError');
+      }
+
       throw Exception('Failed to fetch friends');
     }
   }

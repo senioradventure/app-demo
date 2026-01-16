@@ -23,6 +23,7 @@ import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart'
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:senior_circle/core/database/app_database.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +67,8 @@ class SeniorCircleApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) =>
-              MyCircleBloc(repository: MyCircleRepository())..add(LoadMyCircleChats()),
+              MyCircleBloc(repository: MyCircleRepository())
+                ..add(LoadMyCircleChats()),
         ),
         BlocProvider(
           create: (context) => LiveChatHomeBloc(LiveChatHomeRepository())
@@ -76,6 +78,7 @@ class SeniorCircleApp extends StatelessWidget {
         BlocProvider(
           create: (_) => CreateCircleBloc(
             repository: CreateCircleRepository(
+              db: AppDatabase(),
               supabaseClient: Supabase.instance.client,
             ),
           ),

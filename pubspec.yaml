@@ -54,10 +54,15 @@ dependencies:
   animated_text_kit: ^4.3.0
   toastification: ^3.0.3
   path: ^1.9.1
+  drift: ^2.23.0
+  sqlite3_flutter_libs: ^0.5.26
+  drift_flutter: ^0.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  drift_dev: ^2.23.1
+  build_runner: ^2.4.13
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
