@@ -4,12 +4,18 @@ import 'package:senior_circle/features/createCircle/model/friend_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import 'create_circle_local_repository.dart';
+
 class CreateCircleRepository {
   final SupabaseClient _supabaseClient;
+  final CreateCircleLocalRepository _localRepository;
   final _uuid = const Uuid();
 
-  CreateCircleRepository({SupabaseClient? supabaseClient})
-    : _supabaseClient = supabaseClient ?? Supabase.instance.client;
+  CreateCircleRepository({
+    SupabaseClient? supabaseClient,
+    required CreateCircleLocalRepository localRepository,
+  }) : _supabaseClient = supabaseClient ?? Supabase.instance.client,
+       _localRepository = localRepository;
 
   Future<List<Friend>> fetchFriends(String userId) async {
     try {
@@ -19,10 +25,22 @@ class CreateCircleRepository {
       );
 
       final List<dynamic> responseList = data as List<dynamic>;
-      return responseList.map((json) => Friend.fromJson(json)).toList();
+      final friends = responseList
+          .map((json) => Friend.fromJson(json))
+          .toList();
+
+      // Cache the fresh data
+      await _localRepository.cacheFriends(friends);
+
+      return friends;
     } catch (e) {
-      debugPrint('Error fetching friends: $e');
-      throw Exception('Failed to fetch friends');
+      debugPrint('Error fetching friends from network: $e');
+      // Fallback to cache
+      final cachedFriends = await _localRepository.getFriends();
+      if (cachedFriends.isNotEmpty) {
+        return cachedFriends;
+      }
+      throw Exception('Failed to fetch friends and no cache available');
     }
   }
 
