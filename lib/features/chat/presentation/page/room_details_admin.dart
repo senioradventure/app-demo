@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'members_list_fullscreen.dart';
+import 'package:senior_circle/features/live_chat_chat_room/data/local/database.dart';
+import '../../repositories/chat_details_local_repository.dart';
 import '../../bloc/admin_reports_bloc.dart';
 import '../../bloc/admin_reports_event.dart';
 import '../../bloc/admin_reports_state.dart';
@@ -26,9 +28,10 @@ class ChatDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          ChatDetailsBloc(ChatDetailsRepository(Supabase.instance.client))
-            ..add(LoadChatDetails(chatId: chatId, type: type)),
+      create: (context) => ChatDetailsBloc(
+        ChatDetailsRepository(Supabase.instance.client),
+        ChatDetailsLocalRepository(context.read<AppDatabase>().chatDetailsDao),
+      )..add(LoadChatDetails(chatId: chatId, type: type)),
       child: _ChatDetailsView(chatId: chatId, type: type),
     );
   }
