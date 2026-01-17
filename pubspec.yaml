@@ -33,6 +33,7 @@ dependencies:
   dotted_border: ^2.1.0
   drift: ^2.20.0
   sqlite3_flutter_libs: ^0.5.24
+  drift_flutter: ^0.2.0
   
 
   # The following adds the Cupertino Icons font to your application.
