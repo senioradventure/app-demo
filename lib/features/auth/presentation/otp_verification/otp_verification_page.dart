@@ -21,6 +21,18 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
+  void initState() {
+    super.initState();
+    for (var node in _focusNodes) {
+      node.addListener(_onFocusChange);
+    }
+  }
+
+  void _onFocusChange() {
+    setState(() {});
+  }
+
+  @override
   void dispose() {
     for (var controller in _controllers) {
       controller.dispose();
@@ -174,7 +186,9 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                         ],
                                         decoration: InputDecoration(
                                           counterText: "",
-                                          hintText: "-",
+                                          hintText: _focusNodes[index].hasFocus
+                                              ? ""
+                                              : "-",
                                           hintStyle: TextStyle(
                                             color: Colors.grey[400],
                                             fontSize: 20,
