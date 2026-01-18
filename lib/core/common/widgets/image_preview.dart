@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class ImagePreview extends StatelessWidget {
   final XFile selectedImage;
@@ -24,21 +23,22 @@ class ImagePreview extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: isNetwork
-                ? CachedNetworkImage(
-                    imageUrl: selectedImage.path,
-                    height: MediaQuery.of(context).size.height * 0.5,
+                ? Image.network(
+                    selectedImage.path,
+                    height: 150.0,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                    errorWidget: (context, url, error) => const Center(
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                    errorBuilder: (context, error, stackTrace) => const Center(
                       child: Icon(Icons.broken_image),
                     ),
                   )
                 : Image.file(
                     File(selectedImage.path),
-                    height: MediaQuery.of(context).size.height * 0.5,
+                    height: 150.0,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
