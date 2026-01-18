@@ -50,6 +50,11 @@ class ChatMessageList extends StatelessWidget {
                 text: msg.text,
                 msg: msg,
                 onPhoneTap: (phone, msg) {
+                  final profile = context
+                      .read<ChatRoomBloc>()
+                      .state
+                      .userProfiles[msg.senderId];
+
                   showModalBottomSheet(
                     context: context,
                     backgroundColor: Colors.transparent,
@@ -59,14 +64,16 @@ class ChatMessageList extends StatelessWidget {
                       child: UserProfileBottomSheet(
                         msg: msg,
                         otherUserId: msg.senderId!,
-                        
+                        profile: profile, 
                       ),
                     ),
                   );
                 },
+
                 onLinkTap: onOpenLink,
               );
             },
+            currentUserId: currentUserId,
           );
         }
 
@@ -77,6 +84,11 @@ class ChatMessageList extends StatelessWidget {
               text: msg.text,
               msg: msg,
               onPhoneTap: (phone, msg) {
+                final profile = context
+                    .read<ChatRoomBloc>()
+                    .state
+                    .userProfiles[msg.senderId];
+
                 showModalBottomSheet(
                   context: context,
                   backgroundColor: Colors.transparent,
@@ -86,15 +98,16 @@ class ChatMessageList extends StatelessWidget {
                     child: UserProfileBottomSheet(
                       msg: msg,
                       otherUserId: msg.senderId!,
+                      profile: profile, 
                     ),
                   ),
                 );
               },
-              onLinkTap: onOpenLink,
 
+              onLinkTap: onOpenLink,
             );
           },
-                        
+
           currentUserId: currentUserId,
         );
       },

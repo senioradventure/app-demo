@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:senior_circle/core/theme/colors/app_colors.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/profile_bottom_sheet.dart';
-import 'package:senior_circle/local_messages_debug_page.dart';
+import 'package:senior_circle/debug/local_messages_debug_page.dart';
 
 class MyCircleIndividualAppBar extends StatelessWidget
     implements PreferredSizeWidget {

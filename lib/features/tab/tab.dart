@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:senior_circle/debug/debug_menu.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/live_chat_home_page.dart';
 import 'package:senior_circle/features/live_chat_home/presentation/widget/main_bottom_nav.dart';
 
@@ -13,7 +14,7 @@ class TabSelectorWidget extends StatelessWidget {
     MyCircleHomePage(),
     DummyPage(),
     DummyPage(),
-    DummyPage(),
+    DebugMenu(),
   ];
 
   @override

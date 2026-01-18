@@ -53,4 +53,9 @@ class MessageReactionsDao extends DatabaseAccessor<AppDatabase>
       messageReactions,
     )..where((t) => t.messageId.equals(messageId))).go();
   }
+
+  /// Get all reactions for backup
+  Future<List<MessageReaction>> getAllReactions() {
+    return select(messageReactions).get();
+  }
 }

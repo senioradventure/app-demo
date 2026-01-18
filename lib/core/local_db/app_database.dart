@@ -6,14 +6,18 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'tables/individual_messages_table.dart';
 import 'tables/message_reactions_table.dart';
+import 'tables/chatroom_table.dart';
+import 'tables/messages_table.dart';
 import 'daos/individual_messages_dao.dart';
 import 'daos/message_reactions_dao.dart';
+import 'daos/chatroom_daos.dart';
+import 'daos/messages_daos.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [IndividualMessages, MessageReactions],
-  daos: [IndividualMessagesDao, MessageReactionsDao],
+  tables: [IndividualMessages, MessageReactions, ChatRooms, Messages],
+  daos: [IndividualMessagesDao, MessageReactionsDao, ChatRoomsDao, MessagesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -21,7 +25,7 @@ class AppDatabase extends _$AppDatabase {
   static final AppDatabase instance = AppDatabase();
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -39,6 +43,11 @@ class AppDatabase extends _$AppDatabase {
           individualMessages,
           individualMessages.localMediaPath,
         );
+      }
+      if (from < 4) {
+        // Migration from version 3 to 4: add chatrooms and messages tables
+        await m.createTable(chatRooms);
+        await m.createTable(messages);
       }
     },
   );

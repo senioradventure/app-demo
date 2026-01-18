@@ -27,11 +27,14 @@ import 'package:senior_circle/features/profile/repository/profile_repository.dar
 import 'package:senior_circle/features/view_friends/bloc/view_friends_bloc.dart';
 import 'package:senior_circle/features/view_friends/bloc/view_friends_event.dart';
 import 'package:senior_circle/features/view_friends/repository/view_friends_repository.dart';
-import 'package:senior_circle/local_messages_debug_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+late final AppDatabase appDatabase;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  appDatabase = AppDatabase();
 
   await Supabase.initialize(
     url: 'https://bnfozroolcequclltwjb.supabase.co',
@@ -39,10 +42,8 @@ void main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuZm96cm9vbGNlcXVjbGx0d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NzEzNzMsImV4cCI6MjA4MDE0NzM3M30.0MQAK_yOPZX8MxvmsmSnXkV2tcMPzKcGOOTpl2XdTlA',
   );
 
-  final database = AppDatabase();
-
   runApp(
-    Provider<AppDatabase>.value(value: database, child: SeniorCircleApp()),
+    Provider<AppDatabase>.value(value: appDatabase, child: SeniorCircleApp()),
   );
 }
 
@@ -51,68 +52,77 @@ class SeniorCircleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
-        BlocProvider(
-          create: (_) => AuthBloc(AuthRepository(), LocationService()),
-        ),
-        BlocProvider(create: (_) => ChatroomdetailsBloc()),
-        BlocProvider(
-          create: (_) => ProfileBloc(
-            ProfileRepository(Supabase.instance.client),
-            LocationService(),
-          )..add(LoadProfile()),
-        ),
-        BlocProvider(
-          create: (_) =>
-              ViewFriendsBloc(ViewFriendsRepository(Supabase.instance.client))
-                ..add(LoadFriends()),
-        ),
-        BlocProvider(
-          create: (_) => ChatRoomBloc(
-            repository: ChatRoomRepository(supabase: Supabase.instance.client),
-          ),
-        ),
-
-        BlocProvider(
-          create: (_) =>
-              CreateroomBloc(locationService: LocationService())
-                ..add(LoadLocationsEvent()),
-        ),
-        BlocProvider(
-          create: (_) =>
-              MyCircleBloc(repository: MyCircleRepository())
-                ..add(LoadMyCircleChats()),
-        ),
-        BlocProvider(
-          create: (context) => LiveChatHomeBloc(LiveChatHomeRepository())
-            ..add(FetchLocationsEvent())
-            ..add(FetchRoomsEvent()),
-        ),
-        BlocProvider(
-          create: (_) => CreateCircleBloc(
-            repository: CreateCircleRepository(
-              supabaseClient: Supabase.instance.client,
-            ),
-          ),
-        ),
-        BlocProvider(
-          create: (_) => IndividualChatBloc(
-            localRepository: IndividualChatLocalRepository(),
-            remoteRepository: IndividualChatRemoteRepository(),
+        RepositoryProvider(
+          create: (_) => ChatRoomRepository(
+            supabase: Supabase.instance.client,
+            messagesDao: appDatabase.messagesDao,
           ),
         ),
       ],
-      child: MaterialApp(
-        title: 'Senior Circle',
-        theme: AppTheme.lightMode,
-        darkTheme: AppTheme.darkMode,
-        debugShowCheckedModeBanner: false,
-        builder: (context, child) {
-          return SafeArea(top: false, bottom: true, child: child!);
-        },
-        //SplashScreen
-        home: SplashPage(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => AuthBloc(AuthRepository(), LocationService()),
+          ),
+          BlocProvider(create: (_) => ChatroomdetailsBloc()),
+          BlocProvider(
+            create: (_) => ProfileBloc(
+              ProfileRepository(Supabase.instance.client),
+              LocationService(),
+            )..add(LoadProfile()),
+          ),
+          BlocProvider(
+            create: (_) =>
+                ViewFriendsBloc(ViewFriendsRepository(Supabase.instance.client))
+                  ..add(LoadFriends()),
+          ),
+          BlocProvider(
+            create: (context) =>
+                ChatRoomBloc(repository: context.read<ChatRoomRepository>()),
+          ),
+
+          BlocProvider(
+            create: (_) =>
+                CreateroomBloc(locationService: LocationService())
+                  ..add(LoadLocationsEvent()),
+          ),
+          BlocProvider(
+            create: (_) =>
+                MyCircleBloc(repository: MyCircleRepository())
+                  ..add(LoadMyCircleChats()),
+          ),
+          BlocProvider(
+            create: (context) => LiveChatHomeBloc(LiveChatHomeRepository())
+              ..add(FetchLocationsEvent())
+              ..add(FetchRoomsEvent()),
+          ),
+          BlocProvider(
+            create: (_) => CreateCircleBloc(
+              repository: CreateCircleRepository(
+                supabaseClient: Supabase.instance.client,
+              ),
+            ),
+          ),
+          BlocProvider(
+            create: (_) => IndividualChatBloc(
+              localRepository: IndividualChatLocalRepository(),
+              remoteRepository: IndividualChatRemoteRepository(),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          title: 'Senior Circle',
+          theme: AppTheme.lightMode,
+          darkTheme: AppTheme.darkMode,
+          debugShowCheckedModeBanner: false,
+          builder: (context, child) {
+            return SafeArea(top: false, bottom: true, child: child!);
+          },
+          //SplashScreen
+          home: SplashPage(),
+        ),
       ),
     );
   }

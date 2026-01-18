@@ -7,6 +7,7 @@ class Contact {
   final String? location_id;
   final List<String> interests;
   final bool is_active;
+  final DateTime? lastMessageAt;
 
   Contact({
     required this.id,
@@ -17,6 +18,7 @@ class Contact {
     this.image_url,
     this.description,
     this.is_active = true,
+    this.lastMessageAt,
   });
 
   factory Contact.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,9 @@ class Contact {
       location_id: json['location_id'],
       interests: List<String>.from(json['interests'] ?? []),
       is_active: json['is_active'] ?? true,
+      lastMessageAt: json['last_message_at'] != null
+          ? DateTime.parse(json['last_message_at'])
+          : null,
     );
   }
 }

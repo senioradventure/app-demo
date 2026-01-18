@@ -55,6 +55,7 @@ class PageHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
               style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                 letterSpacing: -0.04,
                 fontWeight: FontWeight.w700,
+                color: Colors.black,
               ),
             ),
             const Spacer(),

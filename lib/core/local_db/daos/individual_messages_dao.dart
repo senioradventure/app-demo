@@ -38,4 +38,11 @@ class IndividualMessagesDao extends DatabaseAccessor<AppDatabase>
       individualMessages,
     )..where((t) => t.conversationId.equals(conversationId))).go();
   }
+
+  /// Get all non-deleted messages for backup
+  Future<List<IndividualMessage>> getAllMessages() {
+    return (select(
+      individualMessages,
+    )..where((t) => t.deletedAt.isNull())).get();
+  }
 }
