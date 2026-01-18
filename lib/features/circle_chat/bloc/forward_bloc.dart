@@ -17,10 +17,10 @@ class ForwardBloc extends Bloc<ForwardEvent, ForwardState> {
   final MyCircleRepository _circlesRepository;
 
   ForwardBloc({
-    CircleChatMessagesRepository? chatRepository,
+    required CircleChatMessagesRepository chatRepository,
     ViewFriendsRepository? friendsRepository,
     MyCircleRepository? circlesRepository,
-  })  : _chatRepository = chatRepository ?? CircleChatMessagesRepository(),
+  })  : _chatRepository = chatRepository,
         _friendsRepository = friendsRepository ?? ViewFriendsRepository(),
         _circlesRepository = circlesRepository ?? MyCircleRepository(),
         super(ForwardInitial()) {

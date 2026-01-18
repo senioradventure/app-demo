@@ -3,50 +3,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 import '../models/circle_chat_message_model.dart';
 import '../mappers/circle_chat_reaction_mapper.dart';
-import 'package:senior_circle/core/database/daos/circle_messages_dao.dart';
-import 'package:senior_circle/core/database/converters/circle_message_converter.dart';
+import 'circle_messages_local_repository.dart';
 
 class CircleChatMessagesRepository {
   final SupabaseClient _client;
-  final CircleMessagesDao? _messagesDao;
+  final CircleMessagesLocalRepository _localRepo;
 
   CircleChatMessagesRepository({
     SupabaseClient? client,
-    CircleMessagesDao? messagesDao,
+    required CircleMessagesLocalRepository localRepository,
   })  : _client = client ?? Supabase.instance.client,
-        _messagesDao = messagesDao;
+        _localRepo = localRepository;
 
   String? get currentUserId => _client.auth.currentUser?.id;
 
-  /// Fetch messages from local database (instant)
-  Future<List<CircleChatMessage>> fetchMessagesFromLocal(String circleId) async {
-    if (_messagesDao == null) return [];
-    
-    debugPrint('🟦 [Repo] Loading messages from local DB for circle $circleId');
-    final driftMessages = await _messagesDao!.getMessagesByCircle(circleId);
-    final messages = CircleMessageConverter.fromDriftList(driftMessages);
-    
-    // Build message tree (attach replies to parent messages)
-    return _buildLocalMessageTree(messages);
-  }
-
-  /// Build message tree from local messages
-  List<CircleChatMessage> _buildLocalMessageTree(List<CircleChatMessage> messages) {
-    final Map<String, List<CircleChatMessage>> repliesMap = {};
-    
-    // Group replies by parent message ID
-    for (var m in messages) {
-      if (m.replyToMessageId != null) {
-        repliesMap.putIfAbsent(m.replyToMessageId!, () => []).add(m);
-      }
-    }
-    
-    // Return only top-level messages with their replies attached
-    return messages
-        .where((m) => m.replyToMessageId == null)
-        .map((m) => m.copyWith(replies: (repliesMap[m.id] ?? []).reversed.toList()))
-        .toList();
-  }
 
   Future<List<CircleChatMessage>> fetchGroupMessages({
     required String circleId,
@@ -62,9 +32,6 @@ class CircleChatMessagesRepository {
         reactionsByMessage,
         savedMessageIds,
       );
-      
-      // 💾 Save to local database
-      await _syncToLocal(messages, circleId);
       
       return messages;
     } catch (e, stack) {
@@ -186,15 +153,6 @@ class CircleChatMessagesRepository {
         .toList();
   }
 
-  /// Sync messages to local database
-  Future<void> _syncToLocal(List<CircleChatMessage> messages, String circleId) async {
-    if (_messagesDao == null) return;
-    
-    debugPrint('\ud83d\udfe6 [Repo] Syncing ${messages.length} messages to local DB');
-    final companions = CircleMessageConverter.toCompanionList(messages, circleId);
-    await _messagesDao!.upsertMessages(companions);
-    debugPrint('\ud83d\udfe9 [Repo] Local DB sync complete');
-  }
 
   Future<CircleChatMessage> sendGroupMessage({
     required String circleId,
@@ -260,91 +218,93 @@ class CircleChatMessagesRepository {
     }
   }
 
-  Future<String> uploadCircleImage(File file) async {
-    debugPrint('🟦 [Upload] Method entered');
-    debugPrint('🟦 [Upload] File path: ${file.path}');
-    debugPrint('🟦 [Upload] File exists: ${file.existsSync()}');
-    debugPrint('🟦 [Upload] File size: ${file.lengthSync()} bytes');
-
-    final fileName =
-        '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
-
-    final storagePath = 'circle_images/$fileName';
-
-    debugPrint('🟦 [Upload] Storage path: $storagePath');
-    debugPrint('🟦 [Upload] Bucket: media');
-
+  /// Upload image - saves locally first, then uploads to Supabase
+  /// Returns (localPath, remoteUrl?) - remote URL may be null if upload fails
+  Future<(String, String?)> uploadCircleImage(File file) async {
+    debugPrint('🟦 [Upload] Saving image locally first...');
+    
+    // 1. Save to local storage first (instant)
+    final localFile = await _localRepo.saveImageLocally(file);
+    debugPrint('🟩 [Upload] Saved locally: ${localFile.path}');
+    
+    // 2. Upload to Supabase in background
     try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+      final storagePath = 'circle_images/$fileName';
+      
       debugPrint('🟨 [Upload] Starting Supabase upload...');
-
-      final response = await _client.storage
-          .from('media')
-          .upload(
-            storagePath,
-            file,
-            fileOptions: const FileOptions(upsert: false),
-          );
-
-      debugPrint('🟩 [Upload] Upload completed');
-      debugPrint('🟩 [Upload] Response: $response');
-
+      
+      await _client.storage.from('media').upload(
+        storagePath,
+        localFile,
+        fileOptions: const FileOptions(upsert: false),
+      );
+      
       final publicUrl = _client.storage.from('media').getPublicUrl(storagePath);
-
-      debugPrint('🟩 [Upload] Public URL generated');
-      debugPrint('🟩 [Upload] URL: $publicUrl');
-
-      return publicUrl;
-    } catch (e, st) {
-      debugPrint('🟥 [Upload] FAILED');
-      debugPrint('🟥 Error: $e');
-      debugPrintStack(stackTrace: st);
-      rethrow;
+      debugPrint('🟩 [Upload] Supabase upload complete: $publicUrl');
+      
+      return (localFile.path, publicUrl);
+    } catch (e, stackTrace) {
+      debugPrint('🟥 [Upload] Supabase upload failed: $e');
+      debugPrint('🟥 [Upload] Returning local path only');
+      // Return local path even if remote upload fails
+      return (localFile.path, null);
     }
   }
 
-  Future<String> uploadFile(File file) async {
-    debugPrint('🟦 [Upload File] Starting upload');
-    final fileName =
-        '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
-    final storagePath = 'circle_files/$fileName';
-
+  /// Upload file - saves locally first, then uploads to Supabase
+  Future<(String, String?)> uploadFile(File file) async {
+    debugPrint('🟦 [Upload File] Saving locally first...');
+    
+    // 1. Save to local storage first
+    final localFile = await _localRepo.saveFileLocally(file);
+    debugPrint('🟩 [Upload File] Saved locally: ${localFile.path}');
+    
+    // 2. Upload to Supabase
     try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+      final storagePath = 'circle_files/$fileName';
+      
       await _client.storage.from('media').upload(
-            storagePath,
-            file,
-            fileOptions: const FileOptions(upsert: false),
-          );
-
+        storagePath,
+        localFile,
+        fileOptions: const FileOptions(upsert: false),
+      );
+      
       final publicUrl = _client.storage.from('media').getPublicUrl(storagePath);
-      debugPrint('🟩 [Upload File] Success: $publicUrl');
-      return publicUrl;
-    } catch (e, st) {
-      debugPrint('🟥 [Upload File] FAILED: $e');
-      debugPrintStack(stackTrace: st);
-      rethrow;
+      debugPrint('🟩 [Upload File] Supabase upload complete: $publicUrl');
+      return (localFile.path, publicUrl);
+    } catch (e) {
+      debugPrint('🟥 [Upload File] Supabase upload failed: $e');
+      return (localFile.path, null);
     }
   }
 
-  Future<String> uploadAudio(File file) async {
-    debugPrint('🟦 [Upload Audio] Starting upload');
-    final fileName =
-        '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
-    final storagePath = 'circle_audio/$fileName';
-
+  /// Upload audio - saves locally first, then uploads to Supabase
+  Future<(String, String?)> uploadAudio(File file) async {
+    debugPrint('🟦 [Upload Audio] Saving locally first...');
+    
+    // 1. Save to local storage first
+    final localFile = await _localRepo.saveAudioLocally(file);
+    debugPrint('🟩 [Upload Audio] Saved locally: ${localFile.path}');
+    
+    // 2. Upload to Supabase
     try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+      final storagePath = 'circle_audio/$fileName';
+      
       await _client.storage.from('media').upload(
-            storagePath,
-            file,
-            fileOptions: const FileOptions(upsert: false),
-          );
-
+        storagePath,
+        localFile,
+        fileOptions: const FileOptions(upsert: false),
+      );
+      
       final publicUrl = _client.storage.from('media').getPublicUrl(storagePath);
-      debugPrint('🟩 [Upload Audio] Success: $publicUrl');
-      return publicUrl;
-    } catch (e, st) {
-      debugPrint('🟥 [Upload Audio] FAILED: $e');
-      debugPrintStack(stackTrace: st);
-      rethrow;
+      debugPrint('🟩 [Upload Audio] Supabase upload complete: $publicUrl');
+      return (localFile.path, publicUrl);
+    } catch (e) {
+      debugPrint('🟥 [Upload Audio] Supabase upload failed: $e');
+      return (localFile.path, null);
     }
   }
 

@@ -6,17 +6,21 @@ import 'package:senior_circle/features/circle_chat/models/circle_chat_message_mo
 import 'package:senior_circle/features/circle_chat/models/circle_chat_extensions.dart';
 import 'package:senior_circle/core/utils/reaction_utils.dart';
 import 'package:senior_circle/features/circle_chat/repositories/circle_chat_messages_repository.dart';
+import 'package:senior_circle/features/circle_chat/repositories/circle_messages_local_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'circle_chat_event.dart';
 import 'circle_chat_state.dart';
 
 class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
   final CircleChatMessagesRepository repository;
+  final CircleMessagesLocalRepository localRepository;
   String? _circleId;
   RealtimeChannel? _groupChannel;
 
-  CircleChatBloc({required this.repository})
-    : super(const CircleChatState(groupMessages: [])) {
+  CircleChatBloc({
+    required this.repository,
+    required this.localRepository,
+  }) : super(const CircleChatState(groupMessages: [])) {
     // Message Management
     on<LoadGroupMessages>(_onLoadGroupMessages);
     on<GroupMessageInserted>(_onGroupMessageInserted);
@@ -45,15 +49,16 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
 
   // ==================== Helper Methods ====================
   
-  /// Upload media from state and return URL with type
-  Future<(String url, String type)?> _uploadMedia() async {
+  /// Upload media from state and return local path, remote URL, and type
+  /// Returns (localPath, remoteUrl?, type) - remote URL may be null if upload fails
+  Future<(String localPath, String? remoteUrl, String type)?> _uploadMedia() async {
     if (state.imagePath != null) {
-      final url = await repository.uploadCircleImage(File(state.imagePath!));
-      return (url, MediaType.image);
+      final (localPath, remoteUrl) = await repository.uploadCircleImage(File(state.imagePath!));
+      return (localPath, remoteUrl, MediaType.image);
     }
     if (state.filePath != null) {
-      final url = await repository.uploadFile(File(state.filePath!));
-      return (url, MediaType.file);
+      final (localPath, remoteUrl) = await repository.uploadFile(File(state.filePath!));
+      return (localPath, remoteUrl, MediaType.file);
     }
     return null;
   }
@@ -78,7 +83,7 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
 
     try {
       // 🚀 Load from local DB first (instant)
-      final localMessages = await repository.fetchMessagesFromLocal(event.chatId);
+      final localMessages = await localRepository.fetchMessages(event.chatId);
       if (localMessages.isNotEmpty) {
         debugPrint('🟦 [ChatBloc] Loaded ${localMessages.length} messages from local DB');
         emit(state.copyWith(groupMessages: localMessages, isLoading: false));
@@ -93,6 +98,10 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
       );
 
       debugPrint('🟩 [ChatBloc] Synced ${messages.length} messages from Supabase');
+      
+      // 💾 Save to local database
+      await localRepository.saveMessages(messages, event.chatId);
+      
       emit(state.copyWith(groupMessages: messages, isLoading: false));
 
       _subscribeToGroupRealtime(event.chatId);
@@ -134,8 +143,11 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
       // Upload media from state if present
       final uploadedMedia = await _uploadMedia();
       if (uploadedMedia != null) {
-        mediaUrl = uploadedMedia.$1;
-        mediaType = uploadedMedia.$2;
+        final (localPath, remoteUrl, type) = uploadedMedia;
+        // Prefer remote URL, fallback to local path if upload failed
+        mediaUrl = remoteUrl ?? localPath;
+        mediaType = type;
+        debugPrint('🟩 [ChatBloc] Media uploaded - Local: $localPath, Remote: $remoteUrl');
       }
       // Use event imagePath if provided (for forwarding/prefilled)
       else if (event.imagePath != null) {
@@ -493,8 +505,10 @@ class CircleChatBloc extends Bloc<CircleChatEvent, CircleChatState> {
     try {
       emit(state.copyWith(isSending: true));
       
-      // Upload audio file
-      final audioUrl = await repository.uploadAudio(File(event.audioFile));
+      // Upload audio file (saves locally first, then uploads)
+      final (localPath, remoteUrl) = await repository.uploadAudio(File(event.audioFile));
+      final audioUrl = remoteUrl ?? localPath; // Prefer remote, fallback to local
+      debugPrint('🟩 [ChatBloc] Audio uploaded - Local: $localPath, Remote: $remoteUrl');
       
       // Send message with audio
       final newMessage = await repository.sendGroupMessage(

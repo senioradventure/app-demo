@@ -4,6 +4,7 @@ import 'package:senior_circle/core/utils/location_service/location_service.dart'
 import 'package:senior_circle/features/auth/bloc/auth_bloc.dart';
 import 'package:senior_circle/features/auth/presentation/splash_screen/splash_screen.dart';
 import 'package:senior_circle/features/auth/repositories/auth_repository.dart';
+import 'package:senior_circle/features/circle_chat/repositories/circle_messages_local_repository.dart';
 import 'package:senior_circle/features/createroom/bloc/createroom_bloc.dart';
 import 'package:senior_circle/features/details/bloc/chatroomdetails_bloc.dart';
 import 'package:senior_circle/core/theme/apptheme/app_theme.dart';
@@ -44,7 +45,6 @@ void main() async {
 
   // Initialize dependency injection
   setupDependencyInjection();
-
   runApp(const SeniorCircleApp());
 }
 
@@ -110,10 +110,15 @@ class SeniorCircleApp extends StatelessWidget {
           create: (_) => IndividualChatBloc(IndividualChatRepository()),
         ),
         BlocProvider(
-          create: (_) => ForwardBloc(),
+          create: (_) => ForwardBloc(
+            chatRepository: getIt<CircleChatMessagesRepository>(),
+          ),
         ),
         BlocProvider(
-          create: (_) => CircleChatBloc(repository: getIt<CircleChatMessagesRepository>()),
+          create: (_) => CircleChatBloc(
+            repository: getIt<CircleChatMessagesRepository>(),
+            localRepository: getIt<CircleMessagesLocalRepository>(),
+          ),
         ),
       ],
       child: MaterialApp(
