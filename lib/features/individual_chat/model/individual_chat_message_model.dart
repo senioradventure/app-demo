@@ -6,6 +6,7 @@ class IndividualChatMessageModel {
   final String? receiverId;
   final String content;
   final String? mediaUrl;
+  final String? localMediaPath;
   final String mediaType;
   final DateTime createdAt;
   final String? replyToMessageId;
@@ -19,6 +20,7 @@ class IndividualChatMessageModel {
     this.receiverId,
     required this.content,
     this.mediaUrl,
+    this.localMediaPath,
     required this.mediaType,
     required this.createdAt,
     this.replyToMessageId,
@@ -44,6 +46,7 @@ class IndividualChatMessageModel {
   IndividualChatMessageModel copyWith({
     List<MessageReaction>? reactions,
     String? receiverId,
+    String? localMediaPath,
   }) {
     return IndividualChatMessageModel(
       id: id,
@@ -51,6 +54,7 @@ class IndividualChatMessageModel {
       receiverId: receiverId ?? this.receiverId,
       content: content,
       mediaUrl: mediaUrl,
+      localMediaPath: localMediaPath ?? this.localMediaPath,
       mediaType: mediaType,
       createdAt: createdAt,
       replyToMessageId: replyToMessageId,

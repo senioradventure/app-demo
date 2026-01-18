@@ -6,6 +6,7 @@ class IndividualMessages extends Table {
   TextColumn get content => text()();
   TextColumn get mediaUrl => text().nullable()();
   TextColumn get mediaType => text()();
+  TextColumn get localMediaPath => text().nullable()();
   TextColumn get conversationId => text()();
   TextColumn get replyToMessageId => text().nullable()();
   TextColumn get forwardedFromMessageId => text().nullable()();

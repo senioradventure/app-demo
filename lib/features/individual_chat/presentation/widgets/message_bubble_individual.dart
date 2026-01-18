@@ -50,16 +50,33 @@ class MessageBubbleIndividual extends StatelessWidget {
                     RepliedMessagePreview(message: message, isMe: isMe),
 
                   /// ---------------- IMAGE ----------------
-                  if (message.mediaType == 'image' && message.mediaUrl != null)
-                    MessageImage(url: message.mediaUrl!),
+                  if (message.mediaType == 'image' &&
+                      (message.localMediaPath != null ||
+                          message.mediaUrl != null))
+                    MessageImage(
+                      localPath: message.localMediaPath,
+                      url: message.mediaUrl,
+                    ),
 
                   /// ---------------- FILE ----------------
-                  if (message.mediaType == 'file' && message.mediaUrl != null)
-                    MessageFileBubble(fileUrl: message.mediaUrl!, isMe: isMe),
+                  if (message.mediaType == 'file' &&
+                      (message.localMediaPath != null ||
+                          message.mediaUrl != null))
+                    MessageFileBubble(
+                      localPath: message.localMediaPath,
+                      fileUrl: message.mediaUrl,
+                      isMe: isMe,
+                    ),
 
                   /// ---------------- VOICE ----------------
-                  if (message.mediaType == 'audio' && message.mediaUrl != null)
-                    MessageVoiceBubble(audioUrl: message.mediaUrl!, isMe: isMe),
+                  if (message.mediaType == 'audio' &&
+                      (message.localMediaPath != null ||
+                          message.mediaUrl != null))
+                    MessageVoiceBubble(
+                      localPath: message.localMediaPath,
+                      audioUrl: message.mediaUrl,
+                      isMe: isMe,
+                    ),
 
                   /// ---------------- TEXT ----------------
                   if (message.content.isNotEmpty)

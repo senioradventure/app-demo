@@ -6,14 +6,19 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class MessageFileBubble extends StatefulWidget {
-  final String fileUrl;
+  final String? localPath;
+  final String? fileUrl;
   final bool isMe;
 
   const MessageFileBubble({
     super.key,
-    required this.fileUrl,
+    this.localPath,
+    this.fileUrl,
     required this.isMe,
-  });
+  }) : assert(
+         localPath != null || fileUrl != null,
+         'Either localPath or fileUrl must be provided',
+       );
 
   @override
   State<MessageFileBubble> createState() => _MessageFileBubbleState();
@@ -33,7 +38,7 @@ class _MessageFileBubbleState extends State<MessageFileBubble> {
         return;
       }
 
-      final fileName = Uri.parse(widget.fileUrl).pathSegments.last;
+      final fileName = Uri.parse(widget.fileUrl ?? '').pathSegments.last;
 
       final directory = Platform.isAndroid
           ? await getExternalStorageDirectory()
@@ -42,7 +47,7 @@ class _MessageFileBubbleState extends State<MessageFileBubble> {
       final filePath = '${directory!.path}/$fileName';
 
       await Dio().download(
-        widget.fileUrl,
+        widget.fileUrl ?? '',
         filePath,
         options: Options(responseType: ResponseType.bytes),
       );
@@ -64,7 +69,11 @@ class _MessageFileBubbleState extends State<MessageFileBubble> {
 
   @override
   Widget build(BuildContext context) {
-    final fileName = Uri.parse(widget.fileUrl).pathSegments.last;
+    // Determine which path to use and extract filename
+    final String displayPath = widget.localPath ?? widget.fileUrl ?? '';
+    final fileName = displayPath.contains('/')
+        ? displayPath.split('/').last
+        : 'Unknown file';
 
     return GestureDetector(
       onTap: _isDownloading ? null : () => _downloadFile(context),

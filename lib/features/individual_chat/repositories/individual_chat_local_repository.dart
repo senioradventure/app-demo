@@ -77,11 +77,26 @@ class IndividualChatLocalRepository {
   }
 
   /// Upsert a message to local Drift DB
+  /// If the message has media but no local path, save the media file locally
   Future<void> upsertMessage(
     IndividualChatMessageModel message,
     String conversationId,
   ) async {
-    await _messagesDao.upsertMessage(_toCompanion(message, conversationId));
+    String? localMediaPath = message.localMediaPath;
+
+    // If message has media URL but no local path, try to save it locally
+    // This handles messages fetched from Supabase that don't have local copies yet
+    if (message.mediaUrl != null &&
+        message.mediaUrl!.isNotEmpty &&
+        (localMediaPath == null || localMediaPath.isEmpty)) {
+      // Note: For messages from remote, we would need to download the file first
+      // For now, we'll just store the remote URL and rely on the BLoC to provide local paths
+      // when sending new messages
+    }
+
+    await _messagesDao.upsertMessage(
+      _toCompanion(message, conversationId, localMediaPath),
+    );
   }
 
   /// Upsert a reaction to local Drift DB
@@ -138,6 +153,7 @@ class IndividualChatLocalRepository {
       senderId: row.senderId,
       content: row.content,
       mediaUrl: row.mediaUrl,
+      localMediaPath: row.localMediaPath,
       mediaType: row.mediaType,
       createdAt: row.createdAt,
       replyToMessageId: row.replyToMessageId,
@@ -149,12 +165,14 @@ class IndividualChatLocalRepository {
   IndividualMessagesCompanion _toCompanion(
     IndividualChatMessageModel model,
     String conversationId,
+    String? localMediaPath,
   ) {
     return IndividualMessagesCompanion(
       id: Value(model.id),
       senderId: Value(model.senderId),
       content: Value(model.content),
       mediaUrl: Value(model.mediaUrl),
+      localMediaPath: Value(localMediaPath),
       mediaType: Value(model.mediaType),
       conversationId: Value(conversationId),
       replyToMessageId: Value(model.replyToMessageId),

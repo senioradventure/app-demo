@@ -3,14 +3,19 @@ import 'package:just_audio/just_audio.dart';
 import 'dart:async';
 
 class MessageVoiceBubble extends StatefulWidget {
-  final String audioUrl;
+  final String? localPath;
+  final String? audioUrl;
   final bool isMe;
 
   const MessageVoiceBubble({
     super.key,
-    required this.audioUrl,
+    this.localPath,
+    this.audioUrl,
     required this.isMe,
-  });
+  }) : assert(
+         localPath != null || audioUrl != null,
+         'Either localPath or audioUrl must be provided',
+       );
 
   @override
   State<MessageVoiceBubble> createState() => _MessageVoiceBubbleState();
@@ -40,8 +45,9 @@ class _MessageVoiceBubbleState extends State<MessageVoiceBubble> {
 
   Future<void> _init() async {
     try {
-      // Set audio source
-      final d = await _player.setUrl(widget.audioUrl);
+      // Set audio source - prioritize local path
+      final audioSource = widget.localPath ?? widget.audioUrl ?? '';
+      final d = await _player.setUrl(audioSource);
       if (d != null && mounted) {
         setState(() => _duration = d);
       }

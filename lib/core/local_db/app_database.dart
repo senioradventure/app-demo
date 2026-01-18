@@ -21,7 +21,7 @@ class AppDatabase extends _$AppDatabase {
   static final AppDatabase instance = AppDatabase();
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -32,6 +32,13 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         // Migration from version 1 to 2: add message_reactions table
         await m.createTable(messageReactions);
+      }
+      if (from < 3) {
+        // Migration from version 2 to 3: add local_media_path column
+        await m.addColumn(
+          individualMessages,
+          individualMessages.localMediaPath,
+        );
       }
     },
   );

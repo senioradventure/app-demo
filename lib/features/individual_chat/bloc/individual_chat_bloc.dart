@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
+import 'package:senior_circle/core/services/media_storage_service.dart';
+import 'package:senior_circle/core/utils/image_compressor.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_chat_message_model.dart';
 import 'package:senior_circle/features/individual_chat/model/individual_message_reaction_model.dart';
 import 'package:senior_circle/features/individual_chat/repositories/individual_chat_local_repository.dart';
@@ -14,6 +17,7 @@ class IndividualChatBloc
     extends Bloc<IndividualChatEvent, IndividualChatState> {
   final IndividualChatLocalRepository _localRepository;
   final IndividualChatRemoteRepository _remoteRepository;
+  final MediaStorageService _mediaStorageService = MediaStorageService();
 
   late String _conversationId;
 
@@ -170,13 +174,61 @@ class IndividualChatBloc
       emit(current.copyWith(isSending: true));
 
       /// ───────── MEDIA HANDLING ─────────
+      String? localMediaPath;
       if (current.imagePath != null) {
+        // Compress image first to reduce file size
+        File imageToProcess = File(current.imagePath!);
+        File? compressedImage;
+
+        try {
+          compressedImage = await ImageCompressor.compressImage(
+            imageFile: imageToProcess,
+            quality: 70,
+            minWidth: 1080,
+            minHeight: 1080,
+          );
+
+          // Use compressed image if compression succeeded
+          if (compressedImage != null) {
+            imageToProcess = compressedImage;
+          }
+        } catch (e) {
+          // If compression fails, log and use original image
+          debugPrint('⚠️ Image compression failed: $e');
+          // imageToProcess remains as original
+        }
+
+        // Save image locally first
+        localMediaPath = await _mediaStorageService.saveMediaFile(
+          sourceFile: imageToProcess,
+          mediaType: 'image',
+        );
+
+        // Then upload to Supabase
         mediaUrl = await _remoteRepository.uploadMedia(
-          file: File(current.imagePath!),
+          file: imageToProcess,
           folder: 'images',
         );
+
+        // Clean up temporary compressed file if it exists and is different from original
+        if (compressedImage != null &&
+            compressedImage.path != current.imagePath) {
+          try {
+            await compressedImage.delete();
+          } catch (e) {
+            debugPrint('⚠️ Failed to delete temp compressed file: $e');
+          }
+        }
+
         mediaType = 'image';
       } else if (current.filePath != null) {
+        // Save file locally first
+        localMediaPath = await _mediaStorageService.saveMediaFile(
+          sourceFile: File(current.filePath!),
+          mediaType: 'file',
+        );
+
+        // Then upload to Supabase
         mediaUrl = await _remoteRepository.uploadMedia(
           file: File(current.filePath!),
           folder: 'files',
@@ -190,6 +242,7 @@ class IndividualChatBloc
         senderId: userId,
         content: event.text,
         mediaUrl: mediaUrl,
+        localMediaPath: localMediaPath,
         mediaType: mediaType,
         createdAt: DateTime.now(),
         replyToMessageId:
@@ -218,7 +271,15 @@ class IndividualChatBloc
       );
 
       /// ───────── SYNC TO LOCAL ─────────
-      await _localRepository.upsertMessage(realMessage, _conversationId);
+      // Preserve the localMediaPath when syncing to local DB
+      // (Supabase doesn't store local paths, so we need to add it back)
+      final messageWithLocalPath = realMessage.copyWith(
+        localMediaPath: localMediaPath,
+      );
+      await _localRepository.upsertMessage(
+        messageWithLocalPath,
+        _conversationId,
+      );
 
       /// ───────── REPLACE TEMP WITH REAL ─────────
       if (state is IndividualChatLoaded) {
@@ -227,7 +288,7 @@ class IndividualChatBloc
         emit(
           live.copyWith(
             messages: live.messages
-                .map((m) => m.id == tempId ? realMessage : m)
+                .map((m) => m.id == tempId ? messageWithLocalPath : m)
                 .toList(),
             isSending: false,
           ),
@@ -255,7 +316,13 @@ class IndividualChatBloc
     emit(current.copyWith(isSending: true));
 
     try {
-      /// ───── UPLOAD VOICE ─────
+      /// ───── SAVE VOICE LOCALLY ─────
+      final localMediaPath = await _mediaStorageService.saveMediaFile(
+        sourceFile: event.audioFile,
+        mediaType: 'voice',
+      );
+
+      /// ───── UPLOAD VOICE TO SUPABASE ─────
       final mediaUrl = await _remoteRepository.uploadMedia(
         file: event.audioFile,
         folder: 'voice',
@@ -267,6 +334,7 @@ class IndividualChatBloc
         senderId: userId,
         content: '',
         mediaUrl: mediaUrl,
+        localMediaPath: localMediaPath,
         mediaType: 'audio',
         createdAt: DateTime.now(),
         replyToMessageId:
@@ -292,7 +360,15 @@ class IndividualChatBloc
       );
 
       /// ───── SYNC TO LOCAL ─────
-      await _localRepository.upsertMessage(realMessage, _conversationId);
+      // Preserve the localMediaPath when syncing to local DB
+      // (Supabase doesn't store local paths, so we need to add it back)
+      final messageWithLocalPath = realMessage.copyWith(
+        localMediaPath: localMediaPath,
+      );
+      await _localRepository.upsertMessage(
+        messageWithLocalPath,
+        _conversationId,
+      );
 
       /// ───── REPLACE TEMP WITH REAL ─────
       final live = state as IndividualChatLoaded;
@@ -300,7 +376,7 @@ class IndividualChatBloc
       emit(
         live.copyWith(
           messages: live.messages
-              .map((m) => m.id == tempId ? realMessage : m)
+              .map((m) => m.id == tempId ? messageWithLocalPath : m)
               .toList(),
           isSending: false,
           version: live.version + 1,

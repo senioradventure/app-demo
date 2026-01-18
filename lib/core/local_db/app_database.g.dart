@@ -62,6 +62,17 @@ class $IndividualMessagesTable extends IndividualMessages
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _localMediaPathMeta = const VerificationMeta(
+    'localMediaPath',
+  );
+  @override
+  late final GeneratedColumn<String> localMediaPath = GeneratedColumn<String>(
+    'local_media_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _conversationIdMeta = const VerificationMeta(
     'conversationId',
   );
@@ -146,6 +157,7 @@ class $IndividualMessagesTable extends IndividualMessages
     content,
     mediaUrl,
     mediaType,
+    localMediaPath,
     conversationId,
     replyToMessageId,
     forwardedFromMessageId,
@@ -200,6 +212,15 @@ class $IndividualMessagesTable extends IndividualMessages
       );
     } else if (isInserting) {
       context.missing(_mediaTypeMeta);
+    }
+    if (data.containsKey('local_media_path')) {
+      context.handle(
+        _localMediaPathMeta,
+        localMediaPath.isAcceptableOrUnknown(
+          data['local_media_path']!,
+          _localMediaPathMeta,
+        ),
+      );
     }
     if (data.containsKey('conversation_id')) {
       context.handle(
@@ -285,6 +306,10 @@ class $IndividualMessagesTable extends IndividualMessages
         DriftSqlType.string,
         data['${effectivePrefix}media_type'],
       )!,
+      localMediaPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_media_path'],
+      ),
       conversationId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}conversation_id'],
@@ -329,6 +354,7 @@ class IndividualMessage extends DataClass
   final String content;
   final String? mediaUrl;
   final String mediaType;
+  final String? localMediaPath;
   final String conversationId;
   final String? replyToMessageId;
   final String? forwardedFromMessageId;
@@ -342,6 +368,7 @@ class IndividualMessage extends DataClass
     required this.content,
     this.mediaUrl,
     required this.mediaType,
+    this.localMediaPath,
     required this.conversationId,
     this.replyToMessageId,
     this.forwardedFromMessageId,
@@ -360,6 +387,9 @@ class IndividualMessage extends DataClass
       map['media_url'] = Variable<String>(mediaUrl);
     }
     map['media_type'] = Variable<String>(mediaType);
+    if (!nullToAbsent || localMediaPath != null) {
+      map['local_media_path'] = Variable<String>(localMediaPath);
+    }
     map['conversation_id'] = Variable<String>(conversationId);
     if (!nullToAbsent || replyToMessageId != null) {
       map['reply_to_message_id'] = Variable<String>(replyToMessageId);
@@ -391,6 +421,9 @@ class IndividualMessage extends DataClass
           ? const Value.absent()
           : Value(mediaUrl),
       mediaType: Value(mediaType),
+      localMediaPath: localMediaPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localMediaPath),
       conversationId: Value(conversationId),
       replyToMessageId: replyToMessageId == null && nullToAbsent
           ? const Value.absent()
@@ -422,6 +455,7 @@ class IndividualMessage extends DataClass
       content: serializer.fromJson<String>(json['content']),
       mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
       mediaType: serializer.fromJson<String>(json['mediaType']),
+      localMediaPath: serializer.fromJson<String?>(json['localMediaPath']),
       conversationId: serializer.fromJson<String>(json['conversationId']),
       replyToMessageId: serializer.fromJson<String?>(json['replyToMessageId']),
       forwardedFromMessageId: serializer.fromJson<String?>(
@@ -442,6 +476,7 @@ class IndividualMessage extends DataClass
       'content': serializer.toJson<String>(content),
       'mediaUrl': serializer.toJson<String?>(mediaUrl),
       'mediaType': serializer.toJson<String>(mediaType),
+      'localMediaPath': serializer.toJson<String?>(localMediaPath),
       'conversationId': serializer.toJson<String>(conversationId),
       'replyToMessageId': serializer.toJson<String?>(replyToMessageId),
       'forwardedFromMessageId': serializer.toJson<String?>(
@@ -460,6 +495,7 @@ class IndividualMessage extends DataClass
     String? content,
     Value<String?> mediaUrl = const Value.absent(),
     String? mediaType,
+    Value<String?> localMediaPath = const Value.absent(),
     String? conversationId,
     Value<String?> replyToMessageId = const Value.absent(),
     Value<String?> forwardedFromMessageId = const Value.absent(),
@@ -473,6 +509,9 @@ class IndividualMessage extends DataClass
     content: content ?? this.content,
     mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
     mediaType: mediaType ?? this.mediaType,
+    localMediaPath: localMediaPath.present
+        ? localMediaPath.value
+        : this.localMediaPath,
     conversationId: conversationId ?? this.conversationId,
     replyToMessageId: replyToMessageId.present
         ? replyToMessageId.value
@@ -492,6 +531,9 @@ class IndividualMessage extends DataClass
       content: data.content.present ? data.content.value : this.content,
       mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
       mediaType: data.mediaType.present ? data.mediaType.value : this.mediaType,
+      localMediaPath: data.localMediaPath.present
+          ? data.localMediaPath.value
+          : this.localMediaPath,
       conversationId: data.conversationId.present
           ? data.conversationId.value
           : this.conversationId,
@@ -516,6 +558,7 @@ class IndividualMessage extends DataClass
           ..write('content: $content, ')
           ..write('mediaUrl: $mediaUrl, ')
           ..write('mediaType: $mediaType, ')
+          ..write('localMediaPath: $localMediaPath, ')
           ..write('conversationId: $conversationId, ')
           ..write('replyToMessageId: $replyToMessageId, ')
           ..write('forwardedFromMessageId: $forwardedFromMessageId, ')
@@ -534,6 +577,7 @@ class IndividualMessage extends DataClass
     content,
     mediaUrl,
     mediaType,
+    localMediaPath,
     conversationId,
     replyToMessageId,
     forwardedFromMessageId,
@@ -551,6 +595,7 @@ class IndividualMessage extends DataClass
           other.content == this.content &&
           other.mediaUrl == this.mediaUrl &&
           other.mediaType == this.mediaType &&
+          other.localMediaPath == this.localMediaPath &&
           other.conversationId == this.conversationId &&
           other.replyToMessageId == this.replyToMessageId &&
           other.forwardedFromMessageId == this.forwardedFromMessageId &&
@@ -566,6 +611,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
   final Value<String> content;
   final Value<String?> mediaUrl;
   final Value<String> mediaType;
+  final Value<String?> localMediaPath;
   final Value<String> conversationId;
   final Value<String?> replyToMessageId;
   final Value<String?> forwardedFromMessageId;
@@ -580,6 +626,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
     this.content = const Value.absent(),
     this.mediaUrl = const Value.absent(),
     this.mediaType = const Value.absent(),
+    this.localMediaPath = const Value.absent(),
     this.conversationId = const Value.absent(),
     this.replyToMessageId = const Value.absent(),
     this.forwardedFromMessageId = const Value.absent(),
@@ -595,6 +642,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
     required String content,
     this.mediaUrl = const Value.absent(),
     required String mediaType,
+    this.localMediaPath = const Value.absent(),
     required String conversationId,
     this.replyToMessageId = const Value.absent(),
     this.forwardedFromMessageId = const Value.absent(),
@@ -615,6 +663,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
     Expression<String>? content,
     Expression<String>? mediaUrl,
     Expression<String>? mediaType,
+    Expression<String>? localMediaPath,
     Expression<String>? conversationId,
     Expression<String>? replyToMessageId,
     Expression<String>? forwardedFromMessageId,
@@ -630,6 +679,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
       if (content != null) 'content': content,
       if (mediaUrl != null) 'media_url': mediaUrl,
       if (mediaType != null) 'media_type': mediaType,
+      if (localMediaPath != null) 'local_media_path': localMediaPath,
       if (conversationId != null) 'conversation_id': conversationId,
       if (replyToMessageId != null) 'reply_to_message_id': replyToMessageId,
       if (forwardedFromMessageId != null)
@@ -648,6 +698,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
     Value<String>? content,
     Value<String?>? mediaUrl,
     Value<String>? mediaType,
+    Value<String?>? localMediaPath,
     Value<String>? conversationId,
     Value<String?>? replyToMessageId,
     Value<String?>? forwardedFromMessageId,
@@ -663,6 +714,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
       content: content ?? this.content,
       mediaUrl: mediaUrl ?? this.mediaUrl,
       mediaType: mediaType ?? this.mediaType,
+      localMediaPath: localMediaPath ?? this.localMediaPath,
       conversationId: conversationId ?? this.conversationId,
       replyToMessageId: replyToMessageId ?? this.replyToMessageId,
       forwardedFromMessageId:
@@ -692,6 +744,9 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
     }
     if (mediaType.present) {
       map['media_type'] = Variable<String>(mediaType.value);
+    }
+    if (localMediaPath.present) {
+      map['local_media_path'] = Variable<String>(localMediaPath.value);
     }
     if (conversationId.present) {
       map['conversation_id'] = Variable<String>(conversationId.value);
@@ -730,6 +785,7 @@ class IndividualMessagesCompanion extends UpdateCompanion<IndividualMessage> {
           ..write('content: $content, ')
           ..write('mediaUrl: $mediaUrl, ')
           ..write('mediaType: $mediaType, ')
+          ..write('localMediaPath: $localMediaPath, ')
           ..write('conversationId: $conversationId, ')
           ..write('replyToMessageId: $replyToMessageId, ')
           ..write('forwardedFromMessageId: $forwardedFromMessageId, ')
@@ -1137,6 +1193,7 @@ typedef $$IndividualMessagesTableCreateCompanionBuilder =
       required String content,
       Value<String?> mediaUrl,
       required String mediaType,
+      Value<String?> localMediaPath,
       required String conversationId,
       Value<String?> replyToMessageId,
       Value<String?> forwardedFromMessageId,
@@ -1153,6 +1210,7 @@ typedef $$IndividualMessagesTableUpdateCompanionBuilder =
       Value<String> content,
       Value<String?> mediaUrl,
       Value<String> mediaType,
+      Value<String?> localMediaPath,
       Value<String> conversationId,
       Value<String?> replyToMessageId,
       Value<String?> forwardedFromMessageId,
@@ -1194,6 +1252,11 @@ class $$IndividualMessagesTableFilterComposer
 
   ColumnFilters<String> get mediaType => $composableBuilder(
     column: $table.mediaType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localMediaPath => $composableBuilder(
+    column: $table.localMediaPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1267,6 +1330,11 @@ class $$IndividualMessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get localMediaPath => $composableBuilder(
+    column: $table.localMediaPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get conversationId => $composableBuilder(
     column: $table.conversationId,
     builder: (column) => ColumnOrderings(column),
@@ -1326,6 +1394,11 @@ class $$IndividualMessagesTableAnnotationComposer
 
   GeneratedColumn<String> get mediaType =>
       $composableBuilder(column: $table.mediaType, builder: (column) => column);
+
+  GeneratedColumn<String> get localMediaPath => $composableBuilder(
+    column: $table.localMediaPath,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get conversationId => $composableBuilder(
     column: $table.conversationId,
@@ -1400,6 +1473,7 @@ class $$IndividualMessagesTableTableManager
                 Value<String> content = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
                 Value<String> mediaType = const Value.absent(),
+                Value<String?> localMediaPath = const Value.absent(),
                 Value<String> conversationId = const Value.absent(),
                 Value<String?> replyToMessageId = const Value.absent(),
                 Value<String?> forwardedFromMessageId = const Value.absent(),
@@ -1414,6 +1488,7 @@ class $$IndividualMessagesTableTableManager
                 content: content,
                 mediaUrl: mediaUrl,
                 mediaType: mediaType,
+                localMediaPath: localMediaPath,
                 conversationId: conversationId,
                 replyToMessageId: replyToMessageId,
                 forwardedFromMessageId: forwardedFromMessageId,
@@ -1430,6 +1505,7 @@ class $$IndividualMessagesTableTableManager
                 required String content,
                 Value<String?> mediaUrl = const Value.absent(),
                 required String mediaType,
+                Value<String?> localMediaPath = const Value.absent(),
                 required String conversationId,
                 Value<String?> replyToMessageId = const Value.absent(),
                 Value<String?> forwardedFromMessageId = const Value.absent(),
@@ -1444,6 +1520,7 @@ class $$IndividualMessagesTableTableManager
                 content: content,
                 mediaUrl: mediaUrl,
                 mediaType: mediaType,
+                localMediaPath: localMediaPath,
                 conversationId: conversationId,
                 replyToMessageId: replyToMessageId,
                 forwardedFromMessageId: forwardedFromMessageId,
