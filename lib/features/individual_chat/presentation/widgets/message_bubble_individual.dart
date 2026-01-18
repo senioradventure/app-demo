@@ -4,7 +4,7 @@ import 'package:senior_circle/features/individual_chat/model/individual_message_
 import 'package:senior_circle/features/individual_chat/presentation/widgets/message_file_bubble.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/message_image.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/message_time.dart';
-import 'package:senior_circle/features/individual_chat/presentation/widgets/message_voice_bubble.dart';
+import 'package:senior_circle/core/common/widgets/message_voice_bubble.dart';
 import 'package:senior_circle/features/individual_chat/presentation/widgets/replied_message_preview.dart';
 
 class MessageBubbleIndividual extends StatelessWidget {

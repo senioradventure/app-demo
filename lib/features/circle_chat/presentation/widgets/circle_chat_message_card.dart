@@ -15,6 +15,7 @@ import 'package:senior_circle/features/circle_chat/presentation/widgets/circle_c
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:senior_circle/core/common/widgets/file_message_bubble.dart'; 
 import 'package:senior_circle/core/constants/media_type.dart';
+import 'package:senior_circle/core/common/widgets/message_voice_bubble.dart';
 
 class CircleChatMessageCard extends StatefulWidget {
   final CircleChatMessage grpmessage;
@@ -290,11 +291,16 @@ class _CircleChatMessageCardState extends State<CircleChatMessageCard> {
                                           isMe: isMe,
                                           isGroup: true,
                                         )
-                                      : FileMessageBubble(
-                                          fileUrl: grpmessage.imagePath!,
-                                          isMe: isMe, 
-                                          isGroup: true,
-                                        ),
+                                      : grpmessage.mediaType == MediaType.audio 
+                                          ? MessageVoiceBubble(
+                                              audioUrl: grpmessage.imagePath!,
+                                              isMe: isMe,
+                                            )
+                                          : FileMessageBubble(
+                                              fileUrl: grpmessage.imagePath!,
+                                              isMe: isMe, 
+                                              isGroup: true,
+                                            ),
                                 ),
 
                               if (grpmessage.text != null &&
